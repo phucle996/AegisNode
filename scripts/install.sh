@@ -125,13 +125,13 @@ else
 fi
 
 # 7. Cài đặt và kích hoạt systemd service
-echo -e "${CYAN}[5/5] Registering systemd service aegisnode-local.service...${NC}"
-SERVICE_SRC="packaging/systemd/aegisnode-local.service"
+echo -e "${CYAN}[5/5] Registering systemd service aegisnode-agent.service...${NC}"
+SERVICE_SRC="packaging/systemd/aegisnode-agent.service"
 if [ -f "$SERVICE_SRC" ]; then
-    cp "$SERVICE_SRC" /etc/systemd/system/aegisnode-local.service
+    cp "$SERVICE_SRC" /etc/systemd/system/aegisnode-agent.service
 else
-    # Fallback tao systemd unit file
-    cat <<'EOF' > /etc/systemd/system/aegisnode-local.service
+    # Fallback tạo systemd unit file
+    cat <<'EOF' > /etc/systemd/system/aegisnode-agent.service
 [Unit]
 Description=AegisNode Local Firewall Agent
 After=network.target network-online.target
@@ -152,12 +152,13 @@ WantedBy=multi-user.target
 EOF
 fi
 
-chmod 0644 /etc/systemd/system/aegisnode-local.service
+chmod 0644 /etc/systemd/system/aegisnode-agent.service
 systemctl daemon-reload
-systemctl enable aegisnode-local.service
+systemctl enable aegisnode-agent.service
 echo -e "${GREEN}✓ AegisNode systemd service registered and enabled.${NC}"
 
 echo -e "${GREEN}==============================================================================${NC}"
 echo -e "${GREEN}★ AegisNode installed successfully from GitHub Releases! Start with:${NC}"
-echo -e "${CYAN}   sudo systemctl start aegisnode-local${NC}"
+echo -e "${CYAN}   sudo systemctl start aegisnode-agent${NC}"
 echo -e "${GREEN}==============================================================================${NC}"
+

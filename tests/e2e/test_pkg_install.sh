@@ -46,9 +46,9 @@ fi
 
 # 5. Test Systemd Lifecycle (Start, Status, Restart, Stop)
 echo -n "Test E2E-SD-003: Systemd start service... "
-sudo systemctl start aegisnode-local
+sudo systemctl start aegisnode-agent
 sleep 2
-if systemctl is-active --quiet aegisnode-local; then
+if systemctl is-active --quiet aegisnode-agent; then
     echo -e "${GREEN}PASSED${NC}"
 else
     echo -e "${RED}FAILED${NC}"
@@ -56,9 +56,10 @@ else
 fi
 
 echo -n "Test E2E-SD-005: Systemd restart service... "
-sudo systemctl restart aegisnode-local
+sudo systemctl restart aegisnode-agent
 sleep 2
-if systemctl is-active --quiet aegisnode-local; then
+if systemctl is-active --quiet aegisnode-agent; then
+
     echo -e "${GREEN}PASSED${NC}"
 else
     echo -e "${RED}FAILED${NC}"

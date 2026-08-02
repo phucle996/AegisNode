@@ -34,21 +34,23 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 # 1. Stop and disable systemd service
-if systemctl is-active --quiet aegisnode-local.service 2>/dev/null; then
-    echo -e "${CYAN}[1/4] Stopping aegisnode-local.service...${NC}"
-    systemctl stop aegisnode-local.service
-fi
+for SVC in aegisnode-agent.service aegisnode-local.service; do
+    if systemctl is-active --quiet "$SVC" 2>/dev/null; then
+        echo -e "${CYAN}[1/4] Stopping $SVC...${NC}"
+        systemctl stop "$SVC"
+    fi
 
-if systemctl is-enabled --quiet aegisnode-local.service 2>/dev/null; then
-    echo -e "${CYAN}[2/4] Disabling aegisnode-local.service...${NC}"
-    systemctl disable aegisnode-local.service
-fi
+    if systemctl is-enabled --quiet "$SVC" 2>/dev/null; then
+        echo -e "${CYAN}[2/4] Disabling $SVC...${NC}"
+        systemctl disable "$SVC"
+    fi
 
-# Remove systemd unit file
-if [ -f "/etc/systemd/system/aegisnode-local.service" ]; then
-    rm -f /etc/systemd/system/aegisnode-local.service
-    systemctl daemon-reload
-fi
+    if [ -f "/etc/systemd/system/$SVC" ]; then
+        rm -f "/etc/systemd/system/$SVC"
+        systemctl daemon-reload
+    fi
+done
+
 
 # 2. Xóa binary
 echo -e "${CYAN}[3/4] Removing binary /usr/local/bin/aegisnode...${NC}"

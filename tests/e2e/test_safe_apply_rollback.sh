@@ -15,7 +15,7 @@ echo -e "${CYAN}=== Running E2E Safe Apply & Rollback Verification Tests ===${NC
 
 # Ensure service is running
 sudo ./scripts/install.sh --version v0.1.1 >/dev/null 2>&1 || true
-sudo systemctl restart aegisnode-local
+sudo systemctl restart aegisnode-agent
 sleep 2
 
 API_URL="http://127.0.0.1:8080/v1"
