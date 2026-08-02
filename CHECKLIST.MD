@@ -753,52 +753,52 @@ nft --check --file candidate.nft
 
 ## Docker
 
-* [ ] Kết nối Docker socket.
-* [ ] Docker không tồn tại thì graceful degradation.
-* [ ] Container inventory.
-* [ ] Network inventory.
-* [ ] Published port inventory.
-* [ ] Container label inventory.
-* [ ] Container lifecycle watcher.
-* [ ] Network connect/disconnect watcher.
+* [x] Kết nối Docker socket.
+* [x] Docker không tồn tại thì graceful degradation.
+* [x] Container inventory.
+* [x] Network inventory.
+* [x] Published port inventory.
+* [x] Container label inventory.
+* [x] Container lifecycle watcher.
+* [x] Network connect/disconnect watcher.
 
 ## Exposure analysis
 
-* [ ] Phát hiện bind `0.0.0.0`.
-* [ ] Phát hiện bind `[::]`.
-* [ ] Cảnh báo PostgreSQL public.
-* [ ] Cảnh báo Redis public.
-* [ ] Cảnh báo Docker API public.
-* [ ] Cảnh báo database port public.
-* [ ] Không tự block khi chưa có approval.
+* [x] Phát hiện bind `0.0.0.0`.
+* [x] Phát hiện bind `[::]`.
+* [x] Cảnh báo PostgreSQL public.
+* [x] Cảnh báo Redis public.
+* [x] Cảnh báo Docker API public.
+* [x] Cảnh báo database port public.
+* [x] Không tự block khi chưa có approval.
 
 ## Docker labels
 
-* [ ] Đọc `aegis.exposure`.
-* [ ] Đọc `aegis.allowed-cidrs`.
-* [ ] Validate label.
-* [ ] Cảnh báo label sai.
-* [ ] Không sửa Docker-owned chain.
+* [x] Đọc `aegis.exposure`.
+* [x] Đọc `aegis.allowed-cidrs`.
+* [x] Validate label.
+* [x] Cảnh báo label sai.
+* [x] Không sửa Docker-owned chain.
 
 ## Router mode
 
-* [ ] Option bật IPv4 forwarding.
-* [ ] Option bật IPv6 forwarding.
-* [ ] Snapshot sysctl cũ.
-* [ ] Restore sysctl khi rollback.
-* [ ] Masquerade LAN → WAN.
-* [ ] Port forwarding.
-* [ ] Forward rules.
-* [ ] Validate incoming interface.
-* [ ] Validate destination IP.
-* [ ] Validate duplicate port.
+* [x] Option bật IPv4 forwarding.
+* [x] Option bật IPv6 forwarding.
+* [x] Snapshot sysctl cũ.
+* [x] Restore sysctl khi rollback.
+* [x] Masquerade LAN → WAN.
+* [x] Port forwarding.
+* [x] Forward rules.
+* [x] Validate incoming interface.
+* [x] Validate destination IP.
+* [x] Validate duplicate port.
 
 ## Gate Phase 8
 
-* [ ] Docker restart không làm mất policy.
-* [ ] Linux VM NAT được LAN ra Internet.
-* [ ] Port forwarding hoạt động.
-* [ ] Không phá Docker networking.
+* [x] Docker restart không làm mất policy.
+* [x] Linux VM NAT được LAN ra Internet.
+* [x] Port forwarding hoạt động.
+* [x] Không phá Docker networking.
 
 ---
 
@@ -2207,7 +2207,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 5 — Safe Apply and Rollback.
 * [x] Phase 6 — Local Agent and Storage.
 * [x] Phase 7 — CLI.
-* [ ] Phase 8 — Docker and Router Mode.
+* [x] Phase 8 — Docker and Router Mode.
 * [ ] Phase 9 — Blocker and Journald.
 * [ ] Phase 10 — Web UI.
 * [ ] Phase 11 — Packaging and E2E.

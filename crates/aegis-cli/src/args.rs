@@ -1,5 +1,5 @@
 // Clap CLI Argument Structure cho `aegisctl` / `aegisnode ctl`
-// Định nghĩa toàn bộ cây lệnh: status, firewall (validate, compile, apply, confirm, rollback, rules), audit, version
+// Định nghĩa toàn bộ cây lệnh: status, firewall, docker, audit, version
 
 use std::path::PathBuf;
 
@@ -43,6 +43,12 @@ pub enum Commands {
     Firewall {
         #[command(subcommand)]
         subcommand: FirewallCommands,
+    },
+
+    /// Kiểm định và phân tích rủi ro phơi nhiễm cổng của Docker Containers
+    Docker {
+        #[command(subcommand)]
+        subcommand: DockerCommands,
     },
 
     /// Truy vấn lịch sử Audit log hệ thống
@@ -101,4 +107,13 @@ pub enum FirewallCommands {
 
     /// Hiển thị thông số lưu lượng đếm (Rule Counters)
     Counters,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum DockerCommands {
+    /// Hiển thị danh sách Docker Containers inventory
+    Containers,
+
+    /// Phân tích rủi ro phơi nhiễm cổng public ra WAN (0.0.0.0)
+    Exposure,
 }

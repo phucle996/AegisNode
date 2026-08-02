@@ -7,8 +7,9 @@ use axum::Router;
 use axum::routing::{get, post};
 
 use crate::handlers::{
-    apply_policy_handler, confirm_policy_handler, get_audit_logs_handler, get_policy_handler,
-    get_status_handler, rollback_policy_handler, validate_policy_handler,
+    apply_policy_handler, confirm_policy_handler, get_audit_logs_handler,
+    get_docker_exposure_handler, get_policy_handler, get_status_handler, rollback_policy_handler,
+    set_router_forwarding_handler, validate_policy_handler,
 };
 use crate::state::AppState;
 
@@ -22,5 +23,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/v1/firewall/confirm", post(confirm_policy_handler))
         .route("/v1/firewall/rollback", post(rollback_policy_handler))
         .route("/v1/audit", get(get_audit_logs_handler))
+        .route("/v1/docker/exposure", get(get_docker_exposure_handler))
+        .route("/v1/router/forwarding", post(set_router_forwarding_handler))
         .with_state(state)
 }

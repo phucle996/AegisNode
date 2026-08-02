@@ -1,9 +1,10 @@
 // API Handlers cho Axum Web Framework (HTTP Server & Unix Socket IPC)
-// Xử lý các yêu cầu RESTful và chuyển giao cho Repository Layer / SafeApplyManager
+// Xử lý các yêu cầu RESTful và chuyển giao cho Repository Layer / SafeApplyManager / DockerInspector
 
 use std::sync::Arc;
 
 use aegis_core::ExecutionId;
+use aegis_firewall::{DockerExposureReport, DockerInspector, RouterManager, SysctlSnapshot};
 use aegis_models::firewall::FirewallPolicy;
 use aegis_policy::PolicyValidator;
 use aegis_storage::{AuditRepository, PolicyRepository};
@@ -35,6 +36,13 @@ pub struct ApplyRequest {
 #[serde(rename_all = "camelCase")]
 pub struct ExecutionActionRequest {
     pub execution_id: ExecutionId,
+}
+
+/// Request Payload cho Router Forwarding API
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RouterForwardingRequest {
+    pub enabled: bool,
 }
 
 /// Handler `GET /v1/status`: Trả về thông tin trạng thái agent và capabilities
@@ -79,7 +87,6 @@ pub async fn apply_policy_handler(
         .execute_safe_apply(&req.policy, timeout)
         .await?;
 
-    // Ghi nhận Audit Event & Lưu Policy vào SQLite Repository
     let policy_hash = aegis_policy::PolicyHasher::compute_hash(&req.policy);
     let _ = state
         .repository
@@ -144,4 +151,20 @@ pub async fn get_audit_logs_handler(
 ) -> Result<Json<Vec<aegis_storage::AuditRecord>>, aegis_core::AegisError> {
     let records = state.repository.list_audits(50).await?;
     Ok(Json(records))
+}
+
+/// Handler `GET /v1/docker/exposure`: Phân tích rủi ro phơi nhiễm cổng của Docker Containers
+pub async fn get_docker_exposure_handler()
+-> Result<Json<DockerExposureReport>, aegis_core::AegisError> {
+    let inspector = DockerInspector::default_prod();
+    let report = inspector.inspect().await?;
+    Ok(Json(report))
+}
+
+/// Handler `POST /v1/router/forwarding`: Bật/tắt IP Forwarding cho Router mode
+pub async fn set_router_forwarding_handler(
+    Json(req): Json<RouterForwardingRequest>,
+) -> Result<Json<SysctlSnapshot>, aegis_core::AegisError> {
+    let snapshot = RouterManager::set_ip_forwarding(req.enabled).await?;
+    Ok(Json(snapshot))
 }

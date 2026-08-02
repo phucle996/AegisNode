@@ -10,7 +10,7 @@ use aegis_policy::PolicyValidator;
 use reqwest::Client;
 use serde_json::json;
 
-use crate::args::{CliArgs, Commands, FirewallCommands};
+use crate::args::{CliArgs, Commands, DockerCommands, FirewallCommands};
 use crate::formatter::Formatter;
 
 pub async fn handle_command(args: CliArgs) -> Result<()> {
@@ -88,7 +88,6 @@ pub async fn handle_command(args: CliArgs) -> Result<()> {
                     AegisError::Validation(format!("Invalid policy YAML in '{file:?}': {e}"))
                 })?;
 
-                // Check security warnings
                 let report = PolicyValidator::validate(&policy);
                 if !report.is_valid() {
                     return Err(AegisError::Validation(
@@ -199,6 +198,23 @@ pub async fn handle_command(args: CliArgs) -> Result<()> {
 
                 let body: serde_json::Value = resp.json().await.map_err(|e| {
                     AegisError::Internal(format!("Failed to parse rules response: {e}"))
+                })?;
+
+                Formatter::print(&body, format);
+            }
+        },
+
+        Commands::Docker { subcommand } => match subcommand {
+            DockerCommands::Containers | DockerCommands::Exposure => {
+                let url = format!("{endpoint}/v1/docker/exposure");
+                let resp = client.get(&url).send().await.map_err(|e| {
+                    AegisError::Internal(format!(
+                        "Failed to connect to agent daemon at '{url}': {e}"
+                    ))
+                })?;
+
+                let body: serde_json::Value = resp.json().await.map_err(|e| {
+                    AegisError::Internal(format!("Failed to parse docker exposure response: {e}"))
                 })?;
 
                 Formatter::print(&body, format);
