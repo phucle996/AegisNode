@@ -1841,51 +1841,51 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Statelessness
 
-* [ ] API stateless.
-* [ ] Session externalized hoặc signed.
-* [ ] Không giữ rollout state chỉ trong memory.
-* [ ] Không giữ certificate state chỉ trong memory.
+* [x] API stateless.
+* [x] Session externalized hoặc signed.
+* [x] Không giữ rollout state chỉ trong memory.
+* [x] Không giữ certificate state chỉ trong memory.
 
 ## Multiple replicas
 
-* [ ] Chạy nhiều controller.
-* [ ] Reverse proxy hoặc load balancer.
-* [ ] Health check.
-* [ ] Readiness check.
-* [ ] Graceful shutdown.
-* [ ] Rolling upgrade.
+* [x] Chạy nhiều controller.
+* [x] Reverse proxy hoặc load balancer.
+* [x] Health check.
+* [x] Readiness check.
+* [x] Graceful shutdown.
+* [x] Rolling upgrade.
 
 ## Database
 
-* [ ] PostgreSQL HA deployment guide.
-* [ ] Connection pooling.
-* [ ] Retry policy.
-* [ ] Transaction timeout.
-* [ ] Read-only degraded mode.
+* [x] PostgreSQL HA deployment guide.
+* [x] Connection pooling.
+* [x] Retry policy.
+* [x] Transaction timeout.
+* [x] Read-only degraded mode.
 
 ## Distributed coordination
 
-* [ ] Distributed lock.
-* [ ] Rollout leader.
-* [ ] Certificate issuance lock.
-* [ ] Background job leader election.
-* [ ] Prevent duplicate execution.
+* [x] Distributed lock.
+* [x] Rollout leader.
+* [x] Certificate issuance lock.
+* [x] Background job leader election.
+* [x] Prevent duplicate execution.
 
 ## Agent failover
 
-* [ ] Multiple controller endpoints.
-* [ ] Endpoint rotation.
-* [ ] Backoff.
-* [ ] Jitter.
-* [ ] Certificate pinning hoặc CA verification.
-* [ ] Agent hoạt động khi toàn controller offline.
+* [x] Multiple controller endpoints.
+* [x] Endpoint rotation.
+* [x] Backoff.
+* [x] Jitter.
+* [x] Certificate pinning hoặc CA verification.
+* [x] Agent hoạt động khi toàn controller offline.
 
 ## Gate Phase 23
 
-* [ ] Kill một controller không mất control plane.
-* [ ] Rollout không chạy hai lần.
-* [ ] Agent reconnect controller khác.
-* [ ] Database tạm lỗi không làm agent mất policy.
+* [x] Kill một controller không mất control plane.
+* [x] Rollout không chạy hai lần.
+* [x] Agent reconnect controller khác.
+* [x] Database tạm lỗi không làm agent mất policy.
 
 ---
 
@@ -1893,11 +1893,11 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Bonding
 
-* [ ] Active-backup.
-* [ ] 802.3ad nếu backend hỗ trợ.
-* [ ] Member validation.
+* [x] Active-backup.
+* [x] 802.3ad nếu backend hỗ trợ.
+* [x] Member validation.
 * [x] Rollback.
-* [ ] Management protection.
+* [x] Management protection.
 
 ## VRF
 
@@ -2272,7 +2272,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 20 — Privilege Separation.
 * [x] Phase 21 — OIDC, RBAC and Approval.
 * [x] Phase 22 — Signed Policy Bundles.
-* [ ] Phase 23 — Controller High Availability.
+* [x] Phase 23 — Controller High Availability.
 * [ ] Phase 24 — Advanced Networking.
 * [ ] Phase 25 — Audit, Backup and Recovery.
 * [ ] Phase 26 — Production Observability.
