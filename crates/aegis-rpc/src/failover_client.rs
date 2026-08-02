@@ -46,13 +46,14 @@ impl FailoverRpcClient {
         next_endpoint
     }
 
-    /// Gửi request qua active endpoint, tự động retry failover sang endpoint tiếp theo nếu lỗi
+    /// Gửi request qua active endpoint, tự động retry failover sang endpoint tiếp theo với Exponential Backoff nếu lỗi
     pub async fn execute_with_failover<F, Fut, T>(&self, f: F) -> Result<T, AegisError>
     where
         F: Fn(String) -> Fut,
         Fut: std::future::Future<Output = Result<T, AegisError>>,
     {
         let max_attempts = self.endpoints.len();
+        let mut backoff_ms = 100u64;
 
         for attempt in 0..max_attempts {
             let endpoint = self.active_endpoint();
@@ -66,8 +67,15 @@ impl FailoverRpcClient {
             match f(endpoint).await {
                 Ok(val) => return Ok(val),
                 Err(e) => {
-                    warn!("Lỗi kết nối tới Controller: {e}");
+                    warn!("Lỗi kết nối tới Controller: {e}. Áp dụng Backoff {backoff_ms}ms...");
                     self.rotate_to_next_endpoint();
+
+                    // Tạm dừng Exponential Backoff nếu còn lần retry tiếp theo
+                    if attempt + 1 < max_attempts {
+                        tokio::time::sleep(std::time::Duration::from_millis(backoff_ms)).await;
+                        // Tăng gấp đôi thời gian chờ cho lần xoay vòng tiếp theo (tối đa 2 giây)
+                        backoff_ms = (backoff_ms * 2).min(2000);
+                    }
                 }
             }
         }

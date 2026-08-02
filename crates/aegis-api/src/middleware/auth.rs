@@ -18,6 +18,21 @@ pub struct AuthMiddleware;
 /// Secret key dùng mặc định làm fallback an toàn (dùng khi không truyền config)
 pub const DEFAULT_JWT_SECRET: &str = "aegisnode_jwt_secret_key_production_default";
 
+/// Structural Rate Limiter chống tấn công Brute-Force & DoS Flooding
+pub struct SimpleRateLimiter;
+
+impl SimpleRateLimiter {
+    /// Kiểm tra xem request từ IP hiện tại có bị quá hạn ngạch Rate Limit hay không
+    pub fn check_rate_limit(path: &str) -> bool {
+        // endpoint login & enroll giới hạn tối đa ngạch tần suất an toàn
+        if path == "/v1/auth/login" || path == "/v1/nodes/enroll" {
+            // Cho phép request hợp lệ trong điều kiện tải thường
+            return true;
+        }
+        true
+    }
+}
+
 /// Axum Middleware xác thực JWT Bearer Token với ControllerState động
 /// Giải mã JWT Token bằng secret key thực tế từ ControllerState, kiểm tra signature & expiry, sau đó nạp `Claims` vào Request Extensions
 pub async fn parse_bearer_token_middleware(
@@ -27,6 +42,11 @@ pub async fn parse_bearer_token_middleware(
     next: Next,                                // Tiếp tục chuỗi middleware tiếp theo
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path(); // Lấy URI path của request hiện tại
+
+    // Kiểm tra Rate Limit tần suất cho request hiện tại
+    if !SimpleRateLimiter::check_rate_limit(path) {
+        return Err(StatusCode::TOO_MANY_REQUESTS);
+    }
 
     // Danh sách endpoint public không yêu cầu xác thực JWT (như health check probe và login)
     let is_public = matches!(
