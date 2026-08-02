@@ -557,62 +557,62 @@ nft --check --file candidate.nft
 
 ## State machine
 
-* [ ] `CREATED`.
-* [ ] `VALIDATED`.
-* [ ] `SNAPSHOTTED`.
-* [ ] `APPLIED_PENDING_CONFIRMATION`.
-* [ ] `COMMITTED`.
-* [ ] `ROLLING_BACK`.
-* [ ] `ROLLED_BACK`.
-* [ ] `FAILED`.
+* [x] `CREATED`.
+* [x] `VALIDATED`.
+* [x] `SNAPSHOTTED`.
+* [x] `APPLIED_PENDING_CONFIRMATION`.
+* [x] `COMMITTED`.
+* [x] `ROLLING_BACK`.
+* [x] `ROLLED_BACK`.
+* [x] `FAILED`.
 
 ## Rollback timer
 
-* [ ] Timer chạy trong daemon.
-* [ ] Timer được persist vào SQLite.
-* [ ] Timer sống qua agent restart.
-* [ ] Không phụ thuộc Web UI.
-* [ ] Không phụ thuộc CLI.
-* [ ] Không phụ thuộc network connection.
+* [x] Timer chạy trong daemon.
+* [x] Timer được persist vào SQLite.
+* [x] Timer sống qua agent restart.
+* [x] Không phụ thuộc Web UI.
+* [x] Không phụ thuộc CLI.
+* [x] Không phụ thuộc network connection.
 
 ## Confirmation
 
-* [ ] CLI confirm.
-* [ ] API confirm.
-* [ ] Web UI confirm.
-* [ ] Reject confirm cho execution hết hạn.
-* [ ] Reject confirm cho execution không tồn tại.
-* [ ] Audit confirm.
+* [x] CLI confirm.
+* [x] API confirm.
+* [x] Web UI confirm.
+* [x] Reject confirm cho execution hết hạn.
+* [x] Reject confirm cho execution không tồn tại.
+* [x] Audit confirm.
 
 ## Manual rollback
 
-* [ ] Rollback theo execution ID.
-* [ ] Rollback về snapshot cụ thể.
-* [ ] Verify rollback.
-* [ ] Audit rollback.
+* [x] Rollback theo execution ID.
+* [x] Rollback về snapshot cụ thể.
+* [x] Verify rollback.
+* [x] Audit rollback.
 
 ## Apply lock
 
-* [ ] Chỉ một apply chạy tại một thời điểm.
-* [ ] Có conflict response.
-* [ ] Lock được giải phóng khi process lỗi.
-* [ ] Khôi phục lock state sau restart.
+* [x] Chỉ một apply chạy tại một thời điểm.
+* [x] Có conflict response.
+* [x] Lock được giải phóng khi process lỗi.
+* [x] Khôi phục lock state sau restart.
 
 ## Health check MVP
 
-* [ ] Kiểm tra managed table.
-* [ ] Kiểm tra loopback.
-* [ ] Kiểm tra local management port.
-* [ ] Optional gateway probe.
-* [ ] Optional TCP target.
-* [ ] Có timeout riêng cho từng check.
+* [x] Kiểm tra managed table.
+* [x] Kiểm tra loopback.
+* [x] Kiểm tra local management port.
+* [x] Optional gateway probe.
+* [x] Optional TCP target.
+* [x] Có timeout riêng cho từng check.
 
 ## Gate Phase 5
 
-* [ ] Không confirm thì tự rollback.
-* [ ] Restart daemon giữa pending state vẫn rollback.
-* [ ] Hai apply đồng thời bị chặn.
-* [ ] Mất Web UI không ảnh hưởng rollback.
+* [x] Không confirm thì tự rollback.
+* [x] Restart daemon giữa pending state vẫn rollback.
+* [x] Hai apply đồng thời bị chặn.
+* [x] Mất Web UI không ảnh hưởng rollback.
 
 ---
 
@@ -2204,7 +2204,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 2 — Policy Validation.
 * [x] Phase 3 — nftables Compiler.
 * [x] Phase 4 — nftables Runtime Backend.
-* [ ] Phase 5 — Safe Apply and Rollback.
+* [x] Phase 5 — Safe Apply and Rollback.
 * [ ] Phase 6 — Local Agent and Storage.
 * [ ] Phase 7 — CLI.
 * [ ] Phase 8 — Docker and Router Mode.
