@@ -16,10 +16,10 @@ import { cn } from '@/lib/utils'
 import { Separator } from '@/components/ui/separator'
 import { TooltipProvider } from '@/components/ui/tooltip'
 
-// Định nghĩa danh sách các mục điều hướng điều hướng Sidebar (Bao gồm Fleet & Rollouts)
+// Định nghĩa danh sách các mục điều hướng điều hướng Sidebar (Quản lý Nodes & Rollouts)
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboardIcon, label: 'Dashboard', end: true },
-  { to: '/fleet', icon: ServerIcon, label: 'Fleet Nodes' },
+  { to: '/nodes', icon: ServerIcon, label: 'Nodes Management' },
   { to: '/rollouts', icon: LayersIcon, label: 'Rollout Console' },
   { to: '/firewall', icon: ShieldIcon, label: 'Firewall Rules' },
   { to: '/policy', icon: FileCodeIcon, label: 'Policy Editor' },

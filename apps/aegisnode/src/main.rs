@@ -253,11 +253,15 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
         is_leader_flag.store(true, std::sync::atomic::Ordering::SeqCst);
     }
 
+    // Khởi tạo active_nodes in-memory map theo dõi các node thực tế
+    let active_nodes = Arc::new(tokio::sync::RwLock::new(std::collections::HashMap::new()));
+
     let controller_state = Arc::new(ControllerState {
         repository,
         config: config.clone(),
         pki_manager,
         is_leader: is_leader_flag,
+        active_nodes,
     });
 
     // Cấu hình request body size limit tối đa 2MB tránh lỗ hổng DoS qua payload lớn

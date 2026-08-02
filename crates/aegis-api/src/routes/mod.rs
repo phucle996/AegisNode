@@ -3,6 +3,7 @@
 
 // Submodules cho Controller Rest API
 pub mod controller {
+    pub use crate::routes::auth::*;
     pub use crate::routes::enrollment::*;
     pub use crate::routes::health::*;
     pub use crate::routes::inventory::*;
@@ -17,6 +18,7 @@ pub mod agent {
     pub use crate::routes::systemd::*;
 }
 
+pub mod auth;
 pub mod blocker;
 pub mod enrollment;
 pub mod firewall;
@@ -25,6 +27,8 @@ pub mod inventory;
 pub mod network;
 pub mod rollout;
 pub mod systemd;
+
+pub use auth::{login_handler, LoginRequest, LoginResponse};
 
 pub use blocker::{
     add_block_entry_handler, get_blocker_entries_handler, remove_block_entry_handler,

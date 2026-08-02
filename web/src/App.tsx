@@ -8,7 +8,7 @@ import PolicyEditorPage from '@/pages/policy/PolicyEditorPage'
 import DockerPage from '@/pages/docker/DockerPage'
 import BlockedIPsPage from '@/pages/blocked/BlockedIPsPage'
 import AuditLogsPage from '@/pages/audit/AuditLogsPage'
-import { FleetOverview } from '@/components/FleetOverview'
+import { NodesOverview } from '@/components/NodesOverview'
 import { RolloutConsole } from '@/components/RolloutConsole'
 
 // Placeholder cho các trang chưa khả dụng
@@ -27,8 +27,8 @@ export default function App() {
           {/* Index route: Dashboard */}
           <Route index element={<DashboardPage />} />
 
-          {/* Route Quản lý danh sách Node trong Fleet (Phase 19) */}
-          <Route path="fleet" element={<FleetOverview />} />
+          {/* Route Quản lý danh sách Nodes máy chủ thực tế */}
+          <Route path="nodes" element={<NodesOverview />} />
 
           {/* Route Điều khiển đợt triển khai Rollout Console (Phase 19) */}
           <Route path="rollouts" element={<RolloutConsole />} />

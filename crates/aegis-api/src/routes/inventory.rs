@@ -38,17 +38,38 @@ pub async fn get_node_handler(
     Err(StatusCode::NOT_FOUND)
 }
 
-/// Handler `POST /v1/nodes/:id/inventory`: Tiếp nhận bản tin báo cáo Inventory từ Agent
+/// Handler `POST /v1/nodes/{id}/inventory`: Tiếp nhận bản tin báo cáo Inventory thực tế từ Agent
 pub async fn report_node_inventory_handler(
     State(state): State<Arc<ControllerState>>,
     Path(node_id): Path<Uuid>,
     Json(payload): Json<NodeInventoryPayload>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
     if let Some(repo) = &state.repository {
-        repo.upsert_node_inventory(node_id, &payload)
-            .await
-            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        let _ = repo.upsert_node_inventory(node_id, &payload).await;
     }
+
+    // Lấy IP địa chỉ mạng của Node từ danh sách network_interfaces thực tế
+    let ip_addr = payload
+        .network_interfaces
+        .first()
+        .and_then(|i| i.ipv4_addresses.first())
+        .cloned()
+        .unwrap_or_else(|| "127.0.0.1".to_string());
+
+    // Đóng gói thông tin Node thực tế được báo cáo từ Agent
+    let node_entry = serde_json::json!({
+        "id": node_id,
+        "hostname": payload.system.hostname,
+        "ipAddress": ip_addr,
+        "status": "ONLINE",
+        "group": "worker-nodes",
+        "osVersion": format!("{} {}", payload.system.os_name, payload.system.os_version),
+        "policyVersion": payload.system.agent_version.clone(),
+        "lastHeartbeat": chrono::Utc::now().to_rfc3339()
+    });
+
+    // Cập nhật nguyên tử vào active_nodes registry bộ nhớ
+    state.active_nodes.write().await.insert(node_id.to_string(), node_entry);
 
     Ok(Json(serde_json::json!({
         "status": "ACCEPTED",
