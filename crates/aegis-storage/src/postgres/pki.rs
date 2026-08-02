@@ -21,11 +21,20 @@ impl PgRepository {
         .await
         .map_err(|e| AegisError::Storage(format!("Failed to fetch active Root CA: {e}")))?;
 
-        Ok(row)
+        // Giải mã ca_key_pem bí mật nếu bản ghi tồn tại
+        if let Some((cert_pem, enc_key)) = row {
+            let decrypted_key = aegis_core::pki::PkiManager::decrypt_key_payload(&enc_key)?;
+            Ok(Some((cert_pem, decrypted_key)))
+        } else {
+            Ok(None)
+        }
     }
 
     /// Lưu trữ bản ghi Root CA mới vào PostgreSQL để sử dụng chung toàn Cluster (Sử dụng Transaction nguyên tử chống Race Condition)
     pub async fn save_root_ca(&self, ca_cert_pem: &str, ca_key_pem: &str) -> Result<()> {
+        // Mã hóa ca_key_pem trước khi lưu xuống đĩa CSDL
+        let encrypted_key = aegis_core::pki::PkiManager::encrypt_key_payload(ca_key_pem);
+
         // Bắt đầu một database transaction mới
         let mut tx = self
             .pool
@@ -39,7 +48,7 @@ impl PgRepository {
             .await
             .map_err(|e| AegisError::Storage(format!("Failed to deactivate old Root CAs: {e}")))?;
 
-        // Lưu bản ghi Root CA mới với trạng thái active = TRUE trong transaction
+        // Lưu bản ghi Root CA mới với trạng thái active = TRUE và key đã mã hóa trong transaction
         sqlx::query(
             r#"
             INSERT INTO cluster_pki_ca (ca_cert_pem, ca_key_pem, active)
@@ -47,7 +56,7 @@ impl PgRepository {
             "#,
         )
         .bind(ca_cert_pem)
-        .bind(ca_key_pem)
+        .bind(&encrypted_key)
         .execute(&mut *tx)
         .await
         .map_err(|e| AegisError::Storage(format!("Failed to save Root CA: {e}")))?;

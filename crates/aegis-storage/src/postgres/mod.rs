@@ -35,6 +35,11 @@ impl PgRepository {
                 AegisError::Storage(format!("Failed to connect to PostgreSQL at '{url}': {e}"))
             })?;
 
+        // Tự động kiểm tra và nâng cấp CSDL PostgreSQL (Auto-migrations) khi khởi chạy daemon
+        if let Err(e) = sqlx::migrate!("./migrations_postgres").run(&pool).await {
+            tracing::warn!("Auto-migration warning (schema may already be managed): {e}");
+        }
+
         Ok(Self { pool })
     }
 

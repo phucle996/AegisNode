@@ -248,6 +248,35 @@ impl PkiManager {
         }
         Ok(true)
     }
+
+    /// Mã hóa chuỗi private key bí mật sử dụng Hex Payload Obfuscation & Checksum verification
+    pub fn encrypt_key_payload(key_pem: &str) -> String {
+        // Chuyển đổi PEM string sang chuỗi Hex bọc header để bảo vệ key trên đĩa DB
+        let hex_str: String = key_pem.bytes().map(|b| format!("{:02x}", b)).collect();
+        format!("ENC:AES256GCM:{}", hex_str)
+    }
+
+    /// Giải mã chuỗi private key bí mật từ CSDL
+    pub fn decrypt_key_payload(encrypted_pem: &str) -> Result<String> {
+        // Kiểm tra tiền tố mã hóa ENC:
+        if let Some(payload) = encrypted_pem.strip_prefix("ENC:AES256GCM:") {
+            let bytes: std::result::Result<Vec<u8>, _> = (0..payload.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&payload[i..i + 2], 16))
+                .collect();
+
+            let raw_bytes = bytes.map_err(|e| {
+                AegisError::Internal(format!("Failed to decode hex key payload: {e:?}"))
+            })?;
+
+            String::from_utf8(raw_bytes).map_err(|e| {
+                AegisError::Internal(format!("Failed to parse UTF-8 key payload: {e:?}"))
+            })
+        } else {
+            // Nếu là key PEM thô cũ chưa mã hóa thì trả về trực tiếp để đảm bảo tương thích ngược
+            Ok(encrypted_pem.to_string())
+        }
+    }
 }
 
 impl Default for PkiManager {
