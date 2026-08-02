@@ -1,10 +1,13 @@
 // API Handlers cho Axum Web Framework (HTTP Server & Unix Socket IPC)
-// Xử lý các yêu cầu RESTful và chuyển giao cho Repository Layer / SafeApplyManager / DockerInspector
+// Xử lý các yêu cầu RESTful và chuyển giao cho Repository Layer / SafeApplyManager / Blocker
 
 use std::sync::Arc;
 
 use aegis_core::ExecutionId;
-use aegis_firewall::{DockerExposureReport, DockerInspector, RouterManager, SysctlSnapshot};
+use aegis_firewall::{
+    BlockManager, DockerExposureReport, DockerInspector, RouterManager, SysctlSnapshot,
+};
+use aegis_models::blocker::{BlockEntry, BlockerConfig};
 use aegis_models::firewall::FirewallPolicy;
 use aegis_policy::PolicyValidator;
 use aegis_storage::{AuditRepository, PolicyRepository};
@@ -43,6 +46,22 @@ pub struct ExecutionActionRequest {
 #[serde(rename_all = "camelCase")]
 pub struct RouterForwardingRequest {
     pub enabled: bool,
+}
+
+/// Request Payload cho Blocker Add API
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockAddRequest {
+    pub ip: String,
+    pub duration_seconds: Option<u64>,
+    pub reason: Option<String>,
+}
+
+/// Request Payload cho Blocker Remove API
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockRemoveRequest {
+    pub ip: String,
 }
 
 /// Handler `GET /v1/status`: Trả về thông tin trạng thái agent và capabilities
@@ -167,4 +186,45 @@ pub async fn set_router_forwarding_handler(
 ) -> Result<Json<SysctlSnapshot>, aegis_core::AegisError> {
     let snapshot = RouterManager::set_ip_forwarding(req.enabled).await?;
     Ok(Json(snapshot))
+}
+
+/// Handler `GET /v1/blocker/entries`: Trả về danh sách IP đang bị cấm
+pub async fn get_blocker_entries_handler() -> Result<Json<Vec<BlockEntry>>, aegis_core::AegisError>
+{
+    let mut mgr = BlockManager::new(BlockerConfig::default());
+    let entries = mgr.list_blocks();
+    Ok(Json(entries))
+}
+
+/// Handler `POST /v1/blocker/add`: Thêm IP thủ công vào Blocklist
+pub async fn add_block_entry_handler(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<BlockAddRequest>,
+) -> Result<Json<BlockEntry>, aegis_core::AegisError> {
+    let mut mgr = BlockManager::new(BlockerConfig::default());
+    let reason = req.reason.as_deref().unwrap_or("Manual API Block");
+    let entry = mgr.add_block(&req.ip, req.duration_seconds, reason, "api_user")?;
+
+    let _ = state
+        .repository
+        .record_audit("BLOCK_ADD", "api_user", &req.ip, reason)
+        .await;
+
+    Ok(Json(entry))
+}
+
+/// Handler `POST /v1/blocker/remove`: Gỡ bỏ IP khỏi Blocklist
+pub async fn remove_block_entry_handler(
+    State(state): State<Arc<AppState>>,
+    Json(req): Json<BlockRemoveRequest>,
+) -> Result<Json<Option<BlockEntry>>, aegis_core::AegisError> {
+    let mut mgr = BlockManager::new(BlockerConfig::default());
+    let entry = mgr.remove_block(&req.ip)?;
+
+    let _ = state
+        .repository
+        .record_audit("BLOCK_REMOVE", "api_user", &req.ip, "Manual API Unblock")
+        .await;
+
+    Ok(Json(entry))
 }

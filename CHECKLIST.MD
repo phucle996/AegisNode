@@ -806,59 +806,59 @@ nft --check --file candidate.nft
 
 ## nftables block set
 
-* [ ] `blocked_ipv4`.
-* [ ] `blocked_ipv6`.
-* [ ] Timeout support.
-* [ ] Counter support.
-* [ ] Single lookup rule.
+* [x] `blocked_ipv4`.
+* [x] `blocked_ipv6`.
+* [x] Timeout support.
+* [x] Counter support.
+* [x] Single lookup rule.
 
 ## Manual block
 
-* [ ] Add IPv4.
-* [ ] Add IPv6.
-* [ ] Temporary duration.
-* [ ] Permanent block.
-* [ ] Reason.
-* [ ] Actor.
-* [ ] Remove block.
-* [ ] List blocks.
+* [x] Add IPv4.
+* [x] Add IPv6.
+* [x] Temporary duration.
+* [x] Permanent block.
+* [x] Reason.
+* [x] Actor.
+* [x] Remove block.
+* [x] List blocks.
 
 ## Journald
 
-* [ ] Đọc journal theo cursor.
-* [ ] Filter theo unit.
-* [ ] Persist cursor.
-* [ ] Không đọc lại toàn bộ log sau restart.
-* [ ] Giới hạn batch.
-* [ ] Xử lý journal rotation.
+* [x] Đọc journal theo cursor.
+* [x] Filter theo unit.
+* [x] Persist cursor.
+* [x] Không đọc lại toàn bộ log sau restart.
+* [x] Giới hạn batch.
+* [x] Xử lý journal rotation.
 
 ## SSH detector
 
-* [ ] Parse failed login.
-* [ ] Parse invalid user.
-* [ ] Trích source IP.
-* [ ] Threshold.
-* [ ] Time window.
-* [ ] Block duration.
-* [ ] Memory cleanup.
-* [ ] IPv4.
-* [ ] IPv6.
+* [x] Parse failed login.
+* [x] Parse invalid user.
+* [x] Trích source IP.
+* [x] Threshold.
+* [x] Time window.
+* [x] Block duration.
+* [x] Memory cleanup.
+* [x] IPv4.
+* [x] IPv6.
 
 ## Protection
 
-* [ ] Không block loopback.
-* [ ] Không block management CIDR.
-* [ ] Có explicit allowlist.
-* [ ] Có maximum block duration.
-* [ ] Có maximum active block count.
-* [ ] Rate limit audit event.
+* [x] Không block loopback.
+* [x] Không block management CIDR.
+* [x] Có explicit allowlist.
+* [x] Có maximum block duration.
+* [x] Có maximum active block count.
+* [x] Rate limit audit event.
 
 ## Gate Phase 9
 
-* [ ] IP vượt threshold bị block.
-* [ ] Block tự hết hạn.
-* [ ] Management CIDR không bị block.
-* [ ] Restart daemon đồng bộ được block state.
+* [x] IP vượt threshold bị block.
+* [x] Block tự hết hạn.
+* [x] Management CIDR không bị block.
+* [x] Restart daemon đồng bộ được block state.
 
 ---
 
@@ -2208,7 +2208,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 6 — Local Agent and Storage.
 * [x] Phase 7 — CLI.
 * [x] Phase 8 — Docker and Router Mode.
-* [ ] Phase 9 — Blocker and Journald.
+* [x] Phase 9 — Blocker and Journald.
 * [ ] Phase 10 — Web UI.
 * [ ] Phase 11 — Packaging and E2E.
 * [ ] MVP Stage Gate passed.

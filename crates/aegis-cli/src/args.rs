@@ -1,5 +1,5 @@
 // Clap CLI Argument Structure cho `aegisctl` / `aegisnode ctl`
-// Định nghĩa toàn bộ cây lệnh: status, firewall, docker, audit, version
+// Định nghĩa toàn bộ cây lệnh: status, firewall, docker, block, audit, version
 
 use std::path::PathBuf;
 
@@ -49,6 +49,12 @@ pub enum Commands {
     Docker {
         #[command(subcommand)]
         subcommand: DockerCommands,
+    },
+
+    /// Quản lý danh sách IP bị cấm (Blocklist Management)
+    Block {
+        #[command(subcommand)]
+        subcommand: BlockCommands,
     },
 
     /// Truy vấn lịch sử Audit log hệ thống
@@ -116,4 +122,30 @@ pub enum DockerCommands {
 
     /// Phân tích rủi ro phơi nhiễm cổng public ra WAN (0.0.0.0)
     Exposure,
+}
+
+#[derive(Subcommand, Debug)]
+pub enum BlockCommands {
+    /// Hiển thị danh sách IP đang bị cấm
+    List,
+
+    /// Thêm thủ công một IP vào danh sách Block
+    Add {
+        /// Địa chỉ IP cần block (IPv4 hoặc IPv6)
+        ip: String,
+
+        /// Thời hạn block (giây), để trống nếu cấm vĩnh viễn
+        #[arg(short, long)]
+        duration: Option<u64>,
+
+        /// Lý do block
+        #[arg(short, long, default_value = "Manual CLI Block")]
+        reason: String,
+    },
+
+    /// Gỡ bỏ một IP khỏi danh sách Block
+    Remove {
+        /// Địa chỉ IP cần gỡ bỏ
+        ip: String,
+    },
 }

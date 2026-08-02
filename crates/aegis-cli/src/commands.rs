@@ -10,7 +10,7 @@ use aegis_policy::PolicyValidator;
 use reqwest::Client;
 use serde_json::json;
 
-use crate::args::{CliArgs, Commands, DockerCommands, FirewallCommands};
+use crate::args::{BlockCommands, CliArgs, Commands, DockerCommands, FirewallCommands};
 use crate::formatter::Formatter;
 
 pub async fn handle_command(args: CliArgs) -> Result<()> {
@@ -218,6 +218,81 @@ pub async fn handle_command(args: CliArgs) -> Result<()> {
                 })?;
 
                 Formatter::print(&body, format);
+            }
+        },
+
+        Commands::Block { subcommand } => match subcommand {
+            BlockCommands::List => {
+                let url = format!("{endpoint}/v1/blocker/entries");
+                let resp = client.get(&url).send().await.map_err(|e| {
+                    AegisError::Internal(format!(
+                        "Failed to connect to agent daemon at '{url}': {e}"
+                    ))
+                })?;
+
+                let body: serde_json::Value = resp.json().await.map_err(|e| {
+                    AegisError::Internal(format!("Failed to parse block entries response: {e}"))
+                })?;
+
+                Formatter::print(&body, format);
+            }
+
+            BlockCommands::Add {
+                ip,
+                duration,
+                reason,
+            } => {
+                let url = format!("{endpoint}/v1/blocker/add");
+                let payload = json!({
+                    "ip": ip,
+                    "durationSeconds": duration,
+                    "reason": reason,
+                });
+
+                let resp = client.post(&url).json(&payload).send().await.map_err(|e| {
+                    AegisError::Internal(format!(
+                        "Failed to connect to agent daemon at '{url}': {e}"
+                    ))
+                })?;
+
+                if !resp.status().is_success() {
+                    let err_text = resp.text().await.unwrap_or_default();
+                    return Err(AegisError::Validation(format!(
+                        "Block add failed: {err_text}"
+                    )));
+                }
+
+                let body: serde_json::Value = resp.json().await.map_err(|e| {
+                    AegisError::Internal(format!("Failed to parse block add response: {e}"))
+                })?;
+
+                Formatter::print(&body, format);
+                println!("IP '{ip}' successfully blocked!");
+            }
+
+            BlockCommands::Remove { ip } => {
+                let url = format!("{endpoint}/v1/blocker/remove");
+                let payload = json!({ "ip": ip });
+
+                let resp = client.post(&url).json(&payload).send().await.map_err(|e| {
+                    AegisError::Internal(format!(
+                        "Failed to connect to agent daemon at '{url}': {e}"
+                    ))
+                })?;
+
+                if !resp.status().is_success() {
+                    let err_text = resp.text().await.unwrap_or_default();
+                    return Err(AegisError::Validation(format!(
+                        "Block remove failed: {err_text}"
+                    )));
+                }
+
+                let body: serde_json::Value = resp.json().await.map_err(|e| {
+                    AegisError::Internal(format!("Failed to parse block remove response: {e}"))
+                })?;
+
+                Formatter::print(&body, format);
+                println!("IP '{ip}' successfully unblocked!");
             }
         },
 
