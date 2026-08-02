@@ -24,6 +24,16 @@ impl PamAuthenticator {
             ));
         }
 
+        // Validate username chỉ được chứa ký tự hợp lệ [a-zA-Z0-9_.-] tránh lỗi định dạng /etc/shadow
+        if !trimmed_user
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+        {
+            return Err(AegisError::Permission(
+                "Tên tài khoản chứa ký tự không hợp lệ".to_string(),
+            ));
+        }
+
         // 1. Đọc và xác minh hash mật khẩu thực tế từ /etc/shadow
         let shadow_content = fs::read_to_string("/etc/shadow").map_err(|e| {
             AegisError::Permission(format!(

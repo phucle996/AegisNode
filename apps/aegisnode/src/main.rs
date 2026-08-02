@@ -235,7 +235,9 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
         is_leader: true,
     });
 
-    let router = create_controller_router(controller_state);
+    // Cấu hình request body size limit tối đa 2MB tránh lỗ hổng DoS qua payload lớn
+    let router = create_controller_router(controller_state)
+        .layer(axum::extract::DefaultBodyLimit::max(2 * 1024 * 1024));
     let bind_addr = format!("{}:{}", config.server.host, config.server.port);
     info!("Listening Controller REST API on http://{}...", bind_addr);
 

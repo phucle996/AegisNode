@@ -214,15 +214,22 @@ impl PgRepository {
         Ok(row)
     }
 
-    /// Lưu trữ bản ghi Root CA mới vào PostgreSQL để sử dụng chung toàn Cluster
+    /// Lưu trữ bản ghi Root CA mới vào PostgreSQL để sử dụng chung toàn Cluster (Sử dụng Transaction nguyên tử chống Race Condition)
     pub async fn save_root_ca(&self, ca_cert_pem: &str, ca_key_pem: &str) -> Result<()> {
-        // Vô hiệu hóa tất cả các bản ghi Root CA cũ
+        // Bắt đầu một database transaction mới
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to begin CA rotation transaction: {e}")))?;
+
+        // Vô hiệu hóa tất cả các bản ghi Root CA cũ trong transaction
         sqlx::query("UPDATE cluster_pki_ca SET active = FALSE WHERE active = TRUE")
-            .execute(&self.pool)
+            .execute(&mut *tx)
             .await
             .map_err(|e| AegisError::Storage(format!("Failed to deactivate old Root CAs: {e}")))?;
 
-        // Lưu bản ghi Root CA mới với trạng thái active = TRUE
+        // Lưu bản ghi Root CA mới với trạng thái active = TRUE trong transaction
         sqlx::query(
             r#"
             INSERT INTO cluster_pki_ca (ca_cert_pem, ca_key_pem, active)
@@ -231,9 +238,14 @@ impl PgRepository {
         )
         .bind(ca_cert_pem)
         .bind(ca_key_pem)
-        .execute(&self.pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| AegisError::Storage(format!("Failed to save Root CA: {e}")))?;
+
+        // Commit transaction nguyên tử ghi nhận mọi thay đổi vào CSDL
+        tx.commit()
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to commit CA rotation transaction: {e}")))?;
 
         Ok(())
     }

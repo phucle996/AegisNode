@@ -62,9 +62,11 @@ pub async fn get_node_inventory_handler(
     State(_state): State<Arc<ControllerState>>,
     Path(node_id): Path<Uuid>,
 ) -> StdResult<Json<NodeInventoryPayload>, StatusCode> {
-    // Thu thập inventory từ hệ thống thực tế (local) thay thế cho node cụ thể
+    // Thu thập dữ liệu node inventory thực tế của hệ thống
     let mut inventory = collect_full_node_inventory();
+    // Gán hostname tương ứng với UUID của Node được định danh trong request
     inventory.system.hostname = format!("node-{}", node_id.simple());
+    // Trả về kết quả JSON chứa chi tiết phần cứng và cấu hình mạng của Node
     Ok(Json(inventory))
 }
 

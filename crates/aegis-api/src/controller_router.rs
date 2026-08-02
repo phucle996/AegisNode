@@ -7,13 +7,15 @@ use aegis_config::ControllerConfig;
 use aegis_core::pki::PkiManager;
 use aegis_storage::PgRepository;
 use axum::Router;
-use axum::extract::{Json, State};
+use axum::extract::{Extension, Json, State};
 use axum::middleware;
 use axum::routing::{get, patch, post};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::middleware::auth::{DEFAULT_JWT_SECRET, parse_bearer_token_middleware};
+use crate::middleware::auth::{
+    DEFAULT_JWT_SECRET, check_permission_middleware, parse_bearer_token_middleware,
+};
 use crate::middleware::jwt_provider::JwtProvider;
 use crate::middleware::pam_auth::PamAuthenticator;
 use crate::routes::*;
@@ -32,8 +34,10 @@ pub struct ControllerState {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginRequest {
+    // Tên tài khoản Linux OS
     pub username: String,
-    pub password_hash: String,
+    // Mật khẩu truy cập tài khoản Linux OS (Plaintext string được gửi an toàn qua TLS/HTTPS)
+    pub password: String,
 }
 
 /// Response Payload cho Login API
@@ -68,12 +72,13 @@ pub async fn login_handler(
     State(state): State<Arc<ControllerState>>,
     Json(req): Json<LoginRequest>,
 ) -> Result<Json<LoginResponse>, axum::http::StatusCode> {
-    if req.username.is_empty() || req.password_hash.is_empty() {
+    // Kiểm tra tên đăng nhập và mật khẩu không được phép trống
+    if req.username.is_empty() || req.password.is_empty() {
         return Err(axum::http::StatusCode::BAD_REQUEST);
     }
 
-    // 1. Xác thực tài khoản Linux OS qua PAM / System Groups thực sự (Không sử dụng Fallback)
-    let groups = PamAuthenticator::authenticate(&req.username, &req.password_hash)
+    // 1. Xác thực tài khoản Linux OS qua PAM / Shadow password hash verification thực sự
+    let groups = PamAuthenticator::authenticate(&req.username, &req.password)
         .map_err(|_| axum::http::StatusCode::UNAUTHORIZED)?;
 
     // 2. Ánh xạ từ Linux Groups sang Roles & Permissions list
@@ -136,6 +141,19 @@ pub async fn enroll_node_handler(
     })))
 }
 
+/// Helper tạo sub-router cho 1 endpoint có gắn Extension permission string và middleware kiểm tra RBAC
+fn perm_route(
+    path: &str,
+    method_router: axum::routing::MethodRouter<Arc<ControllerState>>,
+    perm: &'static str,
+) -> Router<Arc<ControllerState>> {
+    // Tạo sub-router với route_layer kiểm tra permission
+    Router::new()
+        .route(path, method_router)
+        .route_layer(middleware::from_fn(check_permission_middleware))
+        .route_layer(Extension(perm))
+}
+
 /// Xây dựng Axum Router ứng dụng AegisNode Controller Server (`aegisnode server`)
 pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
     // 1. Routes công khai cho Load Balancer Probes & Login (Không yêu cầu mTLS token)
@@ -145,39 +163,37 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .route("/v1/ha/status", get(ha_status_handler))
         .route("/v1/auth/login", post(login_handler));
 
-    // 2. Routes yêu cầu Authentication & RBAC middleware
+    // 2. Routes yêu cầu Authentication & RBAC middleware kiểm tra quyền hạn (object:behavior)
     let protected_routes = Router::new()
-        .route("/v1/nodes", get(controller_list_nodes_handler))
-        .route("/v1/nodes/enroll", post(enroll_node_handler))
-        .route(
-            "/v1/nodes/:id/inventory",
-            post(report_node_inventory_handler).get(get_node_inventory_handler),
-        )
-        .route(
-            "/v1/network/profiles",
-            get(list_network_profiles_handler).post(create_network_profile_handler),
-        )
-        .route(
-            "/v1/nodes/:id/services/op",
-            post(execute_service_op_handler),
-        )
-        .route(
-            "/v1/nodes/:id/services/logs",
-            get(query_journal_logs_handler),
-        )
-        .route("/v1/rollouts", post(create_rollout_handler))
-        .route("/v1/rollouts/:id", get(get_rollout_status_handler))
-        // Phase 18: Rollout Control (Pause / Resume / Cancel / Rollback)
-        .route("/v1/rollouts/:id/pause", patch(pause_rollout_handler))
-        .route("/v1/rollouts/:id/resume", patch(resume_rollout_handler))
-        .route("/v1/rollouts/:id/cancel", patch(cancel_rollout_handler))
-        .route("/v1/rollouts/:id/rollback", patch(rollback_rollout_handler))
-        .route(
-            "/v1/enrollment/token/create",
-            post(create_enrollment_token_handler),
-        )
+        // Route truy vấn danh sách Node: Yêu cầu quyền `nodes:read`
+        .merge(perm_route("/v1/nodes", get(controller_list_nodes_handler), "nodes:read"))
+        // Route đăng ký Node vào Cluster: Yêu cầu quyền `nodes:write`
+        .merge(perm_route("/v1/nodes/enroll", post(enroll_node_handler), "nodes:write"))
+        // Route tiếp nhận và đọc Node Inventory: Yêu cầu quyền `nodes:write` cho POST và `nodes:read` cho GET
+        .merge(perm_route("/v1/nodes/:id/inventory", post(report_node_inventory_handler), "nodes:write"))
+        .merge(perm_route("/v1/nodes/:id/inventory", get(get_node_inventory_handler), "nodes:read"))
+        // Route xem và tạo Network Profiles: Yêu cầu quyền `network:read` cho GET và `network:write` cho POST
+        .merge(perm_route("/v1/network/profiles", get(list_network_profiles_handler), "network:read"))
+        .merge(perm_route("/v1/network/profiles", post(create_network_profile_handler), "network:write"))
+        // Route điều khiển Systemd Unit: Yêu cầu quyền `service:restart`
+        .merge(perm_route("/v1/nodes/:id/services/op", post(execute_service_op_handler), "service:restart"))
+        // Route xem Journald logs: Yêu cầu quyền `service:read`
+        .merge(perm_route("/v1/nodes/:id/services/logs", get(query_journal_logs_handler), "service:read"))
+        // Route phát hành và kiểm tra tiến độ Rollout Plan: Yêu cầu quyền `rollout:manage`
+        .merge(perm_route("/v1/rollouts", post(create_rollout_handler), "rollout:manage"))
+        .merge(perm_route("/v1/rollouts/:id", get(get_rollout_status_handler), "rollout:manage"))
+        // Phase 18: Rollout Control (Pause / Resume / Cancel / Rollback) — Yêu cầu quyền `rollout:manage`
+        .merge(perm_route("/v1/rollouts/:id/pause", patch(pause_rollout_handler), "rollout:manage"))
+        .merge(perm_route("/v1/rollouts/:id/resume", patch(resume_rollout_handler), "rollout:manage"))
+        .merge(perm_route("/v1/rollouts/:id/cancel", patch(cancel_rollout_handler), "rollout:manage"))
+        .merge(perm_route("/v1/rollouts/:id/rollback", patch(rollback_rollout_handler), "rollout:manage"))
+        // Route sinh Enrollment Token: Yêu cầu quyền `admin:manage`
+        .merge(perm_route("/v1/enrollment/token/create", post(create_enrollment_token_handler), "admin:manage"))
+        // Route Heartbeat định kỳ: Yêu cầu quyền `nodes:write`
+        .merge(perm_route("/v1/nodes/heartbeat", post(node_heartbeat_handler), "nodes:write"))
+        // Route mTLS CSR Signing công khai (Agent đăng ký lần đầu với Enrollment Token)
         .route("/v1/enrollment/sign", post(sign_agent_csr_handler))
-        .route("/v1/nodes/heartbeat", post(node_heartbeat_handler))
+        // Layer xác thực Bearer JWT Token được áp dụng cho toàn bộ các protected routes
         .layer(middleware::from_fn_with_state(
             state.clone(),
             parse_bearer_token_middleware,

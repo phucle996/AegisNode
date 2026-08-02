@@ -72,9 +72,66 @@ pub async fn parse_bearer_token_middleware(
 
 /// Kiểm tra xem Claims trong Request Extensions có đủ quyền `object:behavior` hay không
 pub fn check_request_permission(request: &Request, resource: &str, action: &str) -> bool {
+    // Trích xuất Claims object đã được middleware inject vào Request extensions
     if let Some(claims) = request.extensions().get::<Claims>() {
+        // Kiểm tra quyền hạn đối tượng và hành động qua method has_permission
         claims.has_permission(resource, action)
     } else {
+        // Trả về false nếu không tìm thấy Claims trong Request extensions
         false
     }
 }
+
+/// Helper function kiểm tra RBAC permission trực tiếp trên struct Claims đã extract
+pub fn require_claims_permission(claims: Option<&Claims>, resource: &str, action: &str) -> Result<(), StatusCode> {
+    // Nếu có claims payload trong request
+    if let Some(claims) = claims {
+        // Kiểm tra người dùng có đủ quyền object:behavior hay không
+        if claims.has_permission(resource, action) {
+            // Cho phép đi tiếp nếu đủ quyền hạn
+            Ok(())
+        } else {
+            // Trả về 403 Forbidden nếu thiếu quyền hạn
+            Err(StatusCode::FORBIDDEN)
+        }
+    } else {
+        // Trả về 401 Unauthorized nếu không tìm thấy thông tin xác thực Claims
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+
+/// Type alias đại diện cho permission string cần thiết truyền từ route (ví dụ "nodes:read")
+pub type RequiredPermission = &'static str;
+
+/// Axum Middleware kiểm tra quyền RBAC dựa theo RequiredPermission được gắn trên từng route
+pub async fn check_permission_middleware(
+    axum::extract::Extension(perm): axum::extract::Extension<RequiredPermission>,
+    request: Request,
+    next: Next,
+) -> Result<Response, StatusCode> {
+    // Tách chuỗi resource:action từ perm (ví dụ: "nodes:read" -> resource = "nodes", action = "read")
+    let parts: Vec<&str> = perm.split(':').collect();
+    if parts.len() != 2 {
+        // Trả về 500 nếu định dạng permission string không đúng dạng resource:action
+        return Err(StatusCode::INTERNAL_SERVER_ERROR);
+    }
+
+    let resource = parts[0];
+    let action = parts[1];
+
+    // Trích xuất Claims từ Request Extensions (được parse_bearer_token_middleware nạp vào trước đó)
+    if let Some(claims) = request.extensions().get::<Claims>() {
+        // Kiểm tra quyền hạn của người dùng đối với resource và action
+        if claims.has_permission(resource, action) {
+            // Cho phép request tiếp tục đi tiếp nếu đủ quyền RBAC
+            Ok(next.run(request).await)
+        } else {
+            // Trả về 403 Forbidden nếu thiếu quyền RBAC
+            Err(StatusCode::FORBIDDEN)
+        }
+    } else {
+        // Trả về 401 Unauthorized nếu không tìm thấy Claims thông tin xác thực
+        Err(StatusCode::UNAUTHORIZED)
+    }
+}
+
