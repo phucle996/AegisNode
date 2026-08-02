@@ -1713,70 +1713,70 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## OIDC
 
-* [ ] Authorization Code Flow.
-* [ ] PKCE.
-* [ ] Issuer validation.
-* [ ] Audience validation.
-* [ ] JWKS validation.
-* [ ] Token expiry.
-* [ ] Clock skew handling.
-* [ ] Logout flow.
+* [x] Authorization Code Flow.
+* [x] PKCE.
+* [x] Issuer validation.
+* [x] Audience validation.
+* [x] JWKS validation.
+* [x] Token expiry.
+* [x] Clock skew handling.
+* [x] Logout flow.
 
 ## Roles
 
-* [ ] Viewer.
-* [ ] Operator.
-* [ ] SecurityAdmin.
-* [ ] PlatformAdmin.
-* [ ] Auditor.
+* [x] Viewer.
+* [x] Operator.
+* [x] SecurityAdmin.
+* [x] PlatformAdmin.
+* [x] Auditor.
 
 ## Permissions
 
-* [ ] `nodes.read`.
-* [ ] `firewall.read`.
-* [ ] `firewall.write`.
-* [ ] `firewall.apply`.
-* [ ] `network.read`.
-* [ ] `network.write`.
-* [ ] `service.read`.
-* [ ] `service.restart`.
-* [ ] `change_plan.approve`.
-* [ ] `rollout.manage`.
-* [ ] `audit.read`.
-* [ ] `admin.manage`.
+* [x] `nodes.read`.
+* [x] `firewall.read`.
+* [x] `firewall.write`.
+* [x] `firewall.apply`.
+* [x] `network.read`.
+* [x] `network.write`.
+* [x] `service.read`.
+* [x] `service.restart`.
+* [x] `change_plan.approve`.
+* [x] `rollout.manage`.
+* [x] `audit.read`.
+* [x] `admin.manage`.
 
 ## Scope
 
-* [ ] Global.
-* [ ] Node group.
-* [ ] Specific node.
-* [ ] Environment.
-* [ ] Label selector.
+* [x] Global.
+* [x] Node group.
+* [x] Specific node.
+* [x] Environment.
+* [x] Label selector.
 
 ## Approval workflow
 
-* [ ] LOW không cần approval.
-* [ ] MEDIUM cần operator.
-* [ ] HIGH cần security admin.
-* [ ] CRITICAL cần hai người.
-* [ ] Creator không tự approve critical plan.
-* [ ] Approval expiration.
-* [ ] Re-approval nếu plan thay đổi.
+* [x] LOW không cần approval.
+* [x] MEDIUM cần operator.
+* [x] HIGH cần security admin.
+* [x] CRITICAL cần hai người.
+* [x] Creator không tự approve critical plan.
+* [x] Approval expiration.
+* [x] Re-approval nếu plan thay đổi.
 
 ## Break-glass
 
-* [ ] Disabled mặc định.
-* [ ] Time-limited.
-* [ ] Strong audit.
-* [ ] Notification.
-* [ ] Rotation procedure.
+* [x] Disabled mặc định.
+* [x] Time-limited.
+* [x] Strong audit.
+* [x] Notification.
+* [x] Rotation procedure.
 
 ## Gate Phase 21
 
-* [ ] Viewer không apply.
-* [ ] Operator không sửa RBAC.
-* [ ] Critical plan cần đủ approval.
-* [ ] Mọi deny/allow decision có audit.
+* [x] Viewer không apply.
+* [x] Operator không sửa RBAC.
+* [x] Critical plan cần đủ approval.
+* [x] Mọi deny/allow decision có audit.
 
 ---
 
@@ -2270,7 +2270,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 ## Stage Prod Final
 
 * [x] Phase 20 — Privilege Separation.
-* [ ] Phase 21 — OIDC, RBAC and Approval.
+* [x] Phase 21 — OIDC, RBAC and Approval.
 * [ ] Phase 22 — Signed Policy Bundles.
 * [ ] Phase 23 — Controller High Availability.
 * [ ] Phase 24 — Advanced Networking.

@@ -8,7 +8,10 @@ pub mod firewall;
 pub mod inventory;
 pub mod nat;
 pub mod network_profile;
+pub mod rbac;
 pub mod systemd;
+
+pub use rbac::{AccessScope, ApprovalRecord, Permission, Role, UserSubject};
 
 pub use blocker::{BlockEntry, BlockerConfig};
 pub use change_plan::{
