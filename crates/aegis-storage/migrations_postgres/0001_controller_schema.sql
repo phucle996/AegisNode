@@ -1,26 +1,7 @@
 -- AegisNode Controller Database Schema (PostgreSQL)
 -- Phục vụ nền tảng quản trị tập trung Multi-Node Cloud Native HA Cluster
 
--- 1. Bảng Quản trị viên (Users)
-CREATE TABLE IF NOT EXISTS users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(64) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(32) NOT NULL DEFAULT 'admin',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- 2. Bảng Token API Authentication
-CREATE TABLE IF NOT EXISTS api_tokens (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name VARCHAR(64) NOT NULL,
-    token_hash VARCHAR(128) NOT NULL UNIQUE,
-    scopes TEXT[] NOT NULL DEFAULT '{read,write}',
-    expires_at TIMESTAMPTZ,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- 3. Bảng Danh sách Nodes đăng ký (Linux Agents)
+-- 1. Bảng Danh sách Nodes đăng ký (Linux Agents)
 CREATE TABLE IF NOT EXISTS nodes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     hostname VARCHAR(128) NOT NULL,
@@ -32,7 +13,7 @@ CREATE TABLE IF NOT EXISTS nodes (
     last_seen_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Bảng Nhóm Node (Node Groups)
+-- 2. Bảng Nhóm Node (Node Groups)
 CREATE TABLE IF NOT EXISTS node_groups (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(64) NOT NULL UNIQUE,
@@ -40,7 +21,7 @@ CREATE TABLE IF NOT EXISTS node_groups (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Bảng Firewall Policy Tập Trung (Centralized Firewall Policies)
+-- 3. Bảng Firewall Policy Tập Trung (Centralized Firewall Policies)
 CREATE TABLE IF NOT EXISTS firewall_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(128) NOT NULL UNIQUE,
@@ -50,7 +31,7 @@ CREATE TABLE IF NOT EXISTS firewall_policies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Bảng Lịch sử Phiên bản Policy (Policy Versions)
+-- 4. Bảng Lịch sử Phiên bản Policy (Policy Versions)
 CREATE TABLE IF NOT EXISTS policy_versions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     policy_id UUID NOT NULL REFERENCES firewall_policies(id) ON DELETE CASCADE,
@@ -61,7 +42,7 @@ CREATE TABLE IF NOT EXISTS policy_versions (
     CONSTRAINT unique_policy_version UNIQUE(policy_id, version)
 );
 
--- 7. Bảng Kế hoạch Thay đổi Policy trên Multi-Node (Change Plans)
+-- 5. Bảng Kế hoạch Thay đổi Policy trên Multi-Node (Change Plans)
 CREATE TABLE IF NOT EXISTS change_plans (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     policy_id UUID NOT NULL REFERENCES firewall_policies(id),
@@ -72,7 +53,7 @@ CREATE TABLE IF NOT EXISTS change_plans (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 8. Bảng Audit Logs kiểm vết thao tác quản trị
+-- 6. Bảng Audit Logs kiểm vết thao tác quản trị
 CREATE TABLE IF NOT EXISTS audit_logs (
     id BIGSERIAL PRIMARY KEY,
     event_type VARCHAR(64) NOT NULL,
@@ -81,7 +62,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 9. Bảng Enrollment Tokens (Phase 13)
+-- 7. Bảng Enrollment Tokens (Phase 13)
 CREATE TABLE IF NOT EXISTS enrollment_tokens (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     token_hash VARCHAR(128) NOT NULL UNIQUE,
@@ -92,7 +73,7 @@ CREATE TABLE IF NOT EXISTS enrollment_tokens (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 10. Bảng Agent Certificates (Phase 13 mTLS)
+-- 8. Bảng Agent Certificates (Phase 13 mTLS)
 CREATE TABLE IF NOT EXISTS agent_certificates (
     serial_number VARCHAR(128) PRIMARY KEY,
     node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
@@ -104,7 +85,7 @@ CREATE TABLE IF NOT EXISTS agent_certificates (
     revoked BOOLEAN NOT NULL DEFAULT FALSE
 );
 
--- 11. Bảng System & Runtime Inventory cho Node (Phase 14)
+-- 9. Bảng System & Runtime Inventory cho Node (Phase 14)
 CREATE TABLE IF NOT EXISTS node_inventories (
     node_id UUID PRIMARY KEY REFERENCES nodes(id) ON DELETE CASCADE,
     os_name VARCHAR(128) NOT NULL,
@@ -120,7 +101,7 @@ CREATE TABLE IF NOT EXISTS node_inventories (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 12. Bảng Network Interfaces Inventory cho Node (Phase 14)
+-- 10. Bảng Network Interfaces Inventory cho Node (Phase 14)
 CREATE TABLE IF NOT EXISTS node_network_interfaces (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
@@ -136,7 +117,7 @@ CREATE TABLE IF NOT EXISTS node_network_interfaces (
     CONSTRAINT unique_node_iface UNIQUE(node_id, interface_name)
 );
 
--- 13. Bảng Network Profiles (Phase 15)
+-- 11. Bảng Network Profiles (Phase 15)
 CREATE TABLE IF NOT EXISTS network_profiles (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(128) NOT NULL UNIQUE,
@@ -146,7 +127,7 @@ CREATE TABLE IF NOT EXISTS network_profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 14. Bảng Service Policies (Phase 16 Systemd)
+-- 12. Bảng Service Policies (Phase 16 Systemd)
 CREATE TABLE IF NOT EXISTS service_policies (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(128) NOT NULL UNIQUE,
@@ -156,7 +137,7 @@ CREATE TABLE IF NOT EXISTS service_policies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 15. Bảng Rollouts & Rollout Targets (Phase 17 Combined Change Plan / Phase 18 Multi-Node Rollout)
+-- 13. Bảng Rollouts & Rollout Targets (Phase 17 Combined Change Plan / Phase 18 Multi-Node Rollout)
 CREATE TABLE IF NOT EXISTS rollouts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     idempotency_key VARCHAR(128) NOT NULL UNIQUE,

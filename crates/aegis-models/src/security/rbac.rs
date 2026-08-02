@@ -1,8 +1,39 @@
 //! RBAC & Approval Models (Phase 21 Authorization Engine)
-//! Định nghĩa các kiểu dữ liệu Role, Permission, RiskLevel, UserSubject và ApprovalRecord.
+//! Định nghĩa các kiểu dữ liệu Role, Permission, RiskLevel, UserSubject, Claims và ApprovalRecord.
 
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+
+/// JWT Claims Payload chứa danh sách Roles và Permissions được inject từ Linux PAM Auth
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Claims {
+    /// Subject - Tên tài khoản người dùng Linux OS
+    pub sub: String,
+    /// Danh sách Roles của người dùng
+    pub roles: Vec<Role>,
+    /// Danh sách Permissions dạng `object:behavior` (VD: "firewall:apply", "systemd:restart", "*:*")
+    pub permissions: Vec<String>,
+    /// Thời điểm hết hạn của Token (Epoch timestamp seconds)
+    pub exp: u64,
+    /// Thời điểm khởi tạo Token (Epoch timestamp seconds)
+    pub iat: u64,
+}
+
+impl Claims {
+    /// Kiểm tra người dùng có quyền thực hiện hành động trên đối tượng hay không (`object:behavior`)
+    /// Hỗ trợ kiểm tra wildcard `*:*` (toàn quyền) hoặc `resource:*` (toàn quyền trên resource)
+    pub fn has_permission(&self, resource: &str, action: &str) -> bool {
+        let target = format!("{}:{}", resource, action);
+        let resource_wildcard = format!("{}:*", resource);
+
+        for perm in &self.permissions {
+            if perm == "*:*" || perm == &target || perm == &resource_wildcard {
+                return true;
+            }
+        }
+        false
+    }
+}
 
 /// Danh mục 5 Roles phân quyền chính trong AegisNode
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]

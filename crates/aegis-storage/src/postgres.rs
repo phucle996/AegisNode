@@ -28,18 +28,6 @@ pub struct NodeRecord {
     pub last_seen_at: DateTime<Utc>,
 }
 
-/// DTO biểu diễn API Token trong Controller
-#[derive(Debug, Clone, Serialize, Deserialize, sqlx::FromRow)]
-#[serde(rename_all = "camelCase")]
-pub struct ApiTokenRecord {
-    pub id: Uuid,
-    pub name: String,
-    pub token_hash: String,
-    pub scopes: Vec<String>,
-    pub expires_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
-}
-
 /// Controller PostgreSQL Repository Interface
 #[derive(Clone)]
 pub struct PgRepository {
@@ -138,39 +126,7 @@ impl PgRepository {
         Ok(nodes)
     }
 
-    /// Tạo API Token mới cho Admin
-    pub async fn create_api_token(&self, name: &str, token_hash: &str) -> Result<ApiTokenRecord> {
-        let token = sqlx::query_as::<_, ApiTokenRecord>(
-            r#"
-            INSERT INTO api_tokens (name, token_hash, scopes)
-            VALUES ($1, $2, ARRAY['read', 'write'])
-            RETURNING id, name, token_hash, scopes, expires_at, created_at
-            "#,
-        )
-        .bind(name)
-        .bind(token_hash)
-        .fetch_one(&self.pool)
-        .await
-        .map_err(|e| AegisError::Storage(format!("Failed to create API token: {e}")))?;
 
-        Ok(token)
-    }
-
-    /// Xác thực tính hợp lệ của API Token
-    pub async fn verify_api_token(&self, token_hash: &str) -> Result<bool> {
-        let row = sqlx::query(
-            r#"
-            SELECT 1 FROM api_tokens
-            WHERE token_hash = $1 AND (expires_at IS NULL OR expires_at > CURRENT_TIMESTAMP)
-            "#,
-        )
-        .bind(token_hash)
-        .fetch_optional(&self.pool)
-        .await
-        .map_err(|e| AegisError::Storage(format!("Failed to verify token: {e}")))?;
-
-        Ok(row.is_some())
-    }
 
     /// Lưu Enrollment Token vào PostgreSQL
     pub async fn insert_enrollment_token(

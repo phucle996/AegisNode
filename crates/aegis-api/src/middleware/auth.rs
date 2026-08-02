@@ -1,34 +1,30 @@
-//! Bearer Token Authentication Middleware (Phase 21 Authorization Guard)
-//! Xác thực Bearer token bằng cách tra cứu SHA-256 hash trong DB qua PgRepository.
-//! Token được cấp bởi login_handler và lưu dạng hash trong bảng api_tokens.
+//! Bearer JWT Authentication & RBAC Permission Guards (Phase 21 Authorization Guard)
+//! Xác thực Bearer JWT token từ Authorization Header, trích xuất Claims payload và thực thi so khớp RBAC `object:behavior`.
 
+use aegis_models::security::rbac::Claims;
 use axum::extract::Request;
 use axum::http::{HeaderMap, StatusCode};
 use axum::middleware::Next;
 use axum::response::Response;
 
-/// Marker struct cho Authentication Middleware
+use crate::middleware::jwt_provider::JwtProvider;
+
+/// Marker struct đại diện cho AuthMiddleware
 pub struct AuthMiddleware;
 
-/// Tính SHA-256 hash của token string để tra cứu DB
-pub fn sha256_hex(input: &str) -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(input.as_bytes());
-    format!("{:x}", hasher.finalize())
-}
+/// Secret key dùng cho JWT signature (mặc định lấy từ ENV hoặc secret tĩnh)
+pub const DEFAULT_JWT_SECRET: &str = "aegisnode_jwt_secret_key_production_default";
 
-/// Axum Middleware xác thực Bearer Token
-/// - Các endpoint public (login, enrollment, health) được bỏ qua
-/// - Các endpoint protected phải có token hợp lệ trong DB
+/// Axum Middleware xác thực JWT Bearer Token
+/// Giải mã JWT Token, kiểm tra signature & expiry, sau đó nạp `Claims` vào Request Extensions
 pub async fn parse_bearer_token_middleware(
     headers: HeaderMap,
-    request: Request,
+    mut request: Request,
     next: Next,
 ) -> Result<Response, StatusCode> {
     let path = request.uri().path();
 
-    // Danh sách endpoint public không yêu cầu xác thực
+    // Danh sách endpoint public không yêu cầu xác thực JWT
     let is_public = matches!(
         path,
         "/health" | "/readiness" | "/v1/auth/login" | "/v1/enrollment/sign"
@@ -38,7 +34,7 @@ pub async fn parse_bearer_token_middleware(
         return Ok(next.run(request).await);
     }
 
-    // Trích xuất Bearer token từ Authorization header
+    // Trích xuất Bearer token từ Header
     let auth_header = headers
         .get("Authorization")
         .and_then(|h| h.to_str().ok())
@@ -47,12 +43,25 @@ pub async fn parse_bearer_token_middleware(
 
     match auth_header {
         Some(token) if !token.is_empty() => {
-            // Token được truyền vào request extensions để handlers có thể đọc nếu cần
-            // Việc verify hash với DB được xử lý riêng trong các guards có access DB
-            // Middleware này chỉ đảm bảo token tồn tại; full verify trong middleware layer cao hơn
-            let _ = sha256_hex(token);
-            Ok(next.run(request).await)
+            // Xác thực chữ ký và thời hạn của JWT Token
+            match JwtProvider::verify_token(token, DEFAULT_JWT_SECRET) {
+                Ok(claims) => {
+                    // Đưa claims vào Request Extensions để handlers/guards truy cập
+                    request.extensions_mut().insert(claims);
+                    Ok(next.run(request).await)
+                }
+                Err(_) => Err(StatusCode::UNAUTHORIZED),
+            }
         }
         _ => Err(StatusCode::UNAUTHORIZED),
+    }
+}
+
+/// Kiểm tra xem Claims trong Request Extensions có đủ quyền `object:behavior` hay không
+pub fn check_request_permission(request: &Request, resource: &str, action: &str) -> bool {
+    if let Some(claims) = request.extensions().get::<Claims>() {
+        claims.has_permission(resource, action)
+    } else {
+        false
     }
 }

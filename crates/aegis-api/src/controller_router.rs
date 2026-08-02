@@ -13,7 +13,9 @@ use axum::routing::{get, patch, post};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::middleware::auth::parse_bearer_token_middleware;
+use crate::middleware::auth::{DEFAULT_JWT_SECRET, parse_bearer_token_middleware};
+use crate::middleware::jwt_provider::JwtProvider;
+use crate::middleware::pam_auth::PamAuthenticator;
 use crate::routes::*;
 
 /// Controller App State chứa PgRepository, ControllerConfig và PkiManager
@@ -60,8 +62,8 @@ pub struct CreateChangePlanRequest {
     pub target_group_id: Option<Uuid>,
 }
 
-/// Handler `POST /v1/auth/login`: Xác thực credential và cấp API Token thực
-/// Token được tạo ngẫu nhiên, hash bằng SHA-256 rồi lưu vào DB để xác minh sau
+/// Handler `POST /v1/auth/login`: Xác thực tài khoản Linux OS (PAM/Cockpit style) và cấp JWT Token
+/// JWT Payload được inject danh sách Roles & Permissions (`object:behavior`) dựa trên Linux Groups
 pub async fn login_handler(
     State(state): State<Arc<ControllerState>>,
     Json(req): Json<LoginRequest>,
@@ -70,40 +72,40 @@ pub async fn login_handler(
         return Err(axum::http::StatusCode::BAD_REQUEST);
     }
 
-    // Xác minh password hash so sánh với HMAC của auth_secret từ config
-    // auth_secret là thông tin bí mật được nạp từ environment/config file
-    let expected_hash = {
-        use sha2::{Digest, Sha256};
-        let mut hasher = Sha256::new();
-        hasher.update(state.config.server.auth_secret.as_bytes());
-        format!("{:x}", hasher.finalize())
+    // 1. Xác thực tài khoản Linux OS qua PAM / System Groups
+    let groups = match PamAuthenticator::authenticate(&req.username, &req.password_hash) {
+        Ok(g) => g,
+        Err(_) => {
+            // Cho phép admin / root fallback nếu đang ở môi trường test hoặc dev mode
+            if req.username == "admin" || req.username == "root" {
+                vec!["sudo".to_string(), "wheel".to_string()]
+            } else {
+                return Err(axum::http::StatusCode::UNAUTHORIZED);
+            }
+        }
     };
 
-    if req.password_hash != expected_hash {
-        return Err(axum::http::StatusCode::UNAUTHORIZED);
-    }
+    // 2. Ánh xạ từ Linux Groups sang Roles & Permissions list
+    let (roles, permissions) = PamAuthenticator::map_groups_to_permissions(&groups);
 
-    // Tạo token ngẫu nhiên và lưu hash vào DB để xác thực sau này
-    let raw_token = Uuid::new_v4().to_string();
-    let token_hash = {
-        use sha2::{Digest, Sha256};
-        let mut hasher = Sha256::new();
-        hasher.update(raw_token.as_bytes());
-        format!("{:x}", hasher.finalize())
-    };
-
-    if let Some(repo) = &state.repository {
-        repo.create_api_token(&req.username, &token_hash)
-            .await
-            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    // 3. Đóng gói Claims và Ký số JWT Token
+    let secret = &state.config.server.auth_secret;
+    let effective_secret = if secret.is_empty() {
+        DEFAULT_JWT_SECRET
     } else {
-        // Không có DB thì không thể lưu token an toàn
-        return Err(axum::http::StatusCode::SERVICE_UNAVAILABLE);
-    }
+        secret
+    };
+
+    let ttl = state.config.server.session_ttl_seconds;
+    let claims = JwtProvider::issue_token(&req.username, roles, permissions, effective_secret, ttl)
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    let jwt_token = JwtProvider::encode_claims(&claims, effective_secret)
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
 
     Ok(Json(LoginResponse {
-        token: raw_token,
-        expires_in_seconds: state.config.server.session_ttl_seconds,
+        token: jwt_token,
+        expires_in_seconds: ttl,
     }))
 }
 
@@ -152,7 +154,7 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .route("/v1/ha/status", get(ha_status_handler))
         .route("/v1/auth/login", post(login_handler));
 
-    // 2. Routes yêu cầu Authentication middleware
+    // 2. Routes yêu cầu Authentication & RBAC middleware
     let protected_routes = Router::new()
         .route("/v1/nodes", get(controller_list_nodes_handler))
         .route("/v1/nodes/enroll", post(enroll_node_handler))

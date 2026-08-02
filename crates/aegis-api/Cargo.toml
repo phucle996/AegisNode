@@ -22,4 +22,6 @@ uuid.workspace = true
 chrono.workspace = true
 tokio.workspace = true
 sha2.workspace = true
+jsonwebtoken.workspace = true
 tracing.workspace = true
+
