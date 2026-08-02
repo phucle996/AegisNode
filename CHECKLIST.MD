@@ -2251,19 +2251,19 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 7 — CLI.
 * [x] Phase 8 — Docker and Router Mode.
 * [x] Phase 9 — Blocker and Journald.
-* [ ] Phase 10 — Web UI.
-* [ ] Phase 11 — Packaging and E2E.
-* [ ] MVP Stage Gate passed.
+* [x] Phase 10 — Web UI.
+* [x] Phase 11 — Packaging and E2E.
+* [x] MVP Stage Gate passed.
 
 ## Stage Middle
 
-* [ ] Phase 12 — Controller Foundation.
-* [ ] Phase 13 — Enrollment and mTLS.
-* [ ] Phase 14 — Node Inventory.
-* [ ] Phase 15 — Network Management.
-* [ ] Phase 16 — Systemd Management.
-* [ ] Phase 17 — Combined Change Plan.
-* [ ] Phase 18 — Multi-Node Rollout.
+* [x] Phase 12 — Controller Foundation.
+* [x] Phase 13 — Enrollment and mTLS.
+* [x] Phase 14 — Node Inventory.
+* [x] Phase 15 — Network Management.
+* [x] Phase 16 — Systemd Management.
+* [x] Phase 17 — Combined Change Plan.
+* [x] Phase 18 — Multi-Node Rollout.
 * [x] Phase 19 — Central Web UI and Observability.
 * [x] Middle Stage Gate passed.
 
