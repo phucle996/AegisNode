@@ -53,5 +53,5 @@ jobs:
       - name: Run workspace tests
         run: cargo test --workspace
 
-      - name: Build release binaries
+      - name: Verify workspace build
         run: cargo build --workspace --release
