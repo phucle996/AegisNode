@@ -53,9 +53,9 @@ pub async fn static_asset_handler(uri: Uri) -> impl IntoResponse {
     }
 }
 
-/// Xây dựng Axum Router ứng dụng AegisNode Local Agent API & Static Web UI
+/// Xây dựng Axum Router ứng dụng AegisNode Local Agent (Headless REST API Daemon)
 pub fn create_router(state: Arc<AppState>) -> Router {
-    let api_routes = Router::new()
+    Router::new()
         .route("/metrics", get(prometheus_metrics_handler))
         .route("/v1/status", get(get_status_handler))
         .route("/v1/firewall/policy", get(get_policy_handler))
@@ -69,8 +69,5 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/v1/blocker/entries", get(get_blocker_entries_handler))
         .route("/v1/blocker/add", post(add_block_entry_handler))
         .route("/v1/blocker/remove", post(remove_block_entry_handler))
-        .with_state(state);
-
-    // Gắn handler static_asset_handler làm fallback service cho mọi route frontend
-    api_routes.fallback(static_asset_handler)
+        .with_state(state)
 }
