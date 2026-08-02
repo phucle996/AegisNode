@@ -24,16 +24,24 @@ impl BlockManager {
         }
     }
 
-    /// Tự động phát hiện IP kết nối quản trị SSH hiện tại của admin (SSH_CLIENT)
+    /// Tự động phát hiện IP kết nối quản trị SSH hiện tại của admin (SSH_CLIENT) có kiểm tra định dạng IP an toàn
     pub fn detect_active_admin_ip() -> Option<String> {
+        // Đọc biến môi trường SSH_CLIENT và kiểm tra tính hợp lệ của chuỗi IP
         if let Ok(val) = std::env::var("SSH_CLIENT") {
-            if let Some(ip) = val.split_whitespace().next() {
-                return Some(ip.to_string());
+            if let Some(ip_str) = val.split_whitespace().next() {
+                // Xác nhận chuỗi parse thành công sang IpAddr để chống giả mạo chuỗi rác
+                if ip_str.parse::<IpAddr>().is_ok() {
+                    return Some(ip_str.to_string());
+                }
             }
         }
+        // Đọc biến môi trường SSH_CONNECTION nếu SSH_CLIENT không khả thi
         if let Ok(val) = std::env::var("SSH_CONNECTION") {
-            if let Some(ip) = val.split_whitespace().next() {
-                return Some(ip.to_string());
+            if let Some(ip_str) = val.split_whitespace().next() {
+                // Xác nhận chuỗi parse thành công sang IpAddr để chống giả mạo chuỗi rác
+                if ip_str.parse::<IpAddr>().is_ok() {
+                    return Some(ip_str.to_string());
+                }
             }
         }
         None

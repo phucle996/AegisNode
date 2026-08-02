@@ -150,14 +150,15 @@ impl PgRepository {
         Ok(id)
     }
 
-    /// Tiêu thụ One-Time Enrollment Token (Atomic Usage Increment)
+    /// Tiêu thụ One-Time Enrollment Token nguyên tử (Atomic Usage Increment & Strict Bound Verification)
     pub async fn consume_enrollment_token(&self, token_hash: &str) -> Result<bool> {
+        // Thực thi câu lệnh UPDATE kiểm tra nguyên tử điều kiện current_usages < max_usages
         let result = sqlx::query(
             r#"
             UPDATE enrollment_tokens
             SET current_usages = current_usages + 1
             WHERE token_hash = $1 AND revoked = FALSE AND expires_at > CURRENT_TIMESTAMP AND current_usages < max_usages
-            RETURNING id
+            RETURNING id, current_usages, max_usages
             "#,
         )
         .bind(token_hash)
@@ -250,7 +251,7 @@ impl PgRepository {
         Ok(())
     }
 
-    /// Cập nhật hoặc chèn mới Node Inventory (System, Network & Runtime) vào PostgreSQL
+    /// Cập nhật hoặc chèn mới Node Inventory (System, Network & Runtime) vào PostgreSQL trong Transaction nguyên tử
     pub async fn upsert_node_inventory(
         &self,
         node_id: Uuid,
@@ -260,6 +261,14 @@ impl PgRepository {
             AegisError::Storage(format!("Failed to serialize runtime inventory: {e}"))
         })?;
 
+        // Khởi tạo Database Transaction để thực hiện cập nhật nguyên tử cho System và Interfaces
+        let mut tx = self
+            .pool
+            .begin()
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to begin inventory transaction: {e}")))?;
+
+        // 1. Ghi thông tin System & Runtime Inventory vào bảng node_inventories
         sqlx::query(
             r#"
             INSERT INTO node_inventories (node_id, os_name, os_version, kernel_version, cpu_cores, total_memory_mb, free_memory_mb, uptime_seconds, machine_id, agent_version, runtime_summary, updated_at)
@@ -289,10 +298,11 @@ impl PgRepository {
         .bind(&payload.system.machine_id)
         .bind(&payload.system.agent_version)
         .bind(runtime_json)
-        .execute(&self.pool)
+        .execute(&mut *tx)
         .await
         .map_err(|e| AegisError::Storage(format!("Failed to upsert node inventory: {e}")))?;
 
+        // 2. Ghi danh sách Network Interfaces trong cùng transaction
         for iface in &payload.network_interfaces {
             sqlx::query(
                 r#"
@@ -318,10 +328,15 @@ impl PgRepository {
             .bind(&iface.ipv6_addresses)
             .bind(iface.rx_bytes as i64)
             .bind(iface.tx_bytes as i64)
-            .execute(&self.pool)
+            .execute(&mut *tx)
             .await
             .map_err(|e| AegisError::Storage(format!("Failed to upsert network interface: {e}")))?;
         }
+
+        // Commit transaction ghi nhận toàn bộ dữ liệu inventory nguyên tử
+        tx.commit()
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to commit inventory transaction: {e}")))?;
 
         Ok(())
     }
