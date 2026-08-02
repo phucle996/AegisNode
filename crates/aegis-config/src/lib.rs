@@ -1,20 +1,6 @@
-//! AegisNode Config Crate
-//! Quản lý việc đọc, ghi và validate các file cấu hình YAML/JSON của Daemon và Agent.
+//! AegisNode Configuration Crate
+//! Quản lý tập tin cấu hình daemon agent.yaml.
 
-use serde::{Deserialize, Serialize};
+pub mod agent_config;
 
-/// Cấu hình tổng quan Daemon AegisNode
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DaemonConfig {
-    pub socket_path: String,
-    pub http_bind: String,
-}
-
-impl Default for DaemonConfig {
-    fn default() -> Self {
-        Self {
-            socket_path: "/run/aegisnode/agent.sock".to_string(),
-            http_bind: "127.0.0.1:8080".to_string(),
-        }
-    }
-}
+pub use agent_config::{AgentConfig, FirewallConfig, HttpConfig, ServerConfig, StorageConfig};

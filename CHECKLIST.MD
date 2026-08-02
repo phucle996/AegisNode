@@ -620,81 +620,81 @@ nft --check --file candidate.nft
 
 ## Agent modes
 
-* [ ] Implement `aegisnode local`.
-* [ ] Implement `aegisnode ctl`.
-* [ ] Placeholder cho `server`, `agent`, `execd`.
+* [x] Implement `aegisnode local`.
+* [x] Implement `aegisnode ctl`.
+* [x] Placeholder cho `server`, `agent`, `execd`.
 
 ## Configuration
 
-* [ ] Tạo `/etc/aegisnode/agent.yaml`.
-* [ ] Validate path.
-* [ ] Validate address.
-* [ ] HTTP bind localhost mặc định.
-* [ ] Unix socket configurable.
-* [ ] Rollback timeout configurable.
-* [ ] Log format configurable.
-* [ ] Không log secret.
+* [x] Tạo `/etc/aegisnode/agent.yaml`.
+* [x] Validate path.
+* [x] Validate address.
+* [x] HTTP bind localhost mặc định.
+* [x] Unix socket configurable.
+* [x] Rollback timeout configurable.
+* [x] Log format configurable.
+* [x] Không log secret.
 
 ## SQLite
 
-* [ ] Migration framework.
-* [ ] Bảng `policy_versions`.
-* [ ] Bảng `apply_executions`.
-* [ ] Bảng `snapshots`.
-* [ ] Bảng `audit_events`.
-* [ ] Bảng `block_entries`.
-* [ ] Bảng `agent_state`.
-* [ ] Bảng `settings`.
+* [x] Migration framework.
+* [x] Bảng `policy_versions`.
+* [x] Bảng `apply_executions`.
+* [x] Bảng `snapshots`.
+* [x] Bảng `audit_events`.
+* [x] Bảng `block_entries`.
+* [x] Bảng `agent_state`.
+* [x] Bảng `settings`.
 
 ## Repository layer
 
-* [ ] Handler không gọi SQL trực tiếp.
-* [ ] Có repository trait.
-* [ ] Có transaction.
-* [ ] Có migration test.
-* [ ] Có database recovery handling.
+* [x] Handler không gọi SQL trực tiếp.
+* [x] Có repository trait.
+* [x] Có transaction.
+* [x] Có migration test.
+* [x] Có database recovery handling.
 
 ## Unix socket API
 
-* [ ] Tạo `/run/aegisnode/agent.sock`.
-* [ ] Set owner/group.
-* [ ] Set permission.
-* [ ] API status.
-* [ ] API validate.
-* [ ] API compile.
-* [ ] API apply.
-* [ ] API confirm.
-* [ ] API rollback.
-* [ ] API rules.
-* [ ] API audit.
+* [x] Tạo `/run/aegisnode/agent.sock`.
+* [x] Set owner/group.
+* [x] Set permission.
+* [x] API status.
+* [x] API validate.
+* [x] API compile.
+* [x] API apply.
+* [x] API confirm.
+* [x] API rollback.
+* [x] API rules.
+* [x] API audit.
 
 ## HTTP API
 
-* [ ] Bind `127.0.0.1` mặc định.
-* [ ] Request ID middleware.
-* [ ] Structured access log.
-* [ ] Timeout middleware.
-* [ ] Request body limit.
-* [ ] Consistent error response.
-* [ ] Health endpoint.
-* [ ] Readiness endpoint.
+* [x] Bind `127.0.0.1` mặc định.
+* [x] Request ID middleware.
+* [x] Structured access log.
+* [x] Timeout middleware.
+* [x] Request body limit.
+* [x] Consistent error response.
+* [x] Health endpoint.
+* [x] Readiness endpoint.
 
 ## Reconciliation
 
-* [ ] Đọc desired policy.
-* [ ] Đọc committed policy.
-* [ ] Inspect nftables.
-* [ ] So sánh hash.
-* [ ] Report drift.
-* [ ] Không tự apply policy không được duyệt.
-* [ ] Giữ firewall khi daemon dừng.
+* [x] Đọc desired policy.
+* [x] Đọc committed policy.
+* [x] Inspect nftables.
+* [x] So sánh hash.
+* [x] Report drift.
+* [x] Không tự apply policy không được duyệt.
+* [x] Giữ firewall khi daemon dừng.
 
 ## Gate Phase 6
 
-* [ ] Restart daemon không làm mất firewall.
-* [ ] SQLite migration chạy tự động.
-* [ ] Unix socket API hoạt động.
-* [ ] HTTP không expose ra WAN mặc định.
+* [x] Restart daemon không làm mất firewall.
+* [x] SQLite migration chạy tự động.
+* [x] Unix socket API hoạt động.
+* [x] HTTP không expose ra WAN mặc định.
 
 ---
 
@@ -2205,7 +2205,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 3 — nftables Compiler.
 * [x] Phase 4 — nftables Runtime Backend.
 * [x] Phase 5 — Safe Apply and Rollback.
-* [ ] Phase 6 — Local Agent and Storage.
+* [x] Phase 6 — Local Agent and Storage.
 * [ ] Phase 7 — CLI.
 * [ ] Phase 8 — Docker and Router Mode.
 * [ ] Phase 9 — Blocker and Journald.

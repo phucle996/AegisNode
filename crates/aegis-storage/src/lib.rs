@@ -1,7 +1,10 @@
 //! AegisNode Storage Crate
-//! Quản lý cơ sở dữ liệu SQLite (MVP) và các Repository Interfaces.
+//! Quản lý SQLite database, DDL migrations và Repository layer.
 
-pub fn storage_init_placeholder() -> bool {
-    // Placeholder cho SQLite repository ở Phase 6
-    true
-}
+pub mod db;
+pub mod repository;
+
+pub use db::{init_in_memory_pool, init_sqlite_pool};
+pub use repository::{
+    AuditRecord, AuditRepository, ExecutionRepository, PolicyRepository, SqliteRepository,
+};

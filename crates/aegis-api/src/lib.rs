@@ -1,9 +1,9 @@
 //! AegisNode API Crate
-//! Khai báo các API Route Handlers cho cả HTTP và Unix Socket Interface.
+//! Xây dựng HTTP & Unix Socket RESTful API cho Agent Daemon bằng Axum Web Framework.
 
-use axum::{Router, routing::get};
+pub mod handlers;
+pub mod router;
+pub mod state;
 
-/// Tạo API router mặc định cho local agent
-pub fn create_router() -> Router {
-    Router::new().route("/v1/health", get(|| async { "OK" }))
-}
+pub use router::create_router;
+pub use state::AppState;

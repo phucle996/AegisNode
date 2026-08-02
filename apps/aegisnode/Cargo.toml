@@ -7,7 +7,12 @@ license.workspace = true
 [dependencies]
 aegis-core.workspace = true
 aegis-observability.workspace = true
+aegis-config.workspace = true
+aegis-models.workspace = true
+aegis-firewall.workspace = true
+aegis-storage.workspace = true
 aegis-api.workspace = true
+axum.workspace = true
 tokio.workspace = true
 clap.workspace = true
 tracing.workspace = true
