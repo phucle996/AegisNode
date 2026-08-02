@@ -489,67 +489,67 @@ nft --check --file candidate.nft
 
 ## Process execution
 
-* [ ] Tạo `ProcessRunner` abstraction.
-* [ ] Không gọi `Command` rải rác.
-* [ ] Có timeout.
-* [ ] Capture stdout.
-* [ ] Capture stderr.
-* [ ] Không nối raw user input vào shell string.
-* [ ] Không dùng `/bin/sh -c`.
+* [x] Tạo `ProcessRunner` abstraction.
+* [x] Không gọi `Command` rải rác.
+* [x] Có timeout.
+* [x] Capture stdout.
+* [x] Capture stderr.
+* [x] Không nối raw user input vào shell string.
+* [x] Không dùng `/bin/sh -c`.
 
 ## Capability detection
 
-* [ ] Kiểm tra binary `nft`.
-* [ ] Kiểm tra nftables version.
-* [ ] Kiểm tra quyền thực thi.
-* [ ] Kiểm tra kernel support.
-* [ ] Kiểm tra IPv6 availability.
-* [ ] Sinh capability report.
+* [x] Kiểm tra binary `nft`.
+* [x] Kiểm tra nftables version.
+* [x] Kiểm tra quyền thực thi.
+* [x] Kiểm tra kernel support.
+* [x] Kiểm tra IPv6 availability.
+* [x] Sinh capability report.
 
 ## Runtime inspect
 
-* [ ] Đọc JSON ruleset.
-* [ ] Parse table.
-* [ ] Parse chain.
-* [ ] Parse rules.
-* [ ] Parse counters.
-* [ ] Parse handles.
-* [ ] Chỉ lấy state thuộc AegisNode.
+* [x] Đọc JSON ruleset.
+* [x] Parse table.
+* [x] Parse chain.
+* [x] Parse rules.
+* [x] Parse counters.
+* [x] Parse handles.
+* [x] Chỉ lấy state thuộc AegisNode.
 
 ## Snapshot
 
-* [ ] Snapshot trước mỗi apply.
-* [ ] Lưu ruleset.
-* [ ] Lưu metadata.
-* [ ] Lưu checksum.
-* [ ] Dùng atomic write.
-* [ ] Permission an toàn.
-* [ ] Có retention policy.
+* [x] Snapshot trước mỗi apply.
+* [x] Lưu ruleset.
+* [x] Lưu metadata.
+* [x] Lưu checksum.
+* [x] Dùng atomic write.
+* [x] Permission an toàn.
+* [x] Có retention policy.
 
 ## Apply
 
-* [ ] Compile.
-* [ ] Syntax check.
-* [ ] Snapshot.
-* [ ] Apply.
-* [ ] Inspect lại.
-* [ ] Verify table.
-* [ ] Verify expected policy hash.
-* [ ] Audit kết quả.
+* [x] Compile.
+* [x] Syntax check.
+* [x] Snapshot.
+* [x] Apply.
+* [x] Inspect lại.
+* [x] Verify table.
+* [x] Verify expected policy hash.
+* [x] Audit kết quả.
 
 ## Restore
 
-* [ ] Restore snapshot gần nhất.
-* [ ] Không restore table ứng dụng khác.
-* [ ] Verify sau restore.
-* [ ] Audit rollback.
+* [x] Restore snapshot gần nhất.
+* [x] Không restore table ứng dụng khác.
+* [x] Verify sau restore.
+* [x] Audit rollback.
 
 ## Gate Phase 4
 
-* [ ] Apply policy hợp lệ thành công.
-* [ ] Policy syntax lỗi không làm thay đổi runtime.
-* [ ] Restore snapshot thành công.
-* [ ] Docker rules không bị mất.
+* [x] Apply policy hợp lệ thành công.
+* [x] Policy syntax lỗi không làm thay đổi runtime.
+* [x] Restore snapshot thành công.
+* [x] Docker rules không bị mất.
 
 ---
 
@@ -2203,7 +2203,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 1 — Core Models and Errors.
 * [x] Phase 2 — Policy Validation.
 * [x] Phase 3 — nftables Compiler.
-* [ ] Phase 4 — nftables Runtime Backend.
+* [x] Phase 4 — nftables Runtime Backend.
 * [ ] Phase 5 — Safe Apply and Rollback.
 * [ ] Phase 6 — Local Agent and Storage.
 * [ ] Phase 7 — CLI.
