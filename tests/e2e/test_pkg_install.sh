@@ -18,7 +18,7 @@ sudo ./scripts/uninstall.sh --purge >/dev/null 2>&1 || true
 
 # 2. Test Install from GitHub Release
 echo -n "Test E2E-PKG-001: Automatic installation from GitHub release... "
-if sudo ./scripts/install.sh --version v0.1.1 >/dev/null 2>&1; then
+if sudo ./scripts/install.sh --version v1.1.1 >/dev/null 2>&1; then
     echo -e "${GREEN}PASSED${NC}"
 else
     echo -e "${RED}FAILED${NC}"
