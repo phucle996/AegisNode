@@ -1,0 +1,32 @@
+# aegis-rpc — AegisNode gRPC Transport Layer (tonic + prost)
+# Crate này chứa .proto definitions, generated code và transport adapters cho:
+# - AgentService: gRPC server trên Agent (IPC qua UDS, mTLS qua TCP)
+# - ControllerService: gRPC server trên Controller (nhận từ Agents qua TCP mTLS)
+
+[package]
+name = "aegis-rpc"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+# gRPC framework (tonic) và protobuf serialization (prost)
+tonic          = { version = "0.12", features = ["tls", "tls-roots"] }
+prost          = "0.13"
+tokio          = { workspace = true }
+tokio-stream   = "0.1"
+tower          = { version = "0.5" }
+hyper-util     = { version = "0.1", features = ["tokio"] }
+serde          = { workspace = true }
+serde_json     = { workspace = true }
+chrono         = { workspace = true }
+tracing        = { workspace = true }
+uuid           = { workspace = true }
+
+# Domain models để ánh xạ gRPC message ↔ Rust struct
+aegis-core     = { workspace = true }
+aegis-models   = { workspace = true }
+
+[build-dependencies]
+# tonic-build gen Rust code từ .proto tại build time
+tonic-build    = "0.12"

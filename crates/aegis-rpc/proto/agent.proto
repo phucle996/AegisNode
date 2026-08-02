@@ -1,0 +1,82 @@
+// Proto definition cho AgentService — AegisNode gRPC IPC & Network Transport
+// Agent expose service này qua Unix Domain Socket (IPC từ CLI) và qua TCP mTLS (từ Controller)
+
+syntax = "proto3";
+
+package aegis.agent.v1;
+
+// ─── Common ──────────────────────────────────────────────────────────────────
+
+message Empty {}
+
+// ─── AgentService ────────────────────────────────────────────────────────────
+
+service AgentService {
+  // Lấy trạng thái tổng quan của Agent daemon
+  rpc GetStatus(Empty) returns (AgentStatusResponse);
+
+  // Apply Firewall Policy ngay trên node (trigger từ CLI hoặc Controller Rollout)
+  rpc ApplyFirewallPolicy(ApplyFirewallPolicyRequest) returns (ApplyFirewallPolicyResponse);
+
+  // Lấy System Inventory (OS, CPU, RAM, network interfaces)
+  rpc GetInventory(Empty) returns (InventoryResponse);
+
+  // Thực thi thao tác Systemd Service có định kiểu (ngăn chặn arbitrary shell)
+  rpc ExecuteServiceOp(ServiceOpRequest) returns (ServiceOpResponse);
+
+  // Streaming: Controller push RolloutCommand xuống Agent (bidirectional push, không cần Agent poll)
+  rpc StreamRolloutCommands(Empty) returns (stream RolloutCommand);
+}
+
+// ─── GetStatus ───────────────────────────────────────────────────────────────
+
+message AgentStatusResponse {
+  string node_id        = 1;
+  string hostname       = 2;
+  string agent_version  = 3;
+  string status         = 4; // "ONLINE" | "DEGRADED" | "OFFLINE"
+  int64  uptime_seconds = 5;
+}
+
+// ─── ApplyFirewallPolicy ─────────────────────────────────────────────────────
+
+message ApplyFirewallPolicyRequest {
+  string policy_json            = 1; // serialized FirewallPolicy JSON
+  uint32 rollback_timeout_secs  = 2;
+}
+
+message ApplyFirewallPolicyResponse {
+  string execution_id    = 1;
+  bool   success         = 2;
+  string message         = 3;
+  uint32 timeout_seconds = 4;
+}
+
+// ─── GetInventory ─────────────────────────────────────────────────────────────
+
+message InventoryResponse {
+  string inventory_json = 1; // serialized NodeInventoryPayload JSON
+}
+
+// ─── ExecuteServiceOp ────────────────────────────────────────────────────────
+
+message ServiceOpRequest {
+  string unit_name  = 1;
+  string operation  = 2; // "START" | "STOP" | "RESTART" | "RELOAD" | "ENABLE" | "DISABLE"
+  string reason     = 3;
+}
+
+message ServiceOpResponse {
+  bool   success            = 1;
+  string message            = 2;
+  uint64 execution_time_ms  = 3;
+}
+
+// ─── StreamRolloutCommands ────────────────────────────────────────────────────
+
+message RolloutCommand {
+  string rollout_id      = 1;
+  string command_type    = 2; // "APPLY_POLICY" | "ROLLBACK" | "CANCEL" | "HEALTH_CHECK"
+  string payload_json    = 3; // serialized command payload
+  int64  issued_at_unix  = 4;
+}

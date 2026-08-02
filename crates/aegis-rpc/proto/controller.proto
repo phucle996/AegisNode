@@ -1,0 +1,57 @@
+// Proto definition cho ControllerService — AegisNode gRPC Agent→Controller reporting
+// Agent gọi service này qua TCP mTLS để báo cáo heartbeat, inventory và trạng thái rollout
+
+syntax = "proto3";
+
+package aegis.controller.v1;
+
+// ─── Common ──────────────────────────────────────────────────────────────────
+
+message Empty {}
+
+// ─── ControllerService ───────────────────────────────────────────────────────
+
+service ControllerService {
+  // Agent gửi heartbeat định kỳ để Controller biết node còn sống
+  rpc ReportHeartbeat(HeartbeatRequest) returns (HeartbeatAck);
+
+  // Agent đẩy Node Inventory (OS, CPU, RAM, network) lên Controller
+  rpc ReportInventory(InventoryReport) returns (Empty);
+
+  // Agent báo cáo tiến độ Rollout Step lên Controller
+  rpc ReportRolloutStatus(RolloutStatusUpdate) returns (Empty);
+}
+
+// ─── ReportHeartbeat ─────────────────────────────────────────────────────────
+
+message HeartbeatRequest {
+  string node_id        = 1;
+  string hostname       = 2;
+  string ip_address     = 3;
+  string agent_version  = 4;
+  int64  sent_at_unix   = 5; // epoch seconds để Controller detect clock skew
+}
+
+message HeartbeatAck {
+  bool   acknowledged   = 1;
+  int64  server_time    = 2; // Controller trả về epoch để Agent sync clock
+  string next_action    = 3; // "" | "ENROLL" | "UPDATE_CERT" — hint từ Controller
+}
+
+// ─── ReportInventory ─────────────────────────────────────────────────────────
+
+message InventoryReport {
+  string node_id        = 1;
+  string inventory_json = 2; // serialized NodeInventoryPayload JSON
+}
+
+// ─── ReportRolloutStatus ─────────────────────────────────────────────────────
+
+message RolloutStatusUpdate {
+  string rollout_id    = 1;
+  string node_id       = 2;
+  string step_id       = 3;
+  string state         = 4; // "PENDING" | "RUNNING" | "COMPLETED" | "FAILED" | "ROLLED_BACK"
+  string error_message = 5;
+  int64  updated_at    = 6; // epoch seconds
+}

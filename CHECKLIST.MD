@@ -1372,92 +1372,65 @@ nftables / NetworkManager / systemd
 ## Gate Phase 16
 
 * [x] Không thể chạy arbitrary shell.
-* [x] Protected unit không bị stop.
-* [x] Journal query có pagination.
-* [x] Mọi service operation có audit.
+* [x] Protected unit không b�## Proto definitions
 
----
-
-# Middle Phase 17 — Combined Change Plan
-
-## Models
-
-* [x] `NodeChangePlan`.
-* [x] `FirewallChange`.
-* [x] `NetworkChange`.
-* [x] `ServiceChange`.
-* [x] `HealthCheckSpec`.
-* [x] `RollbackPolicy`.
-* [x] `ExecutionStep`.
-* [x] `ExecutionResult`.
-
-## Planner
-
-* [x] Resolve dependency.
-* [x] Detect circular dependency.
-* [x] Generate execution order.
-* [x] Generate rollback order.
-* [x] Generate dry-run diff.
-* [x] Calculate risk.
-
-## Risk levels
-
-* [x] LOW.
-* [x] MEDIUM.
-* [x] HIGH.
-* [x] CRITICAL.
-
-## Execution order
-
-* [x] Snapshot firewall.
-* [x] Snapshot network.
-* [x] Snapshot service state.
-* [x] Install temporary management allow.
-* [x] Stage network.
-* [x] Stage firewall.
-* [x] Activate network.
-* [x] Activate firewall.
-* [x] Execute service operations.
-* [x] Run health checks.
-* [x] Confirm hoặc rollback.
-
-## Idempotency
-
-* [x] Mỗi plan có idempotency key.
-* [x] Retry không execute hai lần.
-* [x] Persist execution state.
-* [x] Resume sau agent restart.
-* [x] Reject conflicting execution.
-
-## Gate Phase 17
-
-* [x] Network và firewall thay đổi đồng bộ.
-* [x] Mất controller thì node tự rollback.
-* [x] Failure ở giữa plan rollback đúng reverse order.
-* [x] Duplicate request không chạy hai lần.
-
----
-
-# Middle Phase 17.5 — Transport Refactor: gRPC & IPC
-
-## Mục tiêu
-
-Thay thế toàn bộ HTTP REST nội bộ bằng gRPC (tonic) over mTLS cho giao tiếp xuyên mạng và Unix Domain Socket IPC cho giao tiếp nội bộ cùng máy. REST chỉ còn tồn tại ở lớp Controller HTTP API phục vụ Web UI.
-
-## Proto definitions
-
-* [ ] Định nghĩa `agent.proto` cho AgentService.
-* [ ] Định nghĩa `controller.proto` cho ControllerService.
-* [ ] `build.rs` tự động gen code từ `.proto` bằng `tonic-build`.
-* [ ] Các message types protobuf ánh xạ 1-1 với domain models hiện tại.
+* [x] Định nghĩa `agent.proto` cho AgentService.
+* [x] Định nghĩa `controller.proto` cho ControllerService.
+* [x] `build.rs` tự động gen code từ `.proto` bằng `tonic-build`.
+* [x] Các message types protobuf ánh xạ 1-1 với domain models hiện tại.
 
 ## AgentService (gRPC server chạy trên Agent)
 
-* [ ] `ApplyFirewallPolicy(FirewallPolicyRequest) → ApplyResult`.
-* [ ] `GetInventory(Empty) → NodeInventoryPayload`.
-* [ ] `ExecuteServiceOp(ServiceOpRequest) → ServiceOpResult`.
-* [ ] `StreamRolloutCommands(Empty) → stream RolloutCommand` (bidirectional push từ Controller).
-* [ ] `GetStatus(Empty) → AgentStatusResponse`.
+* [x] `ApplyFirewallPolicy(FirewallPolicyRequest) → ApplyResult`.
+* [x] `GetInventory(Empty) → NodeInventoryPayload`.
+* [x] `ExecuteServiceOp(ServiceOpRequest) → ServiceOpResult`.
+* [x] `StreamRolloutCommands(Empty) → stream RolloutCommand` (bidirectional push từ Controller).
+* [x] `GetStatus(Empty) → AgentStatusResponse`.
+
+## ControllerService (gRPC server chạy trên Controller)
+
+* [x] `ReportHeartbeat(HeartbeatRequest) → HeartbeatAck`.
+* [x] `ReportInventory(NodeInventoryPayload) → Empty`.
+* [x] `ReportRolloutStatus(RolloutStatusUpdate) → Empty`.
+
+## Transport layer Agent
+
+* [x] gRPC server (tonic) over **Unix Domain Socket** nhận lệnh từ CLI (IPC cùng máy).
+* [x] gRPC client (tonic) over **TCP mTLS** gửi heartbeat và nhận lệnh từ Controller.
+* [x] Loại bỏ HTTP REST listener trên Agent.
+
+## Transport layer Controller
+
+* [x] gRPC server (tonic) over **TCP mTLS** nhận data từ Agents.
+* [x] REST server (axum) over **HTTPS** giữ nguyên chỉ phục vụ Web UI và Admin API.
+* [x] gRPC client (tonic) over **TCP mTLS** push RolloutCommand xuống các Agents.
+
+## CLI IPC refactor
+
+* [x] CLI dùng tonic gRPC client over **Unix Domain Socket** thay cho reqwest HTTP.
+* [x] Loại bỏ dependency `reqwest` khỏi `aegis-cli`.
+* [x] Cùng `.proto` types cho cả CLI và Controller client.
+
+## mTLS integration
+
+* [x] tonic TLS config dùng cert đã sign từ PKI Manager (Phase 13).
+* [x] Server-side: load `ca.crt`, `server.crt`, `server.key`.
+* [x] Client-side: load `ca.crt`, `agent.crt`, `agent.key`.
+* [x] Reject kết nối không có cert hợp lệ.
+
+## Backward compatibility
+
+* [x] REST Admin API (`/v1/*`) giữ nguyên 100%.
+* [x] Không thay đổi domain models (`aegis-models`).
+* [x] Không thay đổi business logic (`aegis-firewall`, `aegis-core`).
+
+## Gate Phase 17.5
+
+* [x] CLI → Agent qua UDS gRPC hoạt động.
+* [x] Agent → Controller qua gRPC mTLS hoạt động.
+* [x] Controller push RolloutCommand → Agent qua streaming hoạt động.
+* [x] REST Web UI API không bị ảnh hưởng.
+* [x] Không còn HTTP endpoint nào trên Agent process.AgentStatusResponse`.
 
 ## ControllerService (gRPC server chạy trên Controller)
 
