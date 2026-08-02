@@ -1,17 +1,17 @@
-// Multi-call binary chính cho AegisNode: aegisnode local
-// Khởi tạo Agent Daemon, SQLite Storage Engine, SafeApplyManager và HTTP / Unix Socket API Servers
+// Multi-call binary chính cho AegisNode: aegisnode local & aegisnode server
+// Khởi tạo Agent Daemon (`local`) và Control Plane Controller Server (`server`) cho nền tảng Multi-Node
 
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use aegis_api::{AppState, create_router};
-use aegis_config::AgentConfig;
+use aegis_api::{AppState, ControllerState, create_controller_router, create_router};
+use aegis_config::{AgentConfig, ControllerConfig};
 use aegis_core::Result;
 use aegis_firewall::{
     CapabilityDetector, DefaultProcessRunner, NftablesRuntimeBackend, SafeApplyManager,
     SnapshotManager,
 };
-use aegis_storage::{SqliteRepository, init_sqlite_pool};
+use aegis_storage::{PgRepository, SqliteRepository, init_sqlite_pool};
 use clap::{Parser, Subcommand};
 use tracing::{info, warn};
 
@@ -30,11 +30,14 @@ enum Commands {
         #[arg(short, long, default_value = "/etc/aegisnode/agent.yaml")]
         config: PathBuf,
     },
-    /// Start AegisNode in Control Plane Server mode (Placeholder)
-    Server,
-    /// Start AegisNode in Managed Agent mode (Placeholder)
+    /// Start AegisNode in Control Plane Server (Controller) mode
+    Server {
+        #[arg(short, long, default_value = "/etc/aegisnode/controller.yaml")]
+        config: PathBuf,
+    },
+    /// Start AegisNode in Managed Agent mode
     Agent,
-    /// Start AegisNode Execution Daemon (Placeholder)
+    /// Start AegisNode Execution Daemon
     Execd,
     /// AegisNode Control CLI (Alias for aegisctl)
     Ctl,
@@ -49,9 +52,7 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Commands::Local { config } => run_local_daemon(config).await?,
-        Commands::Server => {
-            info!("Starting AegisNode Control Plane Server (Stage 2)...");
-        }
+        Commands::Server { config } => run_controller_server(config).await?,
         Commands::Agent => {
             info!("Starting AegisNode Managed Agent (Stage 2)...");
         }
@@ -63,6 +64,70 @@ async fn main() -> Result<()> {
             std::process::exit(exit_code);
         }
     }
+
+    Ok(())
+}
+
+/// Khởi chạy Controller Server (`aegisnode server`) cho Stage 2 Multi-Node Platform
+async fn run_controller_server(config_path: PathBuf) -> Result<()> {
+    info!(
+        "Loading Controller Configuration from '{:?}'...",
+        config_path
+    );
+    let config = match ControllerConfig::load_from_file(&config_path) {
+        Ok(cfg) => cfg,
+        Err(e) => {
+            warn!(
+                "Could not load controller config from '{:?}': {e}. Using default controller config...",
+                config_path
+            );
+            ControllerConfig::default()
+        }
+    };
+
+    info!("Initializing Controller Server (Stage 2 Multi-Node Platform)...");
+
+    // Khởi tạo kết nối PostgreSQL Cluster
+    let repository = match PgRepository::connect(
+        &config.database.url,
+        config.database.max_connections,
+        config.database.connect_timeout_seconds,
+    )
+    .await
+    {
+        Ok(repo) => {
+            info!(
+                "Successfully connected to PostgreSQL at {}",
+                config.database.url
+            );
+            Some(repo)
+        }
+        Err(e) => {
+            warn!("Could not connect to PostgreSQL: {e}. Controller running in fallback mode...");
+            None
+        }
+    };
+
+    let controller_state = Arc::new(ControllerState {
+        repository,
+        config: config.clone(),
+    });
+
+    let router = create_controller_router(controller_state);
+    let bind_addr = format!("{}:{}", config.server.host, config.server.port);
+    info!("Listening Controller REST API on http://{}...", bind_addr);
+
+    let listener = tokio::net::TcpListener::bind(&bind_addr)
+        .await
+        .map_err(|e| {
+            aegis_core::AegisError::Configuration(format!(
+                "Failed to bind Controller HTTP socket '{bind_addr}': {e}"
+            ))
+        })?;
+
+    axum::serve(listener, router).await.map_err(|e| {
+        aegis_core::AegisError::Internal(format!("Controller API Server error: {e}"))
+    })?;
 
     Ok(())
 }

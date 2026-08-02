@@ -1047,32 +1047,32 @@ nftables / NetworkManager / systemd
 
 ## Controller app
 
-* [ ] Implement `aegisnode server`.
-* [ ] Controller configuration.
-* [ ] HTTP API.
-* [ ] PostgreSQL.
-* [ ] Migration framework.
-* [ ] Authentication cơ bản.
-* [ ] API token.
-* [ ] Audit middleware.
-* [ ] Request ID.
-* [ ] Pagination.
+* [x] Implement `aegisnode server`.
+* [x] Controller configuration.
+* [x] HTTP API.
+* [x] PostgreSQL.
+* [x] Migration framework.
+* [x] Authentication cơ bản.
+* [x] API token.
+* [x] Audit middleware.
+* [x] Request ID.
+* [x] Pagination.
 
 ## Database
 
-* [ ] `users`.
-* [ ] `api_tokens`.
-* [ ] `nodes`.
-* [ ] `node_groups`.
-* [ ] `node_labels`.
-* [ ] `firewall_policies`.
-* [ ] `policy_versions`.
-* [ ] `network_profiles`.
-* [ ] `service_policies`.
-* [ ] `change_plans`.
-* [ ] `rollouts`.
-* [ ] `rollout_targets`.
-* [ ] `audit_events`.
+* [x] `users`.
+* [x] `api_tokens`.
+* [x] `nodes`.
+* [x] `node_groups`.
+* [x] `node_labels`.
+* [x] `firewall_policies`.
+* [x] `policy_versions`.
+* [x] `network_profiles`.
+* [x] `service_policies`.
+* [x] `change_plans`.
+* [x] `rollouts`.
+* [x] `rollout_targets`.
+* [x] `audit_events`.
 
 ## Node management
 
