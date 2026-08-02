@@ -1958,65 +1958,65 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 * [x] Resource.
 * [x] Before hash.
 * [x] After hash.
-* [ ] Request ID.
-* [ ] Source IP.
-* [ ] Timestamp.
-* [ ] Result.
-* [ ] Node ID.
-* [ ] Execution ID.
+* [x] Request ID.
+* [x] Source IP.
+* [x] Timestamp.
+* [x] Result.
+* [x] Node ID.
+* [x] Execution ID.
 
 ## Integrity chain
 
-* [ ] Event hash.
-* [ ] Previous event hash.
-* [ ] Chain verification.
-* [ ] Detect modified event.
-* [ ] Detect missing event.
-* [ ] Verification CLI.
+* [x] Event hash.
+* [x] Previous event hash.
+* [x] Chain verification.
+* [x] Detect modified event.
+* [x] Detect missing event.
+* [x] Verification CLI.
 
 ## Audit export
 
-* [ ] JSON.
-* [ ] Syslog.
-* [ ] Log pipeline integration.
-* [ ] Export retry.
-* [ ] Local buffer.
-* [ ] Buffer size limit.
+* [x] JSON.
+* [x] Syslog.
+* [x] Log pipeline integration.
+* [x] Export retry.
+* [x] Local buffer.
+* [x] Buffer size limit.
 
 ## Controller backup
 
-* [ ] PostgreSQL full backup.
-* [ ] Point-in-time recovery guide.
-* [ ] Config backup.
-* [ ] Policy bundle archive.
-* [ ] CA metadata.
-* [ ] Signing public keys.
-* [ ] Node enrollment records.
+* [x] PostgreSQL full backup.
+* [x] Point-in-time recovery guide.
+* [x] Config backup.
+* [x] Policy bundle archive.
+* [x] CA metadata.
+* [x] Signing public keys.
+* [x] Node enrollment records.
 
 ## Restore
 
-* [ ] Restore test environment.
-* [ ] Restore database.
-* [ ] Restore controller config.
-* [ ] Restore policy history.
-* [ ] Verify agent reconnect.
-* [ ] Verify audit integrity.
+* [x] Restore test environment.
+* [x] Restore database.
+* [x] Restore controller config.
+* [x] Restore policy history.
+* [x] Verify agent reconnect.
+* [x] Verify audit integrity.
 
 ## Local node recovery
 
-* [ ] `aegisnode ctl recovery status`.
-* [ ] `rollback-last`.
-* [ ] `restore-snapshot`.
-* [ ] Offline emergency mode.
-* [ ] Local actor audit.
-* [ ] Sync recovery event về controller sau reconnect.
+* [x] `aegisnode ctl recovery status`.
+* [x] `rollback-last`.
+* [x] `restore-snapshot`.
+* [x] Offline emergency mode.
+* [x] Local actor audit.
+* [x] Sync recovery event về controller sau reconnect.
 
 ## Gate Phase 25
 
-* [ ] Restore controller từ backup thành công.
-* [ ] Agent giữ firewall trong thời gian disaster.
-* [ ] Audit tampering được phát hiện.
-* [ ] Local emergency rollback hoạt động.
+* [x] Restore controller từ backup thành công.
+* [x] Agent giữ firewall trong thời gian disaster.
+* [x] Audit tampering được phát hiện.
+* [x] Local emergency rollback hoạt động.
 
 ---
 
@@ -2274,7 +2274,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 22 — Signed Policy Bundles.
 * [x] Phase 23 — Controller High Availability.
 * [x] Phase 24 — Advanced Networking.
-* [ ] Phase 25 — Audit, Backup and Recovery.
+* [x] Phase 25 — Audit, Backup and Recovery.
 * [ ] Phase 26 — Production Observability.
 * [ ] Phase 27 — Security Hardening and Release.
 * [ ] Prod Final Stage Gate passed.
