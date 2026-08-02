@@ -34,8 +34,10 @@ fi
 echo -n "Test E2E-RB-002: Safe Apply & Automatic Rollback Timeout... "
 APPLY_PAYLOAD='{
   "policy": {
+    "apiVersion": "aegisnode.io/v1",
+    "kind": "FirewallPolicy",
     "metadata": {
-      "id": "e2e-test-policy",
+      "id": "550e8400-e29b-41d4-a716-446655440000",
       "name": "E2E Test Security Policy",
       "version": 1,
       "updatedAt": "2026-08-02T09:00:00Z"

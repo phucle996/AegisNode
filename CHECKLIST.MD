@@ -943,34 +943,34 @@ nft --check --file candidate.nft
 
 ## systemd
 
-* [ ] Tạo `aegisnode-local.service`.
-* [ ] `Restart=on-failure`.
-* [ ] `RuntimeDirectory`.
-* [ ] `StateDirectory`.
-* [ ] `ConfigurationDirectory`.
-* [ ] Capability phù hợp.
-* [ ] File descriptor limit.
-* [ ] Log vào journald.
-* [ ] Graceful stop.
+* [x] Tạo `aegisnode-local.service`.
+* [x] `Restart=on-failure`.
+* [x] `RuntimeDirectory`.
+* [x] `StateDirectory`.
+* [x] `ConfigurationDirectory`.
+* [x] Capability phù hợp.
+* [x] File descriptor limit.
+* [x] Log vào journald.
+* [x] Graceful stop.
 
 ## Installation
 
-* [ ] Install script.
-* [ ] Uninstall script.
-* [ ] Không overwrite config hiện có.
-* [ ] Không purge database mặc định.
-* [ ] Check nftables.
-* [ ] Create user/group.
-* [ ] Set permission.
-* [ ] Enable systemd unit.
+* [x] Install script.
+* [x] Uninstall script.
+* [x] Không overwrite config hiện có.
+* [x] Không purge database mặc định.
+* [x] Check nftables.
+* [x] Create user/group.
+* [x] Set permission.
+* [x] Enable systemd unit.
 
 ## Packages
 
-* [ ] Debian package.
-* [ ] Checksums.
-* [ ] Version command.
-* [ ] Upgrade script.
-* [ ] Migration strategy.
+* [x] Debian package.
+* [x] Checksums.
+* [x] Version command.
+* [x] Upgrade script.
+* [x] Migration strategy.
 
 ## Network namespace test lab
 
