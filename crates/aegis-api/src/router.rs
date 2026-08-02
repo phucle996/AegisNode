@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use axum::Router;
 use axum::http::{HeaderValue, StatusCode, Uri, header};
-use axum::response::{IntoResponse, Response};
+use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use rust_embed::RustEmbed;
 
