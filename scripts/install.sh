@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # Clear color
 
 REPO="phucle996/AegisNode"
-VERSION="v1.1.2"
+VERSION="v1.1.3"
 CONTROLLER_URL=""
 ENROLLMENT_TOKEN=""
 

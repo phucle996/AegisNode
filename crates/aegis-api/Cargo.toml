@@ -26,4 +26,5 @@ jsonwebtoken.workspace = true
 tracing.workspace = true
 rust-embed.workspace = true
 mime_guess.workspace = true
+pwhash.workspace = true
 

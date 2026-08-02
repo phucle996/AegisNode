@@ -124,20 +124,18 @@ pub async fn apply_policy_handler(
         .execute_safe_apply(&policy, DEFAULT_TIMEOUT_SECS)
         .await?;
 
-    // Tăng version sau khi apply thành công
-    let mut lock = state.current_version.lock().await;
-    *lock += 1;
+    let current_ver = *state.current_version.lock().await;
 
     Ok(Json(serde_json::json!({
         "status": "pending_confirmation",
         "execution_id": execution.execution_id.as_str(),
-        "new_version": *lock,
+        "current_version": current_ver,
         "warning_count": warning_count,
         "timeout_seconds": DEFAULT_TIMEOUT_SECS
     })))
 }
 
-/// Handler `POST /v1/firewall/confirm`: Xác nhận Transaction Safe Apply
+/// Handler `POST /v1/firewall/confirm`: Xác nhận Transaction Safe Apply và tăng Version Policy chính thức
 pub async fn confirm_policy_handler(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<ConfirmPayload>,
@@ -146,9 +144,14 @@ pub async fn confirm_policy_handler(
     let execution_id = ExecutionId(payload.execution_id.clone());
     state.safe_apply.confirm(&execution_id).await?;
 
+    // Tăng policy version sau khi đã confirm giao dịch thành công
+    let mut lock = state.current_version.lock().await;
+    *lock += 1;
+
     Ok(Json(serde_json::json!({
         "status": "confirmed",
-        "execution_id": payload.execution_id
+        "execution_id": payload.execution_id,
+        "new_version": *lock
     })))
 }
 

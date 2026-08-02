@@ -1,13 +1,13 @@
 // Trình quản lý Safe Apply & Automatic Rollback (SafeApplyManager) cho AegisNode
-// Bảo vệ chống tự khóa server bằng cơ chế Rollback Timer, Health Checking và Concurrent Apply Lock
+// Bảo vệ chống tự khóa server bằng cơ chế Rollback Timer, Health Checking và Concurrent Apply Lock an toàn chống Mutex Poisoning Panic
 
-use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
-use std::time::Duration;
+use std::collections::HashMap; // Import HashMap lưu trữ trạng thái transaction
+use std::sync::{Arc, Mutex}; // Mutex và Arc xử lý đồng bộ đa luồng
+use std::time::Duration; // Duration cấu hình timeout
 
-use aegis_core::{AegisError, ExecutionId, Result};
-use aegis_models::firewall::FirewallPolicy;
-use tokio::task::JoinHandle;
+use aegis_core::{AegisError, ExecutionId, Result}; // Định nghĩa Lỗi và ExecutionId
+use aegis_models::firewall::FirewallPolicy; // FirewallPolicy data model
+use tokio::task::JoinHandle; // Handle quản lý async timer task
 
 use super::execution::{ApplyExecution, ExecutionState};
 use super::health_check::HealthChecker;
@@ -37,9 +37,12 @@ impl SafeApplyManager {
         }
     }
 
-    /// Kiểm tra và chiếm quyền Concurrent Apply Lock
+    /// Kiểm tra và chiếm quyền Concurrent Apply Lock (Tránh panic khi lock bị poisoned bằng unwrap_or_else)
     fn acquire_lock(&self, execution_id: &ExecutionId) -> Result<()> {
-        let mut lock = self.active_lock.lock().unwrap();
+        let mut lock = self
+            .active_lock
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         if let Some(active_id) = lock.as_ref() {
             return Err(AegisError::Conflict(format!(
                 "Another apply execution '{active_id}' is currently in progress. Operation rejected!"
@@ -49,9 +52,12 @@ impl SafeApplyManager {
         Ok(())
     }
 
-    /// Giải phóng Concurrent Apply Lock
+    /// Giải phóng Concurrent Apply Lock an toàn
     fn release_lock(&self, execution_id: &ExecutionId) {
-        let mut lock = self.active_lock.lock().unwrap();
+        let mut lock = self
+            .active_lock
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         if lock.as_ref() == Some(execution_id) {
             *lock = None;
         }
@@ -139,11 +145,17 @@ impl SafeApplyManager {
         execution.state = ExecutionState::AppliedPendingConfirmation;
 
         {
-            let mut execs = self.executions.lock().unwrap();
+            let mut execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             execs.insert(execution_id.clone(), execution.clone());
         }
         {
-            let mut snaps = self.snapshots.lock().unwrap();
+            let mut snaps = self
+                .snapshots
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             snaps.insert(execution_id.clone(), snapshot.clone());
         }
 
@@ -161,7 +173,10 @@ impl SafeApplyManager {
         });
 
         {
-            let mut handles = self.timer_handles.lock().unwrap();
+            let mut handles = self
+                .timer_handles
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             handles.insert(execution_id, handle);
         }
 
@@ -171,7 +186,10 @@ impl SafeApplyManager {
     /// Xác nhận thay đổi Policy (Confirm Apply Execution)
     pub async fn confirm(&self, execution_id: &ExecutionId) -> Result<ApplyExecution> {
         let mut execution = {
-            let mut execs = self.executions.lock().unwrap();
+            let mut execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             execs.get_mut(execution_id).cloned().ok_or_else(|| {
                 AegisError::NotFound(format!("Apply execution '{execution_id}' not found"))
             })?
@@ -185,14 +203,22 @@ impl SafeApplyManager {
         }
 
         // 1. Hủy Rollback Timer
-        if let Some(handle) = self.timer_handles.lock().unwrap().remove(execution_id) {
+        if let Some(handle) = self
+            .timer_handles
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(execution_id)
+        {
             handle.abort();
         }
 
         // 2. Chuyển trạng thái sang Committed
         execution.state = ExecutionState::Committed;
         {
-            let mut execs = self.executions.lock().unwrap();
+            let mut execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             execs.insert(execution_id.clone(), execution.clone());
         }
 
@@ -205,14 +231,22 @@ impl SafeApplyManager {
     /// Khôi phục thủ công (Manual Rollback)
     pub async fn rollback(&self, execution_id: &ExecutionId) -> Result<ApplyExecution> {
         let snapshot = {
-            let snaps = self.snapshots.lock().unwrap();
+            let snaps = self
+                .snapshots
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             snaps.get(execution_id).cloned().ok_or_else(|| {
                 AegisError::NotFound(format!("Snapshot for execution '{execution_id}' not found"))
             })?
         };
 
         // 1. Hủy Rollback Timer nếu có
-        if let Some(handle) = self.timer_handles.lock().unwrap().remove(execution_id) {
+        if let Some(handle) = self
+            .timer_handles
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+            .remove(execution_id)
+        {
             handle.abort();
         }
 
@@ -231,7 +265,10 @@ impl SafeApplyManager {
         }
 
         {
-            let mut execs = self.executions.lock().unwrap();
+            let mut execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             execs.insert(execution_id.clone(), execution.clone());
         }
 
@@ -248,7 +285,10 @@ impl SafeApplyManager {
         snapshot: &FirewallSnapshot,
     ) {
         let is_pending = {
-            let execs = self.executions.lock().unwrap();
+            let execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             execs
                 .get(execution_id)
                 .map(|e| e.state == ExecutionState::AppliedPendingConfirmation)
@@ -259,7 +299,10 @@ impl SafeApplyManager {
             self.update_state(execution_id, ExecutionState::RollingBack);
             let res = self.backend.rollback(snapshot).await;
 
-            let mut execs = self.executions.lock().unwrap();
+            let mut execs = self
+                .executions
+                .lock()
+                .unwrap_or_else(|poisoned| poisoned.into_inner());
             if let Some(exec) = execs.get_mut(execution_id) {
                 if res.is_ok() {
                     exec.state = ExecutionState::RolledBack;
@@ -275,14 +318,20 @@ impl SafeApplyManager {
     }
 
     fn update_state(&self, execution_id: &ExecutionId, state: ExecutionState) {
-        let mut execs = self.executions.lock().unwrap();
+        let mut execs = self
+            .executions
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         if let Some(exec) = execs.get_mut(execution_id) {
             exec.state = state;
         }
     }
 
     pub fn get_execution(&self, execution_id: &ExecutionId) -> Result<ApplyExecution> {
-        let execs = self.executions.lock().unwrap();
+        let execs = self
+            .executions
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner());
         execs.get(execution_id).cloned().ok_or_else(|| {
             AegisError::NotFound(format!("Apply execution '{execution_id}' not found"))
         })

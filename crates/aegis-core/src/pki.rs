@@ -159,7 +159,7 @@ impl PkiManager {
         node_id: Uuid,
         machine_id: &str,
         hostname: &str,
-        _csr_pem: &str,
+        csr_pem: &str,
         valid_days: i64,
     ) -> Result<AgentCertificateRecord> {
         // Kiểm tra xem Machine ID của host Linux có hợp lệ hay không
@@ -179,31 +179,38 @@ impl PkiManager {
             .self_signed(&ca_key_pair)
             .map_err(|e| AegisError::Internal(format!("Failed to reconstruct CA cert: {e}")))?;
 
-        // Thiết lập cấu hình Certificate cho Agent Node
-        let mut agent_params = CertificateParams::default();
-        agent_params.is_ca = IsCa::NoCa;
-        agent_params.key_usages = vec![
-            KeyUsagePurpose::DigitalSignature,
-            KeyUsagePurpose::KeyEncipherment,
-        ];
-        agent_params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ClientAuth];
-        agent_params
-            .distinguished_name
-            .push(DnType::CommonName, hostname);
-        agent_params
-            .distinguished_name
-            .push(DnType::OrganizationName, "AegisNode Agent");
+        // Kiểm tra và ký Certificate thực tế từ CSR PEM hoặc sinh KeyPair mới cho Agent
+        let client_cert_pem = {
+            let mut agent_params = CertificateParams::default();
+            agent_params.is_ca = IsCa::NoCa;
+            agent_params.key_usages = vec![
+                KeyUsagePurpose::DigitalSignature,
+                KeyUsagePurpose::KeyEncipherment,
+            ];
+            agent_params.extended_key_usages = vec![ExtendedKeyUsagePurpose::ClientAuth];
+            agent_params
+                .distinguished_name
+                .push(DnType::CommonName, hostname);
+            agent_params
+                .distinguished_name
+                .push(DnType::OrganizationName, "AegisNode Agent");
 
-        // Sinh KeyPair cho Agent và dùng Root CA KeyPair + Root CA Certificate để ký
-        let agent_key_pair = KeyPair::generate()
-            .map_err(|e| AegisError::Internal(format!("Failed to gen Agent KeyPair: {e}")))?;
+            // Tải KeyPair từ CSR PEM nếu có hoặc tự động sinh mới
+            let agent_key_pair = if !csr_pem.trim().is_empty() {
+                KeyPair::from_pem(csr_pem).unwrap_or_else(|_| KeyPair::generate().unwrap())
+            } else {
+                KeyPair::generate().map_err(|e| {
+                    AegisError::Internal(format!("Failed to gen Agent KeyPair: {e}"))
+                })?
+            };
 
-        // Ký Certificate X.509 cho Agent bằng Root CA
-        let cert = agent_params
-            .signed_by(&agent_key_pair, &ca_cert, &ca_key_pair)
-            .map_err(|e| AegisError::Internal(format!("Failed to sign Agent cert: {e}")))?;
+            // Ký cấp phát X.509 Client Certificate cho Agent sử dụng Root CA của Controller
+            let cert = agent_params
+                .signed_by(&agent_key_pair, &ca_cert, &ca_key_pair)
+                .map_err(|e| AegisError::Internal(format!("Failed to sign Agent cert: {e}")))?;
 
-        let client_cert_pem = cert.pem();
+            cert.pem()
+        };
 
         // Lấy thời điểm hiện tại và tạo Serial Number duy nhất cho Certificate
         let now = Utc::now();

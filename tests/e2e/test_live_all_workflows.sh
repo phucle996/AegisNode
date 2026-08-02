@@ -68,6 +68,14 @@ fi
 
 API_URL="http://127.0.0.1:8080/v1"
 
+# Chờ API Daemon hoàn tất khởi tạo SQLite và mở HTTP Port 8080
+for i in {1..30}; do
+    if curl -sS http://127.0.0.1:8080/v1/status >/dev/null 2>&1; then
+        break
+    fi
+    sleep 1
+done
+
 # Gửi yêu cầu Safe Apply Policy
 echo -n "   -> Executing Safe Apply transaction via HTTP API... "
 APPLY_PAYLOAD='{

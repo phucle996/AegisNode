@@ -71,8 +71,7 @@ impl PgRepository {
             r#"
             INSERT INTO nodes (hostname, ip_address, status, labels, version, last_seen_at)
             VALUES ($1, $2, 'ONLINE', $3, $4, CURRENT_TIMESTAMP)
-            ON CONFLICT (id) DO UPDATE SET
-                hostname = EXCLUDED.hostname,
+            ON CONFLICT (hostname) DO UPDATE SET
                 ip_address = EXCLUDED.ip_address,
                 status = 'ONLINE',
                 labels = EXCLUDED.labels,
@@ -217,6 +216,12 @@ impl PgRepository {
 
     /// Lưu trữ bản ghi Root CA mới vào PostgreSQL để sử dụng chung toàn Cluster
     pub async fn save_root_ca(&self, ca_cert_pem: &str, ca_key_pem: &str) -> Result<()> {
+        // Vô hiệu hóa tất cả các bản ghi Root CA cũ
+        sqlx::query("UPDATE cluster_pki_ca SET active = FALSE WHERE active = TRUE")
+            .execute(&self.pool)
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to deactivate old Root CAs: {e}")))?;
+
         // Lưu bản ghi Root CA mới với trạng thái active = TRUE
         sqlx::query(
             r#"

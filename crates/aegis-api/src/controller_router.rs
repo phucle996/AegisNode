@@ -178,7 +178,10 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         )
         .route("/v1/enrollment/sign", post(sign_agent_csr_handler))
         .route("/v1/nodes/heartbeat", post(node_heartbeat_handler))
-        .layer(middleware::from_fn(parse_bearer_token_middleware));
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            parse_bearer_token_middleware,
+        ));
 
     public_routes
         .merge(protected_routes)
