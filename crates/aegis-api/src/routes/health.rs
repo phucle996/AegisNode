@@ -31,7 +31,8 @@ pub async fn readiness_check_handler(
 pub async fn ha_status_handler(
     State(state): State<Arc<ControllerState>>,
 ) -> Result<axum::Json<serde_json::Value>, StatusCode> {
-    let is_leader = state.is_leader;
+    // Đọc giá trị cờ Leader hiện tại từ AtomicBool của ControllerState
+    let is_leader = state.is_leader();
 
     // Lấy leader election backend từ config nếu có; mặc định là advisory lock
     let leader_election_backend = if state.config.database.url.is_empty() {

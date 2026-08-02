@@ -238,12 +238,26 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
         aegis_core::pki::PkiManager::new()
     };
 
+    // Khởi tạo cờ Leader Election dưới dạng AtomicBool đồng bộ luồng
+    let is_leader_flag = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    // Nếu có kết nối PostgreSQL Cluster, khởi chạy background task LeaderElector để cạnh tranh Advisory Lock
+    if let Some(repo) = &repository {
+        let pool = repo.pool().clone();
+        let elector = aegis_storage::LeaderElector::new(Some(pool), is_leader_flag.clone());
+        tokio::spawn(async move {
+            elector.run_election_loop().await;
+        });
+    } else {
+        // Nếu chạy ở standalone mode không có DB, đặt cờ leader = true
+        is_leader_flag.store(true, std::sync::atomic::Ordering::SeqCst);
+    }
+
     let controller_state = Arc::new(ControllerState {
         repository,
         config: config.clone(),
         pki_manager,
-        // Mặc định coi replica đơn này là leader; LeaderElector sẽ cập nhật sau
-        is_leader: true,
+        is_leader: is_leader_flag,
     });
 
     // Cấu hình request body size limit tối đa 2MB tránh lỗ hổng DoS qua payload lớn
@@ -324,14 +338,17 @@ async fn run_local_daemon(config_path: PathBuf) -> Result<()> {
         BlockerConfig::default(),
     )));
 
-    // 6. Khởi tạo AppState & Axum Router
-    let app_state = Arc::new(AppState::new(
-        safe_apply_manager,
-        block_manager,
-        capability_detector,
-        repository,
-        config_arc,
-    ));
+    // 6. Khởi tạo AppState & Axum Router (khôi phục phiên bản Policy từ SQLite)
+    let app_state = Arc::new(
+        AppState::init_with_persisted_version(
+            safe_apply_manager,
+            block_manager,
+            capability_detector,
+            repository,
+            config_arc,
+        )
+        .await,
+    );
 
     let app = create_router(app_state);
 

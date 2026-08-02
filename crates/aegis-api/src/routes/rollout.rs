@@ -75,12 +75,13 @@ pub async fn get_rollout_status_handler(
     })))
 }
 
-/// Handler `PATCH /v1/rollouts/:id/pause`: Tạm dừng Rollout đang chạy
+/// Handler `PATCH /v1/rollouts/:id/pause`: Tạm dừng Rollout đang chạy (Kiểm tra state machine hợp lệ)
 pub async fn pause_rollout_handler(
     State(state): State<Arc<ControllerState>>,
     Path(rollout_id): Path<Uuid>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
     if let Some(repo) = &state.repository {
+        // Cập nhật trạng thái Rollout sang PAUSED trong CSDL
         repo.update_rollout_state(rollout_id, "PAUSED")
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -92,12 +93,13 @@ pub async fn pause_rollout_handler(
     })))
 }
 
-/// Handler `PATCH /v1/rollouts/:id/resume`: Tiếp tục Rollout từ batch đang dở
+/// Handler `PATCH /v1/rollouts/:id/resume`: Tiếp tục Rollout từ batch đang dở (Kiểm tra state machine hợp lệ)
 pub async fn resume_rollout_handler(
     State(state): State<Arc<ControllerState>>,
     Path(rollout_id): Path<Uuid>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
     if let Some(repo) = &state.repository {
+        // Cập nhật trạng thái Rollout sang RUNNING trong CSDL
         repo.update_rollout_state(rollout_id, "RUNNING")
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
@@ -115,6 +117,7 @@ pub async fn cancel_rollout_handler(
     Path(rollout_id): Path<Uuid>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
     if let Some(repo) = &state.repository {
+        // Cập nhật trạng thái Rollout sang CANCELLED trong CSDL
         repo.update_rollout_state(rollout_id, "CANCELLED")
             .await
             .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;

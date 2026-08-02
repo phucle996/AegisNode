@@ -26,8 +26,15 @@ pub struct ControllerState {
     pub repository: Option<PgRepository>,
     pub config: ControllerConfig,
     pub pki_manager: PkiManager,
-    /// Trạng thái leader election từ LeaderElector (None = luôn là leader)
-    pub is_leader: bool,
+    // Trạng thái cờ bầu chọn leader đồng bộ luồng Arc<AtomicBool>
+    pub is_leader: Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl ControllerState {
+    // Phương thức trợ giúp đọc cờ is_leader hiện tại
+    pub fn is_leader(&self) -> bool {
+        self.is_leader.load(std::sync::atomic::Ordering::SeqCst)
+    }
 }
 
 /// Request Payload cho Login API
