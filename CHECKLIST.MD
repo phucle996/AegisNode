@@ -1,0 +1,2289 @@
+# AegisNode — Stage Implementation Checklist
+
+> Rust-based Linux firewall, network and service management platform.
+
+---
+
+# 0. Quy tắc thực hiện chung
+
+## 0.1 Kiến trúc đã khóa
+
+* [ ] Backend, CLI, controller, agent và executor đều viết bằng Rust.
+* [ ] Frontend viết bằng React và TypeScript.
+* [ ] Frontend được build thành static assets và nhúng vào Rust binary.
+* [ ] Chỉ phân phối một binary chính: `aegisnode`.
+* [ ] Binary hỗ trợ nhiều mode:
+
+```bash
+aegisnode local
+aegisnode server
+aegisnode agent
+aegisnode execd
+aegisnode ctl
+```
+
+* [ ] Rust không xử lý packet trong userspace.
+* [ ] nftables trong Linux kernel xử lý packet.
+* [ ] Không sử dụng Go.
+* [ ] Không sử dụng C hoặc cgo.
+* [ ] Không sử dụng assembly trong kiến trúc chính.
+* [ ] Không sử dụng eBPF trong MVP.
+* [ ] Không sử dụng Kafka, Redis hoặc Kubernetes nếu chưa có yêu cầu rõ ràng.
+* [ ] Không cho frontend thực thi shell command.
+* [ ] Không cho controller gửi raw shell command tới node.
+* [ ] Không bao giờ chạy `nft flush ruleset`.
+* [ ] Chỉ quản lý nftables table thuộc AegisNode.
+
+```text
+table inet aegis_filter
+table ip aegis_nat
+table ip6 aegis_nat
+```
+
+---
+
+## 0.2 Definition of Done cho mọi phase
+
+Một phase chỉ được hoàn thành khi:
+
+* [ ] Code đã được format.
+
+```bash
+cargo fmt --all --check
+```
+
+* [ ] Clippy không có warning.
+
+```bash
+cargo clippy --workspace --all-targets --all-features -- -D warnings
+```
+
+* [ ] Tất cả unit test pass.
+
+```bash
+cargo test --workspace
+```
+
+* [ ] Release build thành công.
+
+```bash
+cargo build --workspace --release
+```
+
+* [ ] Không dùng `unwrap()` hoặc `expect()` trong runtime code.
+* [ ] Không còn `todo!()` trong luồng chính.
+* [ ] Error có message và context rõ ràng.
+* [ ] Public model và trait quan trọng có documentation.
+* [ ] Có test cho happy path.
+* [ ] Có test cho failure path.
+* [ ] Có example configuration.
+* [ ] Có structured logging.
+* [ ] Tài liệu tương ứng đã được cập nhật.
+* [ ] Không phá API hoặc config cũ nếu chưa có migration.
+* [ ] Không chạy integration test network trực tiếp trên máy development.
+* [ ] Test network nguy hiểm phải chạy trong VM hoặc Linux network namespace.
+
+Nếu có frontend:
+
+* [ ] Frontend lint pass.
+
+```bash
+npm run lint
+```
+
+* [ ] TypeScript type check pass.
+
+```bash
+npm run typecheck
+```
+
+* [ ] Frontend test pass.
+
+```bash
+npm run test
+```
+
+* [ ] Frontend production build thành công.
+
+```bash
+npm run build
+```
+
+---
+
+# Stage 1 — MVP
+
+## Mục tiêu
+
+AegisNode chạy độc lập trên một Linux host, có CLI, Web UI, nftables firewall, Docker discovery, NAT, port forwarding, manual block, SSH auto-block và safe rollback.
+
+## Topology
+
+```text
+Browser
+   │
+   ▼
+Embedded React Web UI
+   │
+   ▼
+aegisnode local
+├── HTTP API
+├── Unix socket API
+├── Policy engine
+├── nftables backend
+├── Docker watcher
+├── Blocker
+├── SQLite
+└── Safe apply
+```
+
+---
+
+# MVP Phase 0 — Repository Skeleton
+
+## Repository
+
+* [ ] Tạo repository `aegisnode`.
+* [ ] Tạo root `Cargo.toml`.
+* [ ] Tạo `Cargo.lock`.
+* [ ] Tạo `rust-toolchain.toml`.
+* [ ] Sử dụng Rust stable.
+* [ ] Sử dụng Rust edition 2024.
+* [ ] Thêm component `rustfmt`.
+* [ ] Thêm component `clippy`.
+* [ ] Tạo `rustfmt.toml`.
+* [ ] Tạo `.gitignore`.
+* [ ] Tạo `README.md`.
+* [ ] Tạo `ARCHITECTURE.md`.
+* [ ] Tạo `ROADMAP.md`.
+* [ ] Tạo `CHECKLIST.md`.
+* [ ] Tạo `LICENSE`.
+* [ ] Tạo `justfile` hoặc `Makefile`.
+
+## Workspace skeleton
+
+* [ ] Tạo binary app:
+
+```text
+apps/aegisnode
+```
+
+* [ ] Tạo các crate ban đầu:
+
+```text
+crates/aegis-core
+crates/aegis-models
+crates/aegis-config
+crates/aegis-policy
+crates/aegis-firewall
+crates/aegis-storage
+crates/aegis-api
+crates/aegis-cli
+crates/aegis-audit
+crates/aegis-observability
+```
+
+* [ ] Tạo frontend:
+
+```text
+web/
+```
+
+* [ ] Tạo các thư mục:
+
+```text
+configs/
+migrations/
+packaging/
+scripts/
+tests/
+docs/
+```
+
+## Dependencies nền tảng
+
+* [ ] Thêm `tokio`.
+* [ ] Thêm `axum`.
+* [ ] Thêm `tower`.
+* [ ] Thêm `tower-http`.
+* [ ] Thêm `clap`.
+* [ ] Thêm `serde`.
+* [ ] Thêm `serde_json`.
+* [ ] Thêm `serde_yaml`.
+* [ ] Thêm `thiserror`.
+* [ ] Thêm `anyhow` cho application boundary.
+* [ ] Thêm `tracing`.
+* [ ] Thêm `tracing-subscriber`.
+* [ ] Thêm `uuid`.
+* [ ] Thêm `chrono`.
+* [ ] Thêm `sqlx`.
+* [ ] Thêm `async-trait`.
+* [ ] Thêm crate nhúng frontend như `rust-embed`.
+
+## CI
+
+* [ ] Tạo GitHub Actions.
+* [ ] Chạy format check.
+* [ ] Chạy clippy.
+* [ ] Chạy unit test.
+* [ ] Chạy release build.
+* [ ] Cache Cargo registry.
+* [ ] Cache Cargo target hợp lý.
+* [ ] Không lưu secret trong workflow.
+
+## Gate Phase 0
+
+* [ ] `cargo build --workspace` pass.
+* [ ] `cargo test --workspace` pass.
+* [ ] Binary chạy được:
+
+```bash
+aegisnode --help
+```
+
+* [ ] Có các subcommand placeholder:
+
+```text
+local
+server
+agent
+execd
+ctl
+```
+
+---
+
+# MVP Phase 1 — Core Models and Errors
+
+## Core identifiers
+
+* [ ] Tạo `NodeId`.
+* [ ] Tạo `PolicyId`.
+* [ ] Tạo `RuleId`.
+* [ ] Tạo `SnapshotId`.
+* [ ] Tạo `ExecutionId`.
+* [ ] Tạo `ChangePlanId`.
+* [ ] Tạo `BlockEntryId`.
+* [ ] Không dùng `String` trực tiếp cho toàn bộ identifier.
+
+## Error model
+
+* [ ] Tạo `AegisError`.
+* [ ] Có error code ổn định.
+* [ ] Có user-facing message.
+* [ ] Có internal context.
+* [ ] Có source error.
+* [ ] Chuyển error thành HTTP response.
+* [ ] Chuyển error thành CLI exit code.
+
+## Firewall models
+
+* [ ] Tạo `FirewallPolicy`.
+* [ ] Tạo `FirewallDefaults`.
+* [ ] Tạo `FirewallRule`.
+* [ ] Tạo `FirewallDirection`.
+* [ ] Tạo `FirewallAction`.
+* [ ] Tạo `TransportProtocol`.
+* [ ] Tạo `ConnectionState`.
+* [ ] Tạo `PortSpec`.
+* [ ] Tạo `CidrSpec`.
+* [ ] Tạo `InterfaceSelector`.
+* [ ] Tạo `RateLimit`.
+* [ ] Tạo `LogOptions`.
+
+## NAT models
+
+* [ ] Tạo `NatPolicy`.
+* [ ] Tạo `MasqueradeRule`.
+* [ ] Tạo `SnatRule`.
+* [ ] Tạo `DnatRule`.
+* [ ] Tạo `PortForwardRule`.
+
+## Blocklist models
+
+* [ ] Tạo `BlockEntry`.
+* [ ] Tạo `BlockReason`.
+* [ ] Tạo `BlockSource`.
+* [ ] Tạo `BlockDuration`.
+* [ ] Tạo `BlockStatus`.
+
+## API metadata
+
+* [ ] Policy có `apiVersion`.
+* [ ] Policy có `kind`.
+* [ ] Policy có metadata.
+* [ ] Từ chối version không hỗ trợ.
+
+```yaml
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+```
+
+## Fixtures
+
+* [ ] Tạo `minimal.yaml`.
+* [ ] Tạo `web-server.yaml`.
+* [ ] Tạo `docker-host.yaml`.
+* [ ] Tạo `router.yaml`.
+* [ ] Tạo `invalid-port.yaml`.
+* [ ] Tạo `invalid-cidr.yaml`.
+* [ ] Tạo `conflicting-rules.yaml`.
+
+## Gate Phase 1
+
+* [ ] Parse YAML hợp lệ thành công.
+* [ ] Parse JSON hợp lệ thành công.
+* [ ] Reject port ngoài `1..65535`.
+* [ ] Reject CIDR không hợp lệ.
+* [ ] Round-trip serialization không mất field.
+* [ ] Schema version được kiểm tra.
+
+---
+
+# MVP Phase 2 — Policy Validation
+
+## Schema validation
+
+* [ ] Rule ID không trống.
+* [ ] Rule ID không trùng.
+* [ ] Port hợp lệ.
+* [ ] CIDR hợp lệ.
+* [ ] Protocol và port tương thích.
+* [ ] Rate limit lớn hơn 0.
+* [ ] Interface name hợp lệ.
+* [ ] Timeout hợp lệ.
+* [ ] Action hợp lệ với rule type.
+
+## Semantic validation
+
+* [ ] Phát hiện thiếu allow loopback.
+* [ ] Phát hiện thiếu established/related.
+* [ ] Cảnh báo SSH mở cho toàn Internet.
+* [ ] Cảnh báo PostgreSQL mở WAN.
+* [ ] Cảnh báo Redis mở WAN.
+* [ ] Phát hiện rule không thể match.
+* [ ] Phát hiện duplicate rule.
+* [ ] Phát hiện shadowed rule.
+* [ ] Phát hiện conflicting rule.
+* [ ] Phát hiện DNAT thiếu forward allow.
+* [ ] Phát hiện duplicate external port.
+
+## Validation report
+
+* [ ] Có severity `ERROR`.
+* [ ] Có severity `WARNING`.
+* [ ] Có severity `INFO`.
+* [ ] Có field path.
+* [ ] Có rule ID.
+* [ ] Có machine-readable error code.
+
+## Normalization
+
+* [ ] Loại port trùng.
+* [ ] Chuẩn hóa CIDR.
+* [ ] Chuẩn hóa IPv6.
+* [ ] Sắp xếp dữ liệu để output deterministic.
+* [ ] Tạo policy hash ổn định.
+* [ ] Hai policy tương đương sinh cùng hash.
+
+## Gate Phase 2
+
+* [ ] Invalid policy không đi tiếp tới compiler.
+* [ ] Mỗi validation error có test.
+* [ ] Warning không tự động chặn apply nếu người dùng xác nhận.
+* [ ] Policy hash deterministic.
+
+---
+
+# MVP Phase 3 — nftables Compiler
+
+## Base ruleset
+
+* [ ] Sinh table `inet aegis_filter`.
+* [ ] Sinh chain `input`.
+* [ ] Sinh chain `output`.
+* [ ] Sinh chain `forward`.
+* [ ] Áp dụng default policy.
+* [ ] Hỗ trợ IPv4.
+* [ ] Hỗ trợ IPv6.
+* [ ] Hỗ trợ TCP.
+* [ ] Hỗ trợ UDP.
+* [ ] Hỗ trợ ICMP.
+* [ ] Hỗ trợ ICMPv6.
+
+## Rule matching
+
+* [ ] Source CIDR.
+* [ ] Destination CIDR.
+* [ ] Source port.
+* [ ] Destination port.
+* [ ] Port range.
+* [ ] Multiple ports.
+* [ ] Input interface.
+* [ ] Output interface.
+* [ ] Connection state.
+* [ ] Rate limiting.
+* [ ] Reject mode.
+* [ ] Logging có rate limit.
+
+## Sets
+
+* [ ] Nhiều CIDR dùng nftables set.
+* [ ] Nhiều port dùng nftables set.
+* [ ] Blocklist dùng set.
+* [ ] Không tạo một rule riêng cho từng blocked IP.
+
+## Rule identity
+
+* [ ] Mỗi rule có counter.
+* [ ] Mỗi rule có comment chứa rule ID.
+
+```text
+aegis:rule:<rule-id>
+```
+
+* [ ] Có mapping từ policy rule sang nftables rule.
+
+## NAT compiler
+
+* [ ] Sinh table NAT riêng.
+* [ ] Hỗ trợ masquerade.
+* [ ] Hỗ trợ SNAT.
+* [ ] Hỗ trợ DNAT.
+* [ ] Hỗ trợ port forward.
+* [ ] Hỗ trợ source CIDR restriction.
+* [ ] Hỗ trợ interface restriction.
+
+## Compiler output
+
+* [ ] Output deterministic.
+* [ ] Có policy hash.
+* [ ] Có compile report.
+* [ ] Liệt kê auto-generated rule.
+* [ ] Không sinh `flush ruleset`.
+* [ ] Không sửa table Docker.
+
+## Tests
+
+* [ ] Golden test cho web server.
+* [ ] Golden test cho router.
+* [ ] Golden test cho IPv6.
+* [ ] Golden test cho NAT.
+* [ ] Golden test cho blocklist.
+* [ ] Golden test cho logging.
+
+## Gate Phase 3
+
+* [ ] Mọi generated ruleset pass:
+
+```bash
+nft --check --file candidate.nft
+```
+
+* [ ] Compiler output ổn định qua nhiều lần chạy.
+* [ ] Không tác động table ngoài AegisNode.
+
+---
+
+# MVP Phase 4 — nftables Runtime Backend
+
+## Process execution
+
+* [ ] Tạo `ProcessRunner` abstraction.
+* [ ] Không gọi `Command` rải rác.
+* [ ] Có timeout.
+* [ ] Capture stdout.
+* [ ] Capture stderr.
+* [ ] Không nối raw user input vào shell string.
+* [ ] Không dùng `/bin/sh -c`.
+
+## Capability detection
+
+* [ ] Kiểm tra binary `nft`.
+* [ ] Kiểm tra nftables version.
+* [ ] Kiểm tra quyền thực thi.
+* [ ] Kiểm tra kernel support.
+* [ ] Kiểm tra IPv6 availability.
+* [ ] Sinh capability report.
+
+## Runtime inspect
+
+* [ ] Đọc JSON ruleset.
+* [ ] Parse table.
+* [ ] Parse chain.
+* [ ] Parse rules.
+* [ ] Parse counters.
+* [ ] Parse handles.
+* [ ] Chỉ lấy state thuộc AegisNode.
+
+## Snapshot
+
+* [ ] Snapshot trước mỗi apply.
+* [ ] Lưu ruleset.
+* [ ] Lưu metadata.
+* [ ] Lưu checksum.
+* [ ] Dùng atomic write.
+* [ ] Permission an toàn.
+* [ ] Có retention policy.
+
+## Apply
+
+* [ ] Compile.
+* [ ] Syntax check.
+* [ ] Snapshot.
+* [ ] Apply.
+* [ ] Inspect lại.
+* [ ] Verify table.
+* [ ] Verify expected policy hash.
+* [ ] Audit kết quả.
+
+## Restore
+
+* [ ] Restore snapshot gần nhất.
+* [ ] Không restore table ứng dụng khác.
+* [ ] Verify sau restore.
+* [ ] Audit rollback.
+
+## Gate Phase 4
+
+* [ ] Apply policy hợp lệ thành công.
+* [ ] Policy syntax lỗi không làm thay đổi runtime.
+* [ ] Restore snapshot thành công.
+* [ ] Docker rules không bị mất.
+
+---
+
+# MVP Phase 5 — Safe Apply and Rollback
+
+## State machine
+
+* [ ] `CREATED`.
+* [ ] `VALIDATED`.
+* [ ] `SNAPSHOTTED`.
+* [ ] `APPLIED_PENDING_CONFIRMATION`.
+* [ ] `COMMITTED`.
+* [ ] `ROLLING_BACK`.
+* [ ] `ROLLED_BACK`.
+* [ ] `FAILED`.
+
+## Rollback timer
+
+* [ ] Timer chạy trong daemon.
+* [ ] Timer được persist vào SQLite.
+* [ ] Timer sống qua agent restart.
+* [ ] Không phụ thuộc Web UI.
+* [ ] Không phụ thuộc CLI.
+* [ ] Không phụ thuộc network connection.
+
+## Confirmation
+
+* [ ] CLI confirm.
+* [ ] API confirm.
+* [ ] Web UI confirm.
+* [ ] Reject confirm cho execution hết hạn.
+* [ ] Reject confirm cho execution không tồn tại.
+* [ ] Audit confirm.
+
+## Manual rollback
+
+* [ ] Rollback theo execution ID.
+* [ ] Rollback về snapshot cụ thể.
+* [ ] Verify rollback.
+* [ ] Audit rollback.
+
+## Apply lock
+
+* [ ] Chỉ một apply chạy tại một thời điểm.
+* [ ] Có conflict response.
+* [ ] Lock được giải phóng khi process lỗi.
+* [ ] Khôi phục lock state sau restart.
+
+## Health check MVP
+
+* [ ] Kiểm tra managed table.
+* [ ] Kiểm tra loopback.
+* [ ] Kiểm tra local management port.
+* [ ] Optional gateway probe.
+* [ ] Optional TCP target.
+* [ ] Có timeout riêng cho từng check.
+
+## Gate Phase 5
+
+* [ ] Không confirm thì tự rollback.
+* [ ] Restart daemon giữa pending state vẫn rollback.
+* [ ] Hai apply đồng thời bị chặn.
+* [ ] Mất Web UI không ảnh hưởng rollback.
+
+---
+
+# MVP Phase 6 — Local Agent and Storage
+
+## Agent modes
+
+* [ ] Implement `aegisnode local`.
+* [ ] Implement `aegisnode ctl`.
+* [ ] Placeholder cho `server`, `agent`, `execd`.
+
+## Configuration
+
+* [ ] Tạo `/etc/aegisnode/agent.yaml`.
+* [ ] Validate path.
+* [ ] Validate address.
+* [ ] HTTP bind localhost mặc định.
+* [ ] Unix socket configurable.
+* [ ] Rollback timeout configurable.
+* [ ] Log format configurable.
+* [ ] Không log secret.
+
+## SQLite
+
+* [ ] Migration framework.
+* [ ] Bảng `policy_versions`.
+* [ ] Bảng `apply_executions`.
+* [ ] Bảng `snapshots`.
+* [ ] Bảng `audit_events`.
+* [ ] Bảng `block_entries`.
+* [ ] Bảng `agent_state`.
+* [ ] Bảng `settings`.
+
+## Repository layer
+
+* [ ] Handler không gọi SQL trực tiếp.
+* [ ] Có repository trait.
+* [ ] Có transaction.
+* [ ] Có migration test.
+* [ ] Có database recovery handling.
+
+## Unix socket API
+
+* [ ] Tạo `/run/aegisnode/agent.sock`.
+* [ ] Set owner/group.
+* [ ] Set permission.
+* [ ] API status.
+* [ ] API validate.
+* [ ] API compile.
+* [ ] API apply.
+* [ ] API confirm.
+* [ ] API rollback.
+* [ ] API rules.
+* [ ] API audit.
+
+## HTTP API
+
+* [ ] Bind `127.0.0.1` mặc định.
+* [ ] Request ID middleware.
+* [ ] Structured access log.
+* [ ] Timeout middleware.
+* [ ] Request body limit.
+* [ ] Consistent error response.
+* [ ] Health endpoint.
+* [ ] Readiness endpoint.
+
+## Reconciliation
+
+* [ ] Đọc desired policy.
+* [ ] Đọc committed policy.
+* [ ] Inspect nftables.
+* [ ] So sánh hash.
+* [ ] Report drift.
+* [ ] Không tự apply policy không được duyệt.
+* [ ] Giữ firewall khi daemon dừng.
+
+## Gate Phase 6
+
+* [ ] Restart daemon không làm mất firewall.
+* [ ] SQLite migration chạy tự động.
+* [ ] Unix socket API hoạt động.
+* [ ] HTTP không expose ra WAN mặc định.
+
+---
+
+# MVP Phase 7 — CLI
+
+## CLI commands
+
+* [ ] `aegisnode ctl status`.
+* [ ] `aegisnode ctl firewall validate`.
+* [ ] `aegisnode ctl firewall compile`.
+* [ ] `aegisnode ctl firewall apply`.
+* [ ] `aegisnode ctl firewall confirm`.
+* [ ] `aegisnode ctl firewall rollback`.
+* [ ] `aegisnode ctl firewall rules`.
+* [ ] `aegisnode ctl firewall counters`.
+* [ ] `aegisnode ctl audit list`.
+* [ ] `aegisnode ctl version`.
+
+## Output
+
+* [ ] Table.
+* [ ] JSON.
+* [ ] YAML.
+* [ ] JSON schema ổn định.
+* [ ] Không trộn log vào JSON stdout.
+* [ ] Error xuất stderr.
+
+## Exit codes
+
+* [ ] `0`: success.
+* [ ] `1`: generic failure.
+* [ ] `2`: validation failure.
+* [ ] `3`: permission denied.
+* [ ] `4`: not found.
+* [ ] `5`: conflict.
+* [ ] `6`: timeout hoặc rollback.
+
+## UX
+
+* [ ] Hiển thị warning trước apply.
+* [ ] Có `--yes`.
+* [ ] Có `--rollback-after`.
+* [ ] Có compile preview.
+* [ ] Có shell completion.
+* [ ] Có help text rõ ràng.
+
+## Gate Phase 7
+
+* [ ] Toàn bộ MVP firewall operation thực hiện được bằng CLI.
+* [ ] JSON output dùng được trong shell automation.
+* [ ] CLI không yêu cầu root nếu socket permission cho phép.
+
+---
+
+# MVP Phase 8 — Docker and Router Mode
+
+## Docker
+
+* [ ] Kết nối Docker socket.
+* [ ] Docker không tồn tại thì graceful degradation.
+* [ ] Container inventory.
+* [ ] Network inventory.
+* [ ] Published port inventory.
+* [ ] Container label inventory.
+* [ ] Container lifecycle watcher.
+* [ ] Network connect/disconnect watcher.
+
+## Exposure analysis
+
+* [ ] Phát hiện bind `0.0.0.0`.
+* [ ] Phát hiện bind `[::]`.
+* [ ] Cảnh báo PostgreSQL public.
+* [ ] Cảnh báo Redis public.
+* [ ] Cảnh báo Docker API public.
+* [ ] Cảnh báo database port public.
+* [ ] Không tự block khi chưa có approval.
+
+## Docker labels
+
+* [ ] Đọc `aegis.exposure`.
+* [ ] Đọc `aegis.allowed-cidrs`.
+* [ ] Validate label.
+* [ ] Cảnh báo label sai.
+* [ ] Không sửa Docker-owned chain.
+
+## Router mode
+
+* [ ] Option bật IPv4 forwarding.
+* [ ] Option bật IPv6 forwarding.
+* [ ] Snapshot sysctl cũ.
+* [ ] Restore sysctl khi rollback.
+* [ ] Masquerade LAN → WAN.
+* [ ] Port forwarding.
+* [ ] Forward rules.
+* [ ] Validate incoming interface.
+* [ ] Validate destination IP.
+* [ ] Validate duplicate port.
+
+## Gate Phase 8
+
+* [ ] Docker restart không làm mất policy.
+* [ ] Linux VM NAT được LAN ra Internet.
+* [ ] Port forwarding hoạt động.
+* [ ] Không phá Docker networking.
+
+---
+
+# MVP Phase 9 — Blocker and Journald
+
+## nftables block set
+
+* [ ] `blocked_ipv4`.
+* [ ] `blocked_ipv6`.
+* [ ] Timeout support.
+* [ ] Counter support.
+* [ ] Single lookup rule.
+
+## Manual block
+
+* [ ] Add IPv4.
+* [ ] Add IPv6.
+* [ ] Temporary duration.
+* [ ] Permanent block.
+* [ ] Reason.
+* [ ] Actor.
+* [ ] Remove block.
+* [ ] List blocks.
+
+## Journald
+
+* [ ] Đọc journal theo cursor.
+* [ ] Filter theo unit.
+* [ ] Persist cursor.
+* [ ] Không đọc lại toàn bộ log sau restart.
+* [ ] Giới hạn batch.
+* [ ] Xử lý journal rotation.
+
+## SSH detector
+
+* [ ] Parse failed login.
+* [ ] Parse invalid user.
+* [ ] Trích source IP.
+* [ ] Threshold.
+* [ ] Time window.
+* [ ] Block duration.
+* [ ] Memory cleanup.
+* [ ] IPv4.
+* [ ] IPv6.
+
+## Protection
+
+* [ ] Không block loopback.
+* [ ] Không block management CIDR.
+* [ ] Có explicit allowlist.
+* [ ] Có maximum block duration.
+* [ ] Có maximum active block count.
+* [ ] Rate limit audit event.
+
+## Gate Phase 9
+
+* [ ] IP vượt threshold bị block.
+* [ ] Block tự hết hạn.
+* [ ] Management CIDR không bị block.
+* [ ] Restart daemon đồng bộ được block state.
+
+---
+
+# MVP Phase 10 — Web UI
+
+## Frontend bootstrap
+
+* [ ] React.
+* [ ] TypeScript.
+* [ ] Vite.
+* [ ] API client.
+* [ ] Shared types.
+* [ ] Error boundary.
+* [ ] Routing.
+* [ ] Responsive layout cơ bản.
+
+## Pages
+
+* [ ] Dashboard.
+* [ ] Firewall rules.
+* [ ] Policy editor.
+* [ ] Docker.
+* [ ] NAT.
+* [ ] Blocked IPs.
+* [ ] Audit logs.
+* [ ] Settings.
+
+## Dashboard
+
+* [ ] Firewall status.
+* [ ] Policy hash.
+* [ ] Rule count.
+* [ ] Allowed packet count.
+* [ ] Dropped packet count.
+* [ ] Active blocks.
+* [ ] Docker containers.
+* [ ] Public port warning.
+* [ ] Pending execution.
+* [ ] Recent audit events.
+
+## Policy editor
+
+* [ ] Form mode.
+* [ ] YAML mode.
+* [ ] Validate.
+* [ ] Show errors.
+* [ ] Show warnings.
+* [ ] Compile preview.
+* [ ] Apply.
+* [ ] Confirm.
+* [ ] Rollback.
+
+## Safe apply UI
+
+* [ ] Countdown.
+* [ ] Confirm button.
+* [ ] Rollback button.
+* [ ] Persist pending state qua refresh.
+* [ ] Hiển thị execution ID.
+* [ ] Hiển thị health-check result.
+
+## Embedded assets
+
+* [ ] Production build.
+* [ ] Embed vào binary.
+* [ ] Serve `index.html`.
+* [ ] Serve hashed assets.
+* [ ] SPA fallback.
+* [ ] Cache headers cho assets.
+* [ ] Không cache API response sai cách.
+
+## Gate Phase 10
+
+* [ ] Quản lý toàn bộ MVP qua Web UI.
+* [ ] Refresh không mất pending execution.
+* [ ] Frontend không cần Node.js trên production host.
+* [ ] Binary chứa frontend assets.
+
+---
+
+# MVP Phase 11 — Packaging and E2E
+
+## systemd
+
+* [ ] Tạo `aegisnode-local.service`.
+* [ ] `Restart=on-failure`.
+* [ ] `RuntimeDirectory`.
+* [ ] `StateDirectory`.
+* [ ] `ConfigurationDirectory`.
+* [ ] Capability phù hợp.
+* [ ] File descriptor limit.
+* [ ] Log vào journald.
+* [ ] Graceful stop.
+
+## Installation
+
+* [ ] Install script.
+* [ ] Uninstall script.
+* [ ] Không overwrite config hiện có.
+* [ ] Không purge database mặc định.
+* [ ] Check nftables.
+* [ ] Create user/group.
+* [ ] Set permission.
+* [ ] Enable systemd unit.
+
+## Packages
+
+* [ ] Debian package.
+* [ ] Checksums.
+* [ ] Version command.
+* [ ] Upgrade script.
+* [ ] Migration strategy.
+
+## Network namespace test lab
+
+* [ ] WAN namespace.
+* [ ] Firewall namespace.
+* [ ] LAN namespace.
+* [ ] Test input accept.
+* [ ] Test input drop.
+* [ ] Test output.
+* [ ] Test forwarding.
+* [ ] Test NAT.
+* [ ] Test DNAT.
+* [ ] Test rollback.
+* [ ] Test temporary block.
+* [ ] Test IPv6 nếu environment hỗ trợ.
+
+## Reboot and upgrade tests
+
+* [ ] Firewall vẫn active sau reboot.
+* [ ] Agent reconcile đúng sau reboot.
+* [ ] Pending rollback xử lý đúng sau crash.
+* [ ] Upgrade không xóa policy.
+* [ ] Upgrade không xóa SQLite.
+* [ ] Migration thành công.
+
+## MVP Stage Gate
+
+MVP chỉ hoàn thành khi:
+
+* [ ] Cài được trên Ubuntu LTS.
+* [ ] Cài được trên Debian stable.
+* [ ] CLI hoạt động.
+* [ ] Web UI hoạt động.
+* [ ] Safe apply hoạt động.
+* [ ] Automatic rollback hoạt động.
+* [ ] Docker discovery hoạt động.
+* [ ] NAT hoạt động.
+* [ ] Port forwarding hoạt động.
+* [ ] Manual block hoạt động.
+* [ ] SSH auto-block hoạt động.
+* [ ] Audit hoạt động.
+* [ ] Reboot không mất firewall.
+* [ ] E2E tests pass.
+* [ ] Không cần controller để node hoạt động.
+
+---
+
+# Stage 2 — Middle
+
+## Mục tiêu
+
+AegisNode quản lý nhiều Linux node, có controller, agent, mTLS, network interface management, systemd management, combined change plan và multi-node rollout.
+
+## Topology
+
+```text
+Web UI / Remote CLI
+          │
+          ▼
+aegisnode server
+          │
+         mTLS
+          │
+          ▼
+aegisnode agent
+          │
+          ▼
+nftables / NetworkManager / systemd
+```
+
+---
+
+# Middle Phase 12 — Controller Foundation
+
+## Controller app
+
+* [ ] Implement `aegisnode server`.
+* [ ] Controller configuration.
+* [ ] HTTP API.
+* [ ] PostgreSQL.
+* [ ] Migration framework.
+* [ ] Authentication cơ bản.
+* [ ] API token.
+* [ ] Audit middleware.
+* [ ] Request ID.
+* [ ] Pagination.
+
+## Database
+
+* [ ] `users`.
+* [ ] `api_tokens`.
+* [ ] `nodes`.
+* [ ] `node_groups`.
+* [ ] `node_labels`.
+* [ ] `firewall_policies`.
+* [ ] `policy_versions`.
+* [ ] `network_profiles`.
+* [ ] `service_policies`.
+* [ ] `change_plans`.
+* [ ] `rollouts`.
+* [ ] `rollout_targets`.
+* [ ] `audit_events`.
+
+## Node management
+
+* [ ] Create node.
+* [ ] List nodes.
+* [ ] Get node.
+* [ ] Update labels.
+* [ ] Assign group.
+* [ ] Archive node.
+* [ ] Node status model.
+
+## Policy management
+
+* [ ] Create policy.
+* [ ] Version policy.
+* [ ] Validate policy.
+* [ ] Compare versions.
+* [ ] Assign policy to node.
+* [ ] Assign policy to group.
+
+## Gate Phase 12
+
+* [ ] Controller chạy với PostgreSQL.
+* [ ] API authentication hoạt động.
+* [ ] Policy được version hóa.
+* [ ] Mọi write operation có audit.
+
+---
+
+# Middle Phase 13 — Enrollment and mTLS
+
+## Enrollment
+
+* [ ] One-time enrollment token.
+* [ ] Token expiration.
+* [ ] Token revocation.
+* [ ] Token usage limit.
+* [ ] Enrollment audit.
+
+## Agent identity
+
+* [ ] Node ID.
+* [ ] Hostname.
+* [ ] Machine ID.
+* [ ] Agent version.
+* [ ] Public key.
+* [ ] Basic system inventory.
+
+## Certificates
+
+* [ ] Internal CA hoặc configurable CA.
+* [ ] Issue client certificate.
+* [ ] Store certificate an toàn.
+* [ ] Certificate renewal.
+* [ ] Certificate revocation.
+* [ ] Certificate expiry monitoring.
+
+## mTLS connection
+
+* [ ] Agent xác minh controller.
+* [ ] Controller xác minh agent.
+* [ ] Reject unknown agent.
+* [ ] Reject revoked agent.
+* [ ] Retry với backoff.
+* [ ] Jitter.
+* [ ] Không retry loop tiêu tốn CPU.
+
+## Heartbeat
+
+* [ ] Agent version.
+* [ ] Uptime.
+* [ ] Policy hash.
+* [ ] Health.
+* [ ] Last apply result.
+* [ ] Pending execution.
+* [ ] Timestamp.
+
+## Gate Phase 13
+
+* [ ] Agent không certificate không kết nối được.
+* [ ] Token hết hạn bị từ chối.
+* [ ] Revoked certificate bị từ chối.
+* [ ] Controller restart không mất enrollment state.
+
+---
+
+# Middle Phase 14 — Node Inventory
+
+## System inventory
+
+* [ ] Hostname.
+* [ ] OS name.
+* [ ] OS version.
+* [ ] Kernel.
+* [ ] CPU.
+* [ ] Memory.
+* [ ] Uptime.
+* [ ] Machine ID.
+* [ ] Agent version.
+
+## Network inventory
+
+* [ ] Interface name.
+* [ ] Permanent MAC.
+* [ ] Current MAC.
+* [ ] Interface type.
+* [ ] Driver.
+* [ ] MTU.
+* [ ] Carrier.
+* [ ] Operational state.
+* [ ] Speed.
+* [ ] Duplex.
+* [ ] IPv4.
+* [ ] IPv6.
+* [ ] RX/TX counters.
+* [ ] Routes.
+* [ ] Gateway.
+* [ ] DNS.
+
+## Runtime inventory
+
+* [ ] Current firewall hash.
+* [ ] Rule count.
+* [ ] Active blocks.
+* [ ] Docker inventory.
+* [ ] Systemd summary.
+* [ ] Network backend.
+* [ ] Pending change plan.
+
+## Inventory transport
+
+* [ ] Payload version.
+* [ ] Full inventory.
+* [ ] Delta inventory.
+* [ ] Hash-based change detection.
+* [ ] Payload size limit.
+* [ ] Compression nếu cần.
+* [ ] Controller storage.
+
+## Gate Phase 14
+
+* [ ] Controller hiển thị node state.
+* [ ] Node offline được phát hiện.
+* [ ] Docker không có thì agent vẫn healthy.
+* [ ] Inventory không gửi full payload liên tục khi không đổi.
+
+---
+
+# Middle Phase 15 — Network Management
+
+## Backend detection
+
+* [ ] Detect NetworkManager.
+* [ ] Detect systemd-networkd.
+* [ ] Unsupported backend chuyển read-only.
+* [ ] Không trộn hai backend ghi cùng lúc.
+
+## Network models
+
+* [ ] `NetworkProfile`.
+* [ ] `InterfaceProfile`.
+* [ ] `AddressConfig`.
+* [ ] `RouteConfig`.
+* [ ] `DnsConfig`.
+* [ ] `VlanConfig`.
+* [ ] `BridgeConfig`.
+* [ ] `InterfaceRole`.
+
+## Interface roles
+
+* [ ] WAN.
+* [ ] LAN.
+* [ ] MANAGEMENT.
+* [ ] STORAGE.
+* [ ] UNSPECIFIED.
+
+## NetworkManager adapter
+
+* [ ] D-Bus connection.
+* [ ] Inspect profiles.
+* [ ] DHCP.
+* [ ] Static IPv4.
+* [ ] Static IPv6.
+* [ ] DNS.
+* [ ] Gateway.
+* [ ] Static route.
+* [ ] MTU.
+* [ ] Stage profile.
+* [ ] Activate profile.
+* [ ] Rollback profile.
+
+## systemd-networkd adapter
+
+* [ ] Inspect `.network`.
+* [ ] Inspect `.netdev`.
+* [ ] Staging directory.
+* [ ] Atomic replacement.
+* [ ] DHCP.
+* [ ] Static address.
+* [ ] DNS.
+* [ ] Gateway.
+* [ ] Route.
+* [ ] VLAN.
+* [ ] Bridge.
+* [ ] Reload networkd.
+* [ ] Rollback files.
+
+## Safe network apply
+
+* [ ] Snapshot current state.
+* [ ] Stage candidate state.
+* [ ] Create local rollback timer.
+* [ ] Apply temporary management firewall rule.
+* [ ] Activate candidate.
+* [ ] Probe gateway.
+* [ ] Probe controller.
+* [ ] Probe DNS.
+* [ ] Confirm.
+* [ ] Automatic rollback.
+
+## Management protection
+
+* [ ] Không disable active management interface.
+* [ ] Không remove current management IP nếu không có fallback.
+* [ ] Không xóa default route duy nhất không cảnh báo.
+* [ ] Critical changes yêu cầu explicit confirmation.
+* [ ] Local rollback không phụ thuộc controller.
+
+## Gate Phase 15
+
+* [ ] Đổi static IP thành công.
+* [ ] Mất controller sau đổi IP thì tự rollback.
+* [ ] VLAN hoạt động.
+* [ ] Bridge hoạt động.
+* [ ] Unsupported backend chỉ read-only.
+
+---
+
+# Middle Phase 16 — Systemd Management
+
+## Systemd integration
+
+* [ ] D-Bus client.
+* [ ] List units.
+* [ ] Inspect unit.
+* [ ] Start.
+* [ ] Stop.
+* [ ] Restart.
+* [ ] Reload.
+* [ ] Enable.
+* [ ] Disable.
+
+## Typed operation
+
+* [ ] Không nhận command string.
+* [ ] Validate unit name.
+* [ ] Validate operation.
+* [ ] Operation timeout.
+* [ ] Capture result.
+* [ ] Audit operation.
+
+## Allowlist
+
+* [ ] Configurable allowed units.
+* [ ] Deny unit ngoài allowlist.
+* [ ] Group-level service policy.
+* [ ] Node-level override.
+
+## Protected units
+
+* [ ] `aegisnode-agent.service`.
+* [ ] `dbus.service`.
+* [ ] `systemd-logind.service`.
+* [ ] `NetworkManager.service`.
+* [ ] `systemd-networkd.service`.
+* [ ] SSH yêu cầu elevated confirmation.
+* [ ] Không cho self-stop qua remote API.
+
+## Journald viewer
+
+* [ ] Filter unit.
+* [ ] Filter priority.
+* [ ] Filter time range.
+* [ ] Cursor pagination.
+* [ ] Result limit.
+* [ ] Redact sensitive fields nếu cần.
+
+## Desired service state
+
+* [ ] Running.
+* [ ] Stopped.
+* [ ] Enabled.
+* [ ] Disabled.
+* [ ] Drift detection.
+* [ ] Optional reconcile.
+
+## Gate Phase 16
+
+* [ ] Không thể chạy arbitrary shell.
+* [ ] Protected unit không bị stop.
+* [ ] Journal query có pagination.
+* [ ] Mọi service operation có audit.
+
+---
+
+# Middle Phase 17 — Combined Change Plan
+
+## Models
+
+* [ ] `NodeChangePlan`.
+* [ ] `FirewallChange`.
+* [ ] `NetworkChange`.
+* [ ] `ServiceChange`.
+* [ ] `HealthCheckSpec`.
+* [ ] `RollbackPolicy`.
+* [ ] `ExecutionStep`.
+* [ ] `ExecutionResult`.
+
+## Planner
+
+* [ ] Resolve dependency.
+* [ ] Detect circular dependency.
+* [ ] Generate execution order.
+* [ ] Generate rollback order.
+* [ ] Generate dry-run diff.
+* [ ] Calculate risk.
+
+## Risk levels
+
+* [ ] LOW.
+* [ ] MEDIUM.
+* [ ] HIGH.
+* [ ] CRITICAL.
+
+## Execution order
+
+* [ ] Snapshot firewall.
+* [ ] Snapshot network.
+* [ ] Snapshot service state.
+* [ ] Install temporary management allow.
+* [ ] Stage network.
+* [ ] Stage firewall.
+* [ ] Activate network.
+* [ ] Activate firewall.
+* [ ] Execute service operations.
+* [ ] Run health checks.
+* [ ] Confirm hoặc rollback.
+
+## Idempotency
+
+* [ ] Mỗi plan có idempotency key.
+* [ ] Retry không execute hai lần.
+* [ ] Persist execution state.
+* [ ] Resume sau agent restart.
+* [ ] Reject conflicting execution.
+
+## Gate Phase 17
+
+* [ ] Network và firewall thay đổi đồng bộ.
+* [ ] Mất controller thì node tự rollback.
+* [ ] Failure ở giữa plan rollback đúng reverse order.
+* [ ] Duplicate request không chạy hai lần.
+
+---
+
+# Middle Phase 18 — Multi-Node Rollout
+
+## Rollout models
+
+* [ ] Rollout ID.
+* [ ] Strategy.
+* [ ] Targets.
+* [ ] Current batch.
+* [ ] Node status.
+* [ ] Failure threshold.
+* [ ] Previous version.
+
+## Strategies
+
+* [ ] Manual.
+* [ ] All-at-once.
+* [ ] Canary.
+* [ ] Batch.
+
+## Canary
+
+* [ ] Select canary node.
+* [ ] Apply canary.
+* [ ] Wait health gate.
+* [ ] Continue hoặc stop.
+* [ ] Manual approval option.
+
+## Batch
+
+* [ ] Configurable batch size.
+* [ ] Maximum unavailable.
+* [ ] Pause duration.
+* [ ] Health gate.
+* [ ] Failure threshold.
+
+## Control
+
+* [ ] Pause.
+* [ ] Resume.
+* [ ] Cancel.
+* [ ] Rollback.
+* [ ] Retry failed node.
+* [ ] Skip node với audit.
+
+## Coordination
+
+* [ ] Không rollout conflict trên cùng node.
+* [ ] Controller restart phục hồi rollout.
+* [ ] Agent offline được xử lý.
+* [ ] Node quay lại online được reconcile.
+* [ ] Rollback về version trước.
+
+## Gate Phase 18
+
+* [ ] Canary fail thì không rollout node còn lại.
+* [ ] Batch tuân thủ maximum unavailable.
+* [ ] Controller restart không duplicate rollout.
+* [ ] Rollback fleet hoạt động.
+
+---
+
+# Middle Phase 19 — Central Web UI and Observability
+
+## Authentication UI
+
+* [ ] Login.
+* [ ] Logout.
+* [ ] Session expiration.
+* [ ] Token refresh.
+* [ ] Viewer role.
+* [ ] Admin role.
+
+## Fleet UI
+
+* [ ] Node list.
+* [ ] Online/offline.
+* [ ] Group.
+* [ ] Labels.
+* [ ] OS.
+* [ ] Policy version.
+* [ ] Health.
+* [ ] Pending changes.
+
+## Node detail
+
+* [ ] Overview.
+* [ ] Firewall.
+* [ ] Network.
+* [ ] Routes.
+* [ ] Services.
+* [ ] Docker.
+* [ ] Blocks.
+* [ ] Audit.
+
+## Change plan UI
+
+* [ ] Create.
+* [ ] Validate.
+* [ ] Diff.
+* [ ] Risk.
+* [ ] Apply.
+* [ ] Confirm.
+* [ ] Rollback.
+* [ ] Execution timeline.
+
+## Rollout UI
+
+* [ ] Target selector.
+* [ ] Strategy.
+* [ ] Canary progress.
+* [ ] Batch progress.
+* [ ] Failure details.
+* [ ] Pause.
+* [ ] Resume.
+* [ ] Rollback.
+
+## Metrics
+
+* [ ] Controller connected agents.
+* [ ] Agent health.
+* [ ] Apply total.
+* [ ] Rollback total.
+* [ ] Rollout duration.
+* [ ] Rollout failure.
+* [ ] Firewall drops.
+* [ ] Blocklist size.
+* [ ] Interface RX/TX.
+* [ ] Service operation failure.
+
+## Grafana
+
+* [ ] Fleet health dashboard.
+* [ ] Firewall activity dashboard.
+* [ ] Rollout dashboard.
+* [ ] Agent connectivity dashboard.
+* [ ] Blocker dashboard.
+
+## Middle Stage Gate
+
+Middle chỉ hoàn thành khi:
+
+* [ ] Controller quản lý nhiều node.
+* [ ] mTLS hoạt động.
+* [ ] Enrollment an toàn.
+* [ ] Node offline giữ last-known-good state.
+* [ ] NetworkManager được hỗ trợ.
+* [ ] systemd-networkd được hỗ trợ.
+* [ ] Static IP và DHCP hoạt động.
+* [ ] VLAN hoạt động.
+* [ ] Bridge hoạt động.
+* [ ] Systemd service management hoạt động.
+* [ ] Journald viewer hoạt động.
+* [ ] Combined change plan hoạt động.
+* [ ] Network rollback hoạt động.
+* [ ] Canary rollout hoạt động.
+* [ ] Central Web UI hoạt động.
+* [ ] Central audit hoạt động.
+* [ ] Prometheus metrics hoạt động.
+
+---
+
+# Stage 3 — Prod Final
+
+## Mục tiêu
+
+AegisNode đạt mức production với privilege separation, OIDC, RBAC, approval, signed bundles, HA controller, disaster recovery, advanced networking, observability và hardening.
+
+---
+
+# Prod Phase 20 — Privilege Separation
+
+## Process separation
+
+* [ ] `aegisnode server` chạy non-root.
+* [ ] `aegisnode agent` chạy non-root.
+* [ ] `aegisnode execd` chạy với quyền tối thiểu.
+* [ ] `execd` không mở TCP listener.
+* [ ] `execd` chỉ dùng Unix socket.
+
+## Executor protocol
+
+* [ ] Typed request enum.
+* [ ] Typed response enum.
+* [ ] Protocol version.
+* [ ] Payload size limit.
+* [ ] Request timeout.
+* [ ] Peer credential validation.
+* [ ] Không nhận raw shell.
+* [ ] Không nhận arbitrary path.
+* [ ] Không nhận arbitrary environment variable.
+
+## Executor operations
+
+* [ ] Firewall inspect.
+* [ ] Firewall check.
+* [ ] Firewall apply.
+* [ ] Firewall snapshot.
+* [ ] Firewall rollback.
+* [ ] Network inspect.
+* [ ] Network stage.
+* [ ] Network activate.
+* [ ] Network rollback.
+* [ ] Service inspect.
+* [ ] Service start.
+* [ ] Service stop.
+* [ ] Service restart.
+* [ ] Service reload.
+
+## Hardening
+
+* [ ] `NoNewPrivileges`.
+* [ ] `ProtectSystem`.
+* [ ] `ProtectHome`.
+* [ ] `PrivateTmp`.
+* [ ] `CapabilityBoundingSet`.
+* [ ] `RestrictAddressFamilies`.
+* [ ] `SystemCallFilter` nếu phù hợp.
+* [ ] Socket permission chặt.
+* [ ] Local executor audit.
+
+## Gate Phase 20
+
+* [ ] Agent non-root vẫn hoạt động.
+* [ ] Executor không thể chạy arbitrary command.
+* [ ] Executor không truy cập network bên ngoài.
+* [ ] Compromise agent không trực tiếp có shell root.
+
+---
+
+# Prod Phase 21 — OIDC, RBAC and Approval
+
+## OIDC
+
+* [ ] Authorization Code Flow.
+* [ ] PKCE.
+* [ ] Issuer validation.
+* [ ] Audience validation.
+* [ ] JWKS validation.
+* [ ] Token expiry.
+* [ ] Clock skew handling.
+* [ ] Logout flow.
+
+## Roles
+
+* [ ] Viewer.
+* [ ] Operator.
+* [ ] SecurityAdmin.
+* [ ] PlatformAdmin.
+* [ ] Auditor.
+
+## Permissions
+
+* [ ] `nodes.read`.
+* [ ] `firewall.read`.
+* [ ] `firewall.write`.
+* [ ] `firewall.apply`.
+* [ ] `network.read`.
+* [ ] `network.write`.
+* [ ] `service.read`.
+* [ ] `service.restart`.
+* [ ] `change_plan.approve`.
+* [ ] `rollout.manage`.
+* [ ] `audit.read`.
+* [ ] `admin.manage`.
+
+## Scope
+
+* [ ] Global.
+* [ ] Node group.
+* [ ] Specific node.
+* [ ] Environment.
+* [ ] Label selector.
+
+## Approval workflow
+
+* [ ] LOW không cần approval.
+* [ ] MEDIUM cần operator.
+* [ ] HIGH cần security admin.
+* [ ] CRITICAL cần hai người.
+* [ ] Creator không tự approve critical plan.
+* [ ] Approval expiration.
+* [ ] Re-approval nếu plan thay đổi.
+
+## Break-glass
+
+* [ ] Disabled mặc định.
+* [ ] Time-limited.
+* [ ] Strong audit.
+* [ ] Notification.
+* [ ] Rotation procedure.
+
+## Gate Phase 21
+
+* [ ] Viewer không apply.
+* [ ] Operator không sửa RBAC.
+* [ ] Critical plan cần đủ approval.
+* [ ] Mọi deny/allow decision có audit.
+
+---
+
+# Prod Phase 22 — Signed Policy Bundles
+
+## Bundle contents
+
+* [ ] Metadata.
+* [ ] Firewall policy.
+* [ ] Network profile.
+* [ ] Service policy.
+* [ ] Execution plan.
+* [ ] Checksums.
+* [ ] Signature.
+
+## Metadata
+
+* [ ] Bundle ID.
+* [ ] Target node ID.
+* [ ] Policy version.
+* [ ] Issued time.
+* [ ] Expiry.
+* [ ] Sequence.
+* [ ] Controller identity.
+
+## Signing
+
+* [ ] Controller signing key.
+* [ ] Private key không nằm trong source.
+* [ ] Public key distribution.
+* [ ] Secure key permission.
+* [ ] Optional external secret manager.
+
+## Agent verification
+
+* [ ] Verify signature.
+* [ ] Verify checksum.
+* [ ] Verify target node.
+* [ ] Verify expiry.
+* [ ] Verify sequence.
+* [ ] Replay protection.
+* [ ] Reject unknown key.
+
+## Rotation
+
+* [ ] Multiple trusted public keys.
+* [ ] Grace period.
+* [ ] Key revocation.
+* [ ] Rotation audit.
+
+## Gate Phase 22
+
+* [ ] Bundle sửa một byte bị reject.
+* [ ] Bundle node khác bị reject.
+* [ ] Bundle hết hạn bị reject.
+* [ ] Replay bundle cũ bị reject.
+* [ ] Key rotation không gián đoạn rollout.
+
+---
+
+# Prod Phase 23 — Controller High Availability
+
+## Statelessness
+
+* [ ] API stateless.
+* [ ] Session externalized hoặc signed.
+* [ ] Không giữ rollout state chỉ trong memory.
+* [ ] Không giữ certificate state chỉ trong memory.
+
+## Multiple replicas
+
+* [ ] Chạy nhiều controller.
+* [ ] Reverse proxy hoặc load balancer.
+* [ ] Health check.
+* [ ] Readiness check.
+* [ ] Graceful shutdown.
+* [ ] Rolling upgrade.
+
+## Database
+
+* [ ] PostgreSQL HA deployment guide.
+* [ ] Connection pooling.
+* [ ] Retry policy.
+* [ ] Transaction timeout.
+* [ ] Read-only degraded mode.
+
+## Distributed coordination
+
+* [ ] Distributed lock.
+* [ ] Rollout leader.
+* [ ] Certificate issuance lock.
+* [ ] Background job leader election.
+* [ ] Prevent duplicate execution.
+
+## Agent failover
+
+* [ ] Multiple controller endpoints.
+* [ ] Endpoint rotation.
+* [ ] Backoff.
+* [ ] Jitter.
+* [ ] Certificate pinning hoặc CA verification.
+* [ ] Agent hoạt động khi toàn controller offline.
+
+## Gate Phase 23
+
+* [ ] Kill một controller không mất control plane.
+* [ ] Rollout không chạy hai lần.
+* [ ] Agent reconnect controller khác.
+* [ ] Database tạm lỗi không làm agent mất policy.
+
+---
+
+# Prod Phase 24 — Advanced Networking
+
+## Bonding
+
+* [ ] Active-backup.
+* [ ] 802.3ad nếu backend hỗ trợ.
+* [ ] Member validation.
+* [ ] Rollback.
+* [ ] Management protection.
+
+## VRF
+
+* [ ] Inventory.
+* [ ] Create.
+* [ ] Attach interface.
+* [ ] Route table association.
+* [ ] Delete validation.
+* [ ] Rollback.
+
+## Policy routing
+
+* [ ] Multiple routing tables.
+* [ ] Source-based rule.
+* [ ] Interface-based rule.
+* [ ] Priority validation.
+* [ ] Conflict detection.
+* [ ] Rollback.
+
+## Multiple gateways
+
+* [ ] Route metric.
+* [ ] Default route conflict detection.
+* [ ] Gateway reachability.
+* [ ] Failover design documentation.
+
+## WireGuard
+
+* [ ] Read-only inventory.
+* [ ] Peer status.
+* [ ] Traffic counters.
+* [ ] Optional write support sau feature gate.
+* [ ] Không log private key.
+
+## HA gateway integration
+
+* [ ] Keepalived status.
+* [ ] VRRP state.
+* [ ] Virtual IP inventory.
+* [ ] Safe service reload.
+* [ ] Không tự implement VRRP.
+
+## Gate Phase 24
+
+* [ ] Backend unsupported thì reject trước apply.
+* [ ] Advanced network change rollback được.
+* [ ] Management protection vẫn hoạt động.
+* [ ] UI topology hiển thị đúng.
+
+---
+
+# Prod Phase 25 — Audit, Backup and Recovery
+
+## Audit
+
+* [ ] Actor.
+* [ ] Action.
+* [ ] Resource.
+* [ ] Before hash.
+* [ ] After hash.
+* [ ] Request ID.
+* [ ] Source IP.
+* [ ] Timestamp.
+* [ ] Result.
+* [ ] Node ID.
+* [ ] Execution ID.
+
+## Integrity chain
+
+* [ ] Event hash.
+* [ ] Previous event hash.
+* [ ] Chain verification.
+* [ ] Detect modified event.
+* [ ] Detect missing event.
+* [ ] Verification CLI.
+
+## Audit export
+
+* [ ] JSON.
+* [ ] Syslog.
+* [ ] Log pipeline integration.
+* [ ] Export retry.
+* [ ] Local buffer.
+* [ ] Buffer size limit.
+
+## Controller backup
+
+* [ ] PostgreSQL full backup.
+* [ ] Point-in-time recovery guide.
+* [ ] Config backup.
+* [ ] Policy bundle archive.
+* [ ] CA metadata.
+* [ ] Signing public keys.
+* [ ] Node enrollment records.
+
+## Restore
+
+* [ ] Restore test environment.
+* [ ] Restore database.
+* [ ] Restore controller config.
+* [ ] Restore policy history.
+* [ ] Verify agent reconnect.
+* [ ] Verify audit integrity.
+
+## Local node recovery
+
+* [ ] `aegisnode ctl recovery status`.
+* [ ] `rollback-last`.
+* [ ] `restore-snapshot`.
+* [ ] Offline emergency mode.
+* [ ] Local actor audit.
+* [ ] Sync recovery event về controller sau reconnect.
+
+## Gate Phase 25
+
+* [ ] Restore controller từ backup thành công.
+* [ ] Agent giữ firewall trong thời gian disaster.
+* [ ] Audit tampering được phát hiện.
+* [ ] Local emergency rollback hoạt động.
+
+---
+
+# Prod Phase 26 — Production Observability
+
+## Metrics
+
+* [ ] HTTP request rate.
+* [ ] HTTP latency.
+* [ ] Database latency.
+* [ ] Connected agents.
+* [ ] Offline agents.
+* [ ] Apply duration.
+* [ ] Apply failure.
+* [ ] Rollback total.
+* [ ] Rollout duration.
+* [ ] Rollout failure.
+* [ ] Certificate renewal failure.
+* [ ] Blocklist size.
+* [ ] Firewall counter.
+* [ ] Network apply failure.
+* [ ] Service operation failure.
+
+## Tracing
+
+* [ ] Web request trace.
+* [ ] Controller trace.
+* [ ] Rollout trace.
+* [ ] Agent request trace.
+* [ ] Executor operation trace.
+* [ ] Correlation ID xuyên suốt.
+* [ ] Không trace packet.
+
+## Alerts
+
+* [ ] Agent offline.
+* [ ] Controller degraded.
+* [ ] Database unavailable.
+* [ ] Rollback occurred.
+* [ ] Policy apply failed.
+* [ ] Rollout halted.
+* [ ] Certificate expiring.
+* [ ] Audit export failed.
+* [ ] Blocklist unusually large.
+* [ ] Drop count anomaly.
+
+## Runbooks
+
+* [ ] Agent offline.
+* [ ] Controller unavailable.
+* [ ] Database unavailable.
+* [ ] Policy rollout stuck.
+* [ ] Network rollback.
+* [ ] Certificate renewal failure.
+* [ ] Emergency local access.
+* [ ] Audit chain failure.
+
+## Capacity tests
+
+* [ ] Maximum connected agents.
+* [ ] Heartbeat throughput.
+* [ ] Inventory throughput.
+* [ ] Concurrent apply.
+* [ ] Concurrent rollout.
+* [ ] Audit throughput.
+* [ ] Database connection saturation.
+
+## Soak tests
+
+* [ ] Controller restart loop.
+* [ ] Agent reconnect.
+* [ ] Network flapping.
+* [ ] Docker churn.
+* [ ] Repeated policy apply.
+* [ ] Long-running blocker.
+* [ ] Database failover.
+
+## Gate Phase 26
+
+* [ ] Dashboard đầy đủ.
+* [ ] Alerts có runbook.
+* [ ] Capacity limit được ghi lại.
+* [ ] Soak test không có memory leak nghiêm trọng.
+
+---
+
+# Prod Phase 27 — Security Hardening and Release
+
+## Threat model
+
+* [ ] Compromised user account.
+* [ ] Compromised Web session.
+* [ ] Compromised controller.
+* [ ] Compromised agent.
+* [ ] Compromised executor socket.
+* [ ] Malicious policy.
+* [ ] MITM.
+* [ ] Replay.
+* [ ] Self-lockout.
+* [ ] Audit tampering.
+* [ ] Denial of service.
+
+## Dependency security
+
+* [ ] `cargo audit`.
+* [ ] `cargo deny`.
+* [ ] `npm audit`.
+* [ ] License check.
+* [ ] Vulnerability exception process.
+* [ ] Dependency update policy.
+
+## Fuzzing
+
+* [ ] YAML parser.
+* [ ] JSON parser.
+* [ ] CIDR parser.
+* [ ] Port parser.
+* [ ] Policy validator.
+* [ ] Bundle parser.
+* [ ] Executor protocol.
+* [ ] Change-plan parser.
+
+## API hardening
+
+* [ ] Request size limit.
+* [ ] Rule count limit.
+* [ ] Policy size limit.
+* [ ] Rate limit.
+* [ ] Timeout.
+* [ ] Pagination.
+* [ ] Concurrent request limit.
+* [ ] CORS policy.
+* [ ] Security headers.
+
+## Runtime limits
+
+* [ ] Memory limits.
+* [ ] Open file limits.
+* [ ] Audit buffer limits.
+* [ ] Journald detector limits.
+* [ ] Maximum active block count.
+* [ ] Maximum pending execution count.
+* [ ] Maximum snapshot storage.
+
+## Compatibility matrix
+
+* [ ] Ubuntu LTS.
+* [ ] Debian stable.
+* [ ] RHEL-compatible distro.
+* [ ] NetworkManager.
+* [ ] systemd-networkd.
+* [ ] Multiple nftables versions.
+* [ ] Multiple Docker versions.
+* [ ] amd64.
+* [ ] arm64.
+
+## Release artifacts
+
+* [ ] Single `aegisnode` binary.
+* [ ] `.deb`.
+* [ ] `.rpm`.
+* [ ] Container image cho controller.
+* [ ] Checksums.
+* [ ] SBOM.
+* [ ] Signed artifacts.
+* [ ] Release notes.
+* [ ] Upgrade guide.
+* [ ] Downgrade limitations.
+
+## Documentation
+
+* [ ] Installation.
+* [ ] Quick start.
+* [ ] CLI reference.
+* [ ] API reference.
+* [ ] Firewall policy.
+* [ ] NAT.
+* [ ] Docker.
+* [ ] Blocker.
+* [ ] Network profiles.
+* [ ] Systemd management.
+* [ ] Change plans.
+* [ ] Rollouts.
+* [ ] OIDC.
+* [ ] RBAC.
+* [ ] Backup.
+* [ ] Recovery.
+* [ ] Troubleshooting.
+* [ ] Security model.
+
+## Prod Final Stage Gate
+
+AegisNode chỉ được đánh dấu Production Final khi:
+
+* [ ] Controller HA hoạt động.
+* [ ] Agent chạy non-root.
+* [ ] Executor được giới hạn đặc quyền.
+* [ ] Executor không nhận raw command.
+* [ ] mTLS hoạt động.
+* [ ] OIDC hoạt động.
+* [ ] RBAC hoạt động.
+* [ ] Approval workflow hoạt động.
+* [ ] Signed bundles hoạt động.
+* [ ] Replay protection hoạt động.
+* [ ] Canary rollout hoạt động.
+* [ ] Fleet rollback hoạt động.
+* [ ] Network rollback hoạt động.
+* [ ] Backup và restore đã được kiểm thử.
+* [ ] Offline node recovery hoạt động.
+* [ ] Audit integrity chain hoạt động.
+* [ ] Monitoring đầy đủ.
+* [ ] Alerts có runbook.
+* [ ] Security review hoàn thành.
+* [ ] Compatibility tests pass.
+* [ ] Upgrade không làm mất firewall policy.
+* [ ] Release artifacts được ký.
+* [ ] Documentation hoàn chỉnh.
+
+---
+
+# Tổng hợp tiến độ
+
+## Stage MVP
+
+* [ ] Phase 0 — Repository Skeleton.
+* [ ] Phase 1 — Core Models and Errors.
+* [ ] Phase 2 — Policy Validation.
+* [ ] Phase 3 — nftables Compiler.
+* [ ] Phase 4 — nftables Runtime Backend.
+* [ ] Phase 5 — Safe Apply and Rollback.
+* [ ] Phase 6 — Local Agent and Storage.
+* [ ] Phase 7 — CLI.
+* [ ] Phase 8 — Docker and Router Mode.
+* [ ] Phase 9 — Blocker and Journald.
+* [ ] Phase 10 — Web UI.
+* [ ] Phase 11 — Packaging and E2E.
+* [ ] MVP Stage Gate passed.
+
+## Stage Middle
+
+* [ ] Phase 12 — Controller Foundation.
+* [ ] Phase 13 — Enrollment and mTLS.
+* [ ] Phase 14 — Node Inventory.
+* [ ] Phase 15 — Network Management.
+* [ ] Phase 16 — Systemd Management.
+* [ ] Phase 17 — Combined Change Plan.
+* [ ] Phase 18 — Multi-Node Rollout.
+* [ ] Phase 19 — Central Web UI and Observability.
+* [ ] Middle Stage Gate passed.
+
+## Stage Prod Final
+
+* [ ] Phase 20 — Privilege Separation.
+* [ ] Phase 21 — OIDC, RBAC and Approval.
+* [ ] Phase 22 — Signed Policy Bundles.
+* [ ] Phase 23 — Controller High Availability.
+* [ ] Phase 24 — Advanced Networking.
+* [ ] Phase 25 — Audit, Backup and Recovery.
+* [ ] Phase 26 — Production Observability.
+* [ ] Phase 27 — Security Hardening and Release.
+* [ ] Prod Final Stage Gate passed.
+
+---
+
+# Quy tắc chuyển stage
+
+## MVP → Middle
+
+Không bắt đầu Middle nếu:
+
+* [ ] Safe apply chưa ổn định.
+* [ ] Rollback chưa sống qua daemon restart.
+* [ ] nftables compiler chưa deterministic.
+* [ ] Docker rules vẫn có nguy cơ bị flush.
+* [ ] NAT chưa có E2E test.
+* [ ] CLI chưa quản lý được toàn bộ local node.
+* [ ] Web UI chưa quản lý được pending execution.
+* [ ] Reboot test chưa pass.
+
+## Middle → Prod Final
+
+Không bắt đầu Prod Final nếu:
+
+* [ ] mTLS chưa ổn định.
+* [ ] Agent offline chưa giữ được last-known-good state.
+* [ ] Network safe apply chưa hoạt động.
+* [ ] Management interface protection chưa hoạt động.
+* [ ] Combined change plan chưa rollback đúng.
+* [ ] Rollout chưa có idempotency.
+* [ ] Canary failure chưa tự dừng rollout.
+* [ ] Controller restart còn làm duplicate operation.
+
+---
+
+# Thứ tự ưu tiên
+
+```text
+1. Safety
+2. Correctness
+3. Rollback
+4. Security
+5. Observability
+6. Performance
+7. User interface
+```
+
+* [ ] Không ưu tiên giao diện đẹp trước safe apply.
+* [ ] Không tối ưu compiler trước khi output đúng.
+* [ ] Không thêm advanced networking trước khi network rollback ổn định.
+* [ ] Không thêm HA trước khi operation idempotent.
+* [ ] Không thêm plugin hoặc WASM trước Production Final.
+* [ ] Không thêm eBPF nếu nftables đã đáp ứng yêu cầu.
