@@ -248,38 +248,48 @@ impl PolicyValidator {
             }
         }
 
-        // Phát hiện trùng lặp hoặc xung đột giữa các rules
-        for i in 0..policy.rules.len() {
-            for j in (i + 1)..policy.rules.len() {
-                let r1 = &policy.rules[i];
-                let r2 = &policy.rules[j];
+        // Phát hiện trùng lặp hoặc xung đột giữa các rules sử dụng HashMap Indexing (Độ phức tạp O(N))
+        let mut seen_matchers: std::collections::HashMap<String, (usize, String, FirewallAction)> =
+            std::collections::HashMap::new();
 
-                // Nếu hai rules giống hệt nhau về điều kiện matching
-                if r1.direction == r2.direction
-                    && r1.protocol == r2.protocol
-                    && r1.destination_ports == r2.destination_ports
-                    && r1.source_cidrs == r2.source_cidrs
-                    && r1.interfaces == r2.interfaces
-                {
-                    if r1.action == r2.action {
-                        report.add_issue(ValidationIssue::warning(
-                            "SHADOWED_RULE",
-                            format!(
-                                "Rule '{}' is shadowed by identical preceding Rule '{}'",
-                                r2.id, r1.id
-                            ),
-                            Some(format!("rules[{j}]")),
-                            Some(r2.id.clone()),
-                        ));
-                    } else {
-                        report.add_issue(ValidationIssue::error(
-                            "CONFLICTING_RULES",
-                            format!("Rule '{}' conflicts with preceding Rule '{}' (Action {:?} vs {:?})", r2.id, r1.id, r2.action, r1.action),
-                            Some(format!("rules[{j}]")),
-                            Some(r2.id.clone()),
-                        ));
-                    }
+        for (j, rule) in policy.rules.iter().enumerate() {
+            // Khởi tạo key tổng hợp duy nhất cho bộ điều kiện matching của rule
+            let match_key = format!(
+                "{:?}:{:?}:{:?}:{:?}:{:?}",
+                rule.direction,
+                rule.protocol,
+                rule.destination_ports,
+                rule.source_cidrs,
+                rule.interfaces
+            );
+
+            if let Some((_prev_idx, prev_id, prev_action)) = seen_matchers.get(&match_key) {
+                if *prev_action == rule.action {
+                    // Cảnh báo rule bị che phủ (shadowed) do có rule đi trước trùng khớp điều kiện và hành động
+                    report.add_issue(ValidationIssue::warning(
+                        "SHADOWED_RULE",
+                        format!(
+                            "Rule '{}' is shadowed by identical preceding Rule '{}'",
+                            rule.id, prev_id
+                        ),
+                        Some(format!("rules[{j}]")),
+                        Some(rule.id.clone()),
+                    ));
+                } else {
+                    // Báo lỗi xung đột giữa hai rule có cùng điều kiện matching nhưng hành động ngược nhau
+                    report.add_issue(ValidationIssue::error(
+                        "CONFLICTING_RULES",
+                        format!(
+                            "Rule '{}' conflicts with preceding Rule '{}' (Action {:?} vs {:?})",
+                            rule.id, prev_id, rule.action, prev_action
+                        ),
+                        Some(format!("rules[{j}]")),
+                        Some(rule.id.clone()),
+                    ));
                 }
+            } else {
+                // Lưu vết rule matcher key vào HashMap với ID dạng String
+                seen_matchers.insert(match_key, (j, rule.id.to_string(), rule.action));
             }
         }
     }

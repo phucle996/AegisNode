@@ -47,13 +47,14 @@ impl BackupSnapshot {
 pub struct BackupEngine;
 
 impl BackupEngine {
-    /// Tạo một bản sao lưu BackupSnapshot mới từ dữ liệu JSON
+    /// Tạo một bản sao lưu BackupSnapshot mới từ dữ liệu JSON chuẩn hóa
     pub fn create_backup(
         policies_json: String,
         nodes_json: String,
         audit_logs_json: String,
         created_at: String,
     ) -> BackupSnapshot {
+        // Khởi tạo struct BackupSnapshot với phiên bản schema v1.0.0
         let mut snapshot = BackupSnapshot {
             version: CURRENT_BACKUP_SCHEMA_VERSION.to_string(),
             created_at,
@@ -63,6 +64,7 @@ impl BackupEngine {
             audit_logs_json,
         };
 
+        // Tính toán mã băm SHA-256 Checksum bảo vệ toàn vẹn dữ liệu
         snapshot.checksum = snapshot.compute_checksum();
         snapshot
     }

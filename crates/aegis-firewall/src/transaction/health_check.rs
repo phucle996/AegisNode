@@ -32,33 +32,33 @@ impl HealthChecker {
         let mut passed_checks = Vec::new();
         let mut failed_checks = Vec::new();
 
-        // 1. Kiểm tra sự tồn tại của Managed Table 'inet aegis_filter' trong nftables
+        // 1. Kiểm tra sự tồn tại của Managed Table 'inet aegis_filter' trong nftables (Bọc timeout 3 giây)
         let req_table = ProcessRequest::new("nft", vec!["list".to_string(), "tables".to_string()]);
-        match self.runner.run(req_table).await {
-            Ok(out) if out.is_success() && out.stdout.contains("aegis_filter") => {
+        match tokio::time::timeout(std::time::Duration::from_secs(3), self.runner.run(req_table)).await {
+            Ok(Ok(out)) if out.is_success() && out.stdout.contains("aegis_filter") => {
                 // Đánh dấu kiểm tra thành công nếu bảng nftables aegis_filter tồn tại
                 passed_checks.push("Managed table 'inet aegis_filter' active".to_string());
             }
             _ => {
-                // Ghi nhận lỗi thực tế nếu không tìm thấy bảng nftables
+                // Ghi nhận lỗi thực tế nếu không tìm thấy bảng nftables hoặc quá thời gian timeout 3 giây
                 failed_checks
                     .push("Managed table 'inet aegis_filter' missing or inactive".to_string());
             }
         }
 
-        // 2. Kiểm tra khả năng kết nối mạng nội bộ Loopback Interface (Ping 127.0.0.1)
+        // 2. Kiểm tra khả năng kết nối mạng nội bộ Loopback Interface (Ping 127.0.0.1 bọc timeout 3 giây)
         let req_ping = ProcessRequest::new(
             "ping",
             vec!["-c".to_string(), "1".to_string(), "127.0.0.1".to_string()],
         );
-        match self.runner.run(req_ping).await {
-            Ok(out) if out.is_success() => {
+        match tokio::time::timeout(std::time::Duration::from_secs(3), self.runner.run(req_ping)).await {
+            Ok(Ok(out)) if out.is_success() => {
                 // Đánh dấu kiểm tra loopback ping thành công
                 passed_checks.push("Loopback ping 127.0.0.1 success".to_string());
             }
             _ => {
-                // Ghi nhận lỗi thực tế nếu không thể ping loopback
-                failed_checks.push("Loopback ping 127.0.0.1 failed".to_string());
+                // Ghi nhận lỗi thực tế nếu không thể ping loopback hoặc quá thời gian timeout 3 giây
+                failed_checks.push("Loopback ping 127.0.0.1 failed or timed out".to_string());
             }
         }
 
