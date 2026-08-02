@@ -1,6 +1,22 @@
 //! AegisNode API Domain Routes Module
 //! Tập hợp và phân loại toàn bộ REST API Handlers theo ranh giới miền (Domain Boundaries).
 
+// Submodules cho Controller Rest API
+pub mod controller {
+    pub use crate::routes::enrollment::*;
+    pub use crate::routes::health::*;
+    pub use crate::routes::inventory::*;
+    pub use crate::routes::rollout::*;
+}
+
+// Submodules cho Agent Rest API
+pub mod agent {
+    pub use crate::routes::blocker::*;
+    pub use crate::routes::firewall::*;
+    pub use crate::routes::network::*;
+    pub use crate::routes::systemd::*;
+}
+
 pub mod blocker;
 pub mod enrollment;
 pub mod firewall;

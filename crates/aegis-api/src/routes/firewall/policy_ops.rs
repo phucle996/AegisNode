@@ -1,14 +1,11 @@
-//! Firewall & Policy REST API Handlers
-//! Quản lý xem, kiểm tra, thực thi (Safe Apply), xác nhận và hoàn tác (Rollback) tường lửa nftables.
+// Quản lý chu trình Safe Apply Policy, Validate, Apply, Confirm & Rollback
 
 use aegis_core::{AegisError, ExecutionId};
-use aegis_firewall::{DockerInspector, RouterManager};
 use aegis_models::firewall::FirewallPolicy;
 use aegis_observability::prometheus::GLOBAL_METRICS;
 use aegis_policy::PolicyValidator;
-use aegis_storage::{AuditRepository, PolicyRepository};
+use aegis_storage::PolicyRepository;
 use axum::extract::{Json, State};
-use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use serde::Deserialize;
 use std::sync::Arc;
@@ -30,35 +27,6 @@ pub struct RollbackPayload {
     pub execution_id: String,
 }
 
-#[derive(Debug, Deserialize)]
-pub struct ForwardingPayload {
-    pub enabled: bool,
-}
-
-/// Handler `GET /metrics`: Xuất chỉ số Prometheus Metrics Text Exposition
-pub async fn prometheus_metrics_handler() -> impl IntoResponse {
-    let output = GLOBAL_METRICS.render_prometheus_exposition();
-    (
-        StatusCode::OK,
-        [("content-type", "text/plain; version=0.0.4")],
-        output,
-    )
-}
-
-/// Handler `GET /v1/status`: Kiểm tra trạng thái Daemon và version policy hiện tại
-pub async fn get_status_handler(
-    State(state): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, AegisError> {
-    GLOBAL_METRICS.inc_http_requests();
-    let current_version = state.current_version.lock().await;
-
-    Ok(Json(serde_json::json!({
-        "status": "online",
-        "service": "aegisnode-agent",
-        "policy_version": *current_version
-    })))
-}
-
 /// Handler `GET /v1/firewall/policy`: Lấy cấu hình Policy hiện tại từ SQLite
 pub async fn get_policy_handler(
     State(state): State<Arc<AppState>>,
@@ -78,7 +46,7 @@ pub async fn validate_policy_handler(
     Json(policy): Json<FirewallPolicy>,
 ) -> Result<impl IntoResponse, AegisError> {
     GLOBAL_METRICS.inc_http_requests();
-    // ValidationReport không phải Result — kiểm tra is_valid() để detect lỗi
+    // ValidationReport kiểm tra ngữ nghĩa và cú pháp của Policy
     let report = PolicyValidator::validate(&policy);
     if !report.is_valid() {
         return Err(AegisError::Validation(format!(
@@ -87,7 +55,7 @@ pub async fn validate_policy_handler(
         )));
     }
 
-    // Tính hash của policy qua std hasher (không cần crypto-grade ở đây)
+    // Tính hash của policy qua std hasher
     let hash = {
         use std::collections::hash_map::DefaultHasher;
         use std::hash::{Hash, Hasher};
@@ -168,35 +136,5 @@ pub async fn rollback_policy_handler(
     Ok(Json(serde_json::json!({
         "status": "rolled_back",
         "execution_id": payload.execution_id
-    })))
-}
-
-/// Handler `GET /v1/audit`: Truy vấn 50 bản ghi Audit Log gần nhất từ SQLite
-pub async fn get_audit_logs_handler(
-    State(state): State<Arc<AppState>>,
-) -> Result<impl IntoResponse, AegisError> {
-    GLOBAL_METRICS.inc_http_requests();
-    let logs = state.repository.list_audits(50).await?;
-    Ok(Json(logs))
-}
-
-/// Handler `GET /v1/docker/exposure`: Kiểm tra cổng công khai của Docker containers qua Unix socket
-pub async fn get_docker_exposure_handler() -> Result<impl IntoResponse, AegisError> {
-    GLOBAL_METRICS.inc_http_requests();
-    let inspector = DockerInspector::default_prod();
-    let report = inspector.inspect().await?;
-    Ok(Json(report))
-}
-
-/// Handler `POST /v1/router/forwarding`: Bật/tắt IP Forwarding trong kernel via sysctl
-pub async fn set_router_forwarding_handler(
-    Json(payload): Json<ForwardingPayload>,
-) -> Result<impl IntoResponse, AegisError> {
-    GLOBAL_METRICS.inc_http_requests();
-    let snapshot = RouterManager::set_ip_forwarding(payload.enabled).await?;
-    Ok(Json(serde_json::json!({
-        "status": "updated",
-        "ip_forwarding": payload.enabled,
-        "previousIpv4Forward": snapshot.old_ipv4_forward
     })))
 }

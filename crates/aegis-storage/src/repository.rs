@@ -55,6 +55,23 @@ pub trait AuditRepository: Send + Sync {
     async fn list_audits(&self, limit: usize) -> Result<Vec<AuditRecord>>;
 }
 
+/// Trait quản lý thông tin các Node trong Cluster (NodeRepository)
+#[async_trait]
+pub trait NodeRepository: Send + Sync {
+    // Đăng ký hoặc cập nhật Heartbeat cho Linux Node (Upsert)
+    async fn upsert_node(
+        &self,
+        hostname: &str,
+        ip_address: &str,
+        labels: &serde_json::Value,
+        version: &str,
+    ) -> Result<()>;
+    // Cập nhật Heartbeat của Node theo Node ID
+    async fn update_node_heartbeat(&self, node_id: uuid::Uuid, status: &str) -> Result<()>;
+    // Lấy danh sách tất cả các Nodes trong Cluster
+    async fn list_nodes(&self) -> Result<Vec<serde_json::Value>>;
+}
+
 /// Triển khai SqliteRepository cho toàn bộ traits
 #[derive(Clone)]
 pub struct SqliteRepository {
