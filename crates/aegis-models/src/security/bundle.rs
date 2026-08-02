@@ -4,7 +4,7 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use crate::firewall::FirewallPolicy;
-use crate::network_profile::NetworkProfile;
+use crate::fleet::NetworkProfile;
 
 /// Gói Policy đã được đóng gói và ký số bởi Controller (SignedPolicyBundle)
 #[derive(Debug, Clone, Serialize, Deserialize)]

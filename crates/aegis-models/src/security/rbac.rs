@@ -76,17 +76,29 @@ impl Role {
 /// Danh mục 12 Quyền hạn chi tiết (Granular Permissions)
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Permission {
+    /// Quyền đọc thông tin danh sách Node
     NodesRead,
+    /// Quyền đọc cấu hình Firewall Policy
     FirewallRead,
+    /// Quyền chỉnh sửa cấu hình Firewall Policy
     FirewallWrite,
+    /// Quyền thực thi Safe Apply Firewall Policy
     FirewallApply,
+    /// Quyền xem cấu hình mạng và interface
     NetworkRead,
+    /// Quyền thay đổi cấu hình mạng và interface
     NetworkWrite,
+    /// Quyền xem danh sách dịch vụ Systemd
     ServiceRead,
+    /// Quyền điều khiển và khởi động lại dịch vụ Systemd
     ServiceRestart,
+    /// Quyền phê duyệt Change Plan có rủi ro
     ChangePlanApprove,
+    /// Quyền quản lý tiến trình Multi-Node Rollout
     RolloutManage,
+    /// Quyền xem nhật ký kiểm toán Audit Logs
     AuditRead,
+    /// Quyền quản trị tài khoản người dùng và hệ thống
     AdminManage,
 }
 
@@ -108,7 +120,7 @@ pub enum RiskLevel {
 pub struct UserSubject {
     /// ID duy nhất của người dùng
     pub id: String,
-    /// Tên tài khoản
+    /// Tên tài khoản người dùng
     pub username: String,
     /// Danh sách các Roles được gán
     pub roles: Vec<Role>,

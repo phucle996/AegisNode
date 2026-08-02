@@ -1,41 +1,26 @@
 //! AegisNode Models Crate
-//! Định nghĩa các domain objects core: FirewallPolicy, DockerContainer, BlockerEntry, Inventory, NetworkProfile, Systemd, ChangePlan...
+//! Định nghĩa toàn bộ Domain Objects Core được phân thành 4 miền chính: Security, Firewall, Fleet và Rollout.
 
-pub mod advanced_network;
-pub mod blocker;
-pub mod bundle;
-pub mod change_plan;
-pub mod docker;
 pub mod firewall;
-pub mod inventory;
-pub mod nat;
-pub mod network_profile;
-pub mod rbac;
-pub mod systemd;
+pub mod fleet;
+pub mod rollout;
+pub mod security;
 
-pub use advanced_network::{BondMode, BondingProfile, SynProxyConfig, VrfProfile};
-pub use bundle::SignedPolicyBundle;
-pub use rbac::{AccessScope, ApprovalRecord, Permission, Role, UserSubject};
+// Re-exports 100% backward compatibility cho toàn hệ thống (Flat types)
+pub use firewall::*;
+pub use fleet::*;
+pub use rollout::*;
+pub use security::*;
 
-pub use blocker::{BlockEntry, BlockerConfig};
-pub use change_plan::{
-    BatchConfig, ExecutionStep, HealthCheckSpec, NodeChangePlan, NodeRolloutState,
-    NodeRolloutStatus, RiskLevel, RolloutReport, RolloutSpec, RolloutStrategy, StepStatus,
-};
-pub use docker::{
-    ContainerExposure, ContainerLabelPolicy, DockerContainer, DockerNetwork, PublishedPort,
-};
-pub use firewall::{
-    CidrSpec, FirewallDefaults, FirewallDirection, FirewallPolicy, FirewallRule, PortSpec,
-    TransportProtocol,
-};
-pub use inventory::{
-    NetworkInterfaceInfo, NodeInventoryPayload, RuntimeInventory, SystemInventory,
-};
-pub use nat::NatPolicy;
-pub use network_profile::{
-    AddressConfig, DnsConfig, InterfaceProfile, InterfaceRole, NetworkProfile, RouteConfig,
-};
-pub use systemd::{
-    JournalLogEntry, ServiceOpRequest, ServiceOpResult, ServiceOperation, ServiceUnitStatus,
-};
+// Module aliases 100% backward compatibility cho legacy module paths
+pub use firewall::advanced as advanced_network;
+pub use firewall::nat;
+pub use firewall::policy as firewall_policy;
+pub use fleet::docker;
+pub use fleet::inventory;
+pub use fleet::network_profile;
+pub use fleet::systemd;
+pub use rollout::change_plan;
+pub use security::blocker;
+pub use security::bundle;
+pub use security::rbac;
