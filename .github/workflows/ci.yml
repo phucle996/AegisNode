@@ -10,8 +10,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  trivy-scan:
+    name: Security Vulnerability Scan (Trivy)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy FS Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
   check-and-test:
     name: Build, Lint & Test
+    needs: trivy-scan
     runs-on: ubuntu-latest
 
     steps:
@@ -23,16 +41,8 @@ jobs:
         with:
           components: rustfmt, clippy
 
-      - name: Cache cargo registry & target
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+      - name: Rust Cache Optimization
+        uses: Swatinem/rust-cache@v2
 
       - name: Check code formatting
         run: cargo fmt --all --check

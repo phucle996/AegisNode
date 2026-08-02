@@ -9,11 +9,36 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-and-release:
-    name: Build Frontend, Compile Single Binary & Publish GitHub Release
+  trivy-security-scan:
+    name: Trivy Security & Vulnerability Scan
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Vulnerability Scanner on Source & Dependencies
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+  build-and-release:
+    name: Build, Scan & Publish Release (${{ matrix.target }})
+    needs: trivy-security-scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+
     permissions:
       contents: write
+      security-events: write
 
     steps:
       - name: Checkout repository
@@ -35,36 +60,38 @@ jobs:
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
+          targets: ${{ matrix.target }}
           components: rustfmt, clippy
 
-      - name: Cache cargo registry & target
-        uses: actions/cache@v4
+      - name: Rust Cache Optimization
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build release binary
+        run: cargo build --workspace --release --target ${{ matrix.target }}
+
+      - name: Trivy Binary Vulnerability Scan
+        uses: aquasecurity/trivy-action@master
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-release-
+          scan-type: 'rootfs'
+          scan-ref: 'target/${{ matrix.target }}/release/aegisnode'
+          format: 'table'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
 
-      - name: Build release binaries
-        run: cargo build --workspace --release
-
-      - name: Package single binary release tarball
+      - name: Package release artifact & compute SHA-256
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           mkdir -p dist
-          cp target/release/aegisnode dist/aegisnode
-          tar -czvf "aegisnode-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" -C dist aegisnode
-          sha256sum "aegisnode-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" > "aegisnode-${VERSION}-x86_64-unknown-linux-gnu.tar.gz.sha256"
+          cp target/${{ matrix.target }}/release/aegisnode dist/aegisnode
+          tar -czvf "aegisnode-${VERSION}-${{ matrix.target }}.tar.gz" -C dist aegisnode
+          sha256sum "aegisnode-${VERSION}-${{ matrix.target }}.tar.gz" > "aegisnode-${VERSION}-${{ matrix.target }}.tar.gz.sha256"
 
-      - name: Create GitHub Release and upload assets
+      - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            aegisnode-*-x86_64-unknown-linux-gnu.tar.gz
-            aegisnode-*-x86_64-unknown-linux-gnu.tar.gz.sha256
+            aegisnode-*-${{ matrix.target }}.tar.gz
+            aegisnode-*-${{ matrix.target }}.tar.gz.sha256
           draft: false
           prerelease: false
           generate_release_notes: true
