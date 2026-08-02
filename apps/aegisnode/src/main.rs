@@ -214,7 +214,8 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
             _ => {
                 // Nếu chưa có Root CA trong DB, tự sinh bộ Root CA X.509 mới và lưu vào DB
                 info!("No existing Root CA found in DB. Generating new Cluster Root CA...");
-                let (ca_cert_pem, ca_key_pem) = aegis_core::pki::PkiManager::generate_internal_root_ca()?;
+                let (ca_cert_pem, ca_key_pem) =
+                    aegis_core::pki::PkiManager::generate_internal_root_ca()?;
                 if let Err(e) = repo.save_root_ca(&ca_cert_pem, &ca_key_pem).await {
                     warn!("Failed to persist new Root CA to DB: {e}");
                 }

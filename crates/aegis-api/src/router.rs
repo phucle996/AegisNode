@@ -1,9 +1,9 @@
 //! Axum Router xây dựng các RESTful Routes, API Endpoints và Web UI Static Asset Serving
 //! Phục vụ Web UI SPA tại `/` và API endpoints tại `/v1/*`
 
-use std::sync::Arc;
 use axum::Router;
 use axum::routing::{get, post};
+use std::sync::Arc;
 use tower_http::services::{ServeDir, ServeFile};
 
 use crate::routes::*;

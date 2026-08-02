@@ -11,7 +11,8 @@ fn test_jwt_issuance_verification_and_rbac_matching() {
     let roles = vec![Role::PlatformAdmin];
     let permissions = vec!["*:*".to_string()];
 
-    let claims = JwtProvider::issue_token(username, roles, permissions, DEFAULT_JWT_SECRET, 3600).unwrap();
+    let claims =
+        JwtProvider::issue_token(username, roles, permissions, DEFAULT_JWT_SECRET, 3600).unwrap();
     let token = JwtProvider::encode_claims(&claims, DEFAULT_JWT_SECRET).unwrap();
 
     let verified_claims = JwtProvider::verify_token(&token, DEFAULT_JWT_SECRET).unwrap();
@@ -30,7 +31,8 @@ fn test_rbac_granular_wildcard_matching() {
         "systemd:*".to_string(),
     ];
 
-    let claims = JwtProvider::issue_token(username, roles, permissions, DEFAULT_JWT_SECRET, 3600).unwrap();
+    let claims =
+        JwtProvider::issue_token(username, roles, permissions, DEFAULT_JWT_SECRET, 3600).unwrap();
     let token = JwtProvider::encode_claims(&claims, DEFAULT_JWT_SECRET).unwrap();
 
     let verified_claims = JwtProvider::verify_token(&token, DEFAULT_JWT_SECRET).unwrap();

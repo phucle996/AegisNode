@@ -10,12 +10,16 @@ fn test_management_interface_protection() {
 
     // 1. Slaves không chứa eth0 -> Hợp lệ
     assert!(
-        AdvancedNetworkManager::validate_management_interface_protection(&valid_slaves, mgmt_iface).is_ok()
+        AdvancedNetworkManager::validate_management_interface_protection(&valid_slaves, mgmt_iface)
+            .is_ok()
     );
 
     // 2. Slaves chứa eth0 -> Phải bị từ chối để tránh ngắt kết nối SSH
     let invalid_slaves = vec!["eth0".to_string(), "eth1".to_string()];
-    let result = AdvancedNetworkManager::validate_management_interface_protection(&invalid_slaves, mgmt_iface);
+    let result = AdvancedNetworkManager::validate_management_interface_protection(
+        &invalid_slaves,
+        mgmt_iface,
+    );
 
     assert!(
         result.is_err(),
@@ -70,9 +74,15 @@ fn test_dynamic_ip_set_update_commands() {
 
     // 1. Generates add command
     let add_cmd = AdvancedNetworkManager::generate_dynamic_set_add_command("blocklist", &ips);
-    assert_eq!(add_cmd, "nft add element inet aegisnode blocklist { 1.2.3.4, 5.6.7.8 }");
+    assert_eq!(
+        add_cmd,
+        "nft add element inet aegisnode blocklist { 1.2.3.4, 5.6.7.8 }"
+    );
 
     // 2. Generates delete command
     let del_cmd = AdvancedNetworkManager::generate_dynamic_set_delete_command("blocklist", &ips);
-    assert_eq!(del_cmd, "nft delete element inet aegisnode blocklist { 1.2.3.4, 5.6.7.8 }");
+    assert_eq!(
+        del_cmd,
+        "nft delete element inet aegisnode blocklist { 1.2.3.4, 5.6.7.8 }"
+    );
 }

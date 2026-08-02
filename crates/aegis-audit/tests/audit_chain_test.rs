@@ -47,7 +47,10 @@ fn test_valid_audit_chain_verification() {
     let chain = create_sample_chain();
     let result = AuditChainVerifier::verify_chain_integrity(&chain);
 
-    assert!(result.is_ok(), "Chuỗi Audit Hash Chain hợp lệ phải xác thực thành công");
+    assert!(
+        result.is_ok(),
+        "Chuỗi Audit Hash Chain hợp lệ phải xác thực thành công"
+    );
 }
 
 #[test]
@@ -69,7 +72,8 @@ fn test_disrupted_merkle_link_rejection() {
     let mut chain = create_sample_chain();
 
     // Làm gián đoạn Merkle link prev_event_hash của bản ghi r2
-    chain[1].prev_event_hash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
+    chain[1].prev_event_hash =
+        "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff".to_string();
 
     let result = AuditChainVerifier::verify_chain_integrity(&chain);
     assert!(

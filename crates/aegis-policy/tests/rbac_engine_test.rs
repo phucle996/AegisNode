@@ -15,7 +15,9 @@ fn test_rbac_engine_permission_evaluation() {
     // Viewer có quyền FirewallRead
     assert!(RbacEngine::authorize(&viewer, Permission::FirewallRead, &AccessScope::Global).is_ok());
     // Viewer KHÔNG có quyền FirewallApply
-    assert!(RbacEngine::authorize(&viewer, Permission::FirewallApply, &AccessScope::Global).is_err());
+    assert!(
+        RbacEngine::authorize(&viewer, Permission::FirewallApply, &AccessScope::Global).is_err()
+    );
 
     // 2. Khởi tạo User SecurityAdmin
     let sec_admin = UserSubject {
@@ -25,8 +27,17 @@ fn test_rbac_engine_permission_evaluation() {
     };
 
     // SecurityAdmin có quyền FirewallApply & ChangePlanApprove
-    assert!(RbacEngine::authorize(&sec_admin, Permission::FirewallApply, &AccessScope::Global).is_ok());
-    assert!(RbacEngine::authorize(&sec_admin, Permission::ChangePlanApprove, &AccessScope::Global).is_ok());
+    assert!(
+        RbacEngine::authorize(&sec_admin, Permission::FirewallApply, &AccessScope::Global).is_ok()
+    );
+    assert!(
+        RbacEngine::authorize(
+            &sec_admin,
+            Permission::ChangePlanApprove,
+            &AccessScope::Global
+        )
+        .is_ok()
+    );
 }
 
 #[test]
@@ -42,8 +53,15 @@ fn test_approval_workflow_anti_self_approval() {
         comments: None,
     }];
 
-    let result = ApprovalWorkflowValidator::validate_approval_chain(creator_id, &self_approval, RiskLevel::Medium);
-    assert!(result.is_err(), "Tự phê duyệt plan của chính mình phải bị từ chối với Anti Self-Approval error");
+    let result = ApprovalWorkflowValidator::validate_approval_chain(
+        creator_id,
+        &self_approval,
+        RiskLevel::Medium,
+    );
+    assert!(
+        result.is_err(),
+        "Tự phê duyệt plan của chính mình phải bị từ chối với Anti Self-Approval error"
+    );
 }
 
 #[test]
@@ -60,7 +78,12 @@ fn test_approval_workflow_critical_two_person_approval() {
     }];
 
     assert!(
-        ApprovalWorkflowValidator::validate_approval_chain(creator_id, &single_approval, RiskLevel::Critical).is_err(),
+        ApprovalWorkflowValidator::validate_approval_chain(
+            creator_id,
+            &single_approval,
+            RiskLevel::Critical
+        )
+        .is_err(),
         "Critical plan chỉ có 1 chữ ký phải bị từ chối"
     );
 
@@ -83,7 +106,12 @@ fn test_approval_workflow_critical_two_person_approval() {
     ];
 
     assert!(
-        ApprovalWorkflowValidator::validate_approval_chain(creator_id, &dual_approvals, RiskLevel::Critical).is_ok(),
+        ApprovalWorkflowValidator::validate_approval_chain(
+            creator_id,
+            &dual_approvals,
+            RiskLevel::Critical
+        )
+        .is_ok(),
         "Critical plan có đủ 2 chữ ký từ 2 người duyệt khác nhau phải được thông qua"
     );
 }

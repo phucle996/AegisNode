@@ -12,7 +12,8 @@ async fn test_failover_client_endpoint_rotation() {
     ];
 
     // 1. Khởi tạo FailoverRpcClient với 3 endpoints
-    let client = FailoverRpcClient::new(endpoints.clone()).expect("Khởi tạo failover client thất bại");
+    let client =
+        FailoverRpcClient::new(endpoints.clone()).expect("Khởi tạo failover client thất bại");
 
     // Endpoint ban đầu là c1
     assert_eq!(client.active_endpoint(), endpoints[0]);
@@ -52,6 +53,9 @@ async fn test_execute_with_failover_success_on_fallback() {
         })
         .await;
 
-    assert!(result.is_ok(), "Failover client phải tự chuyển vùng sang C2 và thành công");
+    assert!(
+        result.is_ok(),
+        "Failover client phải tự chuyển vùng sang C2 và thành công"
+    );
     assert_eq!(result.unwrap(), "CONNECTED_TO_C2");
 }

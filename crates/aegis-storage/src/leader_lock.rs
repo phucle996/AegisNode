@@ -1,11 +1,11 @@
 //! Distributed Leader Election & PostgreSQL Advisory Locks (Phase 23 Controller HA)
 //! Cung cấp cơ chế Bầu chọn Leader phân tán giữa nhiều Controller Replicas thông qua PostgreSQL Advisory Locks.
 
+use aegis_core::AegisError;
+use sqlx::PgPool;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use aegis_core::AegisError;
-use sqlx::PgPool;
 use tracing::{info, warn};
 
 /// Mã khóa duy nhất đại diện cho Leader Election Advisory Lock trong PostgreSQL (Key ID 88888888)
@@ -23,7 +23,9 @@ impl PostgresLeaderLock {
             .fetch_one(pool)
             .await
             .map_err(|e| {
-                AegisError::Storage(format!("Lỗi thực thi pg_try_advisory_lock({lock_key}): {e}"))
+                AegisError::Storage(format!(
+                    "Lỗi thực thi pg_try_advisory_lock({lock_key}): {e}"
+                ))
             })?;
 
         Ok(row.0)
@@ -66,7 +68,9 @@ impl LeaderElector {
         let pool = match self.pool {
             Some(p) => p,
             None => {
-                warn!("Controller running without PostgreSQL pool. Defaulting to standalone Leader mode.");
+                warn!(
+                    "Controller running without PostgreSQL pool. Defaulting to standalone Leader mode."
+                );
                 self.is_leader.store(true, Ordering::SeqCst);
                 return;
             }
@@ -81,7 +85,9 @@ impl LeaderElector {
                 Ok(acquired) => {
                     let was_leader = self.is_leader.swap(acquired, Ordering::SeqCst);
                     if acquired && !was_leader {
-                        info!("🎉 Replica này vừa chiếm được PostgreSQL Advisory Lock. Trở thành ACTIVE LEADER!");
+                        info!(
+                            "🎉 Replica này vừa chiếm được PostgreSQL Advisory Lock. Trở thành ACTIVE LEADER!"
+                        );
                     } else if !acquired && was_leader {
                         warn!("⚠️ Mất PostgreSQL Advisory Lock. Chuyển sang trạng thái FOLLOWER!");
                     }

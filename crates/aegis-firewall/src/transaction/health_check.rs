@@ -41,7 +41,8 @@ impl HealthChecker {
             }
             _ => {
                 // Ghi nhận lỗi thực tế nếu không tìm thấy bảng nftables
-                failed_checks.push("Managed table 'inet aegis_filter' missing or inactive".to_string());
+                failed_checks
+                    .push("Managed table 'inet aegis_filter' missing or inactive".to_string());
             }
         }
 

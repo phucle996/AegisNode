@@ -1,7 +1,6 @@
 //! Firewall & Policy REST API Handlers
 //! Quản lý xem, kiểm tra, thực thi (Safe Apply), xác nhận và hoàn tác (Rollback) tường lửa nftables.
 
-use std::sync::Arc;
 use aegis_core::{AegisError, ExecutionId};
 use aegis_firewall::{DockerInspector, RouterManager};
 use aegis_models::firewall::FirewallPolicy;
@@ -12,6 +11,7 @@ use axum::extract::{Json, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use serde::Deserialize;
+use std::sync::Arc;
 
 use crate::state::AppState;
 
@@ -65,10 +65,7 @@ pub async fn get_policy_handler(
 ) -> Result<impl IntoResponse, AegisError> {
     GLOBAL_METRICS.inc_http_requests();
     let current_version = state.current_version.lock().await;
-    let policy = state
-        .repository
-        .get_latest_policy()
-        .await?;
+    let policy = state.repository.get_latest_policy().await?;
 
     Ok(Json(serde_json::json!({
         "version": *current_version,
@@ -116,7 +113,9 @@ pub async fn apply_policy_handler(
     let report = PolicyValidator::validate(&policy);
     let warning_count = report.warnings.len();
     if !report.is_valid() {
-        return Err(AegisError::Validation("Policy validation failed".to_string()));
+        return Err(AegisError::Validation(
+            "Policy validation failed".to_string(),
+        ));
     }
 
     // Gọi SafeApplyManager — tự động rollback sau DEFAULT_TIMEOUT_SECS nếu không confirm

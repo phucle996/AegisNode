@@ -6,7 +6,8 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 /// Hằng số khởi tạo mã băm cho bản ghi Audit đầu tiên (Genesis Hash)
-pub const GENESIS_AUDIT_HASH: &str = "0000000000000000000000000000000000000000000000000000000000000000";
+pub const GENESIS_AUDIT_HASH: &str =
+    "0000000000000000000000000000000000000000000000000000000000000000";
 
 /// Bản ghi Nhật ký Kiểm toán liên kết chuỗi băm (AuditChainRecord)
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -65,29 +65,50 @@ impl MetricsCollector {
         let mut buffer = String::new();
 
         // 1. HTTP Requests Total Metric
-        buffer.push_str("# HELP aegis_http_requests_total Total number of HTTP requests processed.\n");
+        buffer.push_str(
+            "# HELP aegis_http_requests_total Total number of HTTP requests processed.\n",
+        );
         buffer.push_str("# TYPE aegis_http_requests_total counter\n");
-        buffer.push_str(&format!("aegis_http_requests_total {}\n\n", self.http_requests_total.load(Ordering::Relaxed)));
+        buffer.push_str(&format!(
+            "aegis_http_requests_total {}\n\n",
+            self.http_requests_total.load(Ordering::Relaxed)
+        ));
 
         // 2. Connected Agents Metric
         buffer.push_str("# HELP aegis_connected_agents Number of mTLS connected agents.\n");
         buffer.push_str("# TYPE aegis_connected_agents gauge\n");
-        buffer.push_str(&format!("aegis_connected_agents {}\n\n", self.connected_agents.load(Ordering::Relaxed)));
+        buffer.push_str(&format!(
+            "aegis_connected_agents {}\n\n",
+            self.connected_agents.load(Ordering::Relaxed)
+        ));
 
         // 3. Rollout Failures Metric
         buffer.push_str("# HELP aegis_rollout_failures_total Total failed multi-node rollouts.\n");
         buffer.push_str("# TYPE aegis_rollout_failures_total counter\n");
-        buffer.push_str(&format!("aegis_rollout_failures_total {}\n\n", self.rollout_failures_total.load(Ordering::Relaxed)));
+        buffer.push_str(&format!(
+            "aegis_rollout_failures_total {}\n\n",
+            self.rollout_failures_total.load(Ordering::Relaxed)
+        ));
 
         // 4. Firewall Drops Metric
-        buffer.push_str("# HELP aegis_firewall_drops_total Total packets dropped by nftables filter.\n");
+        buffer.push_str(
+            "# HELP aegis_firewall_drops_total Total packets dropped by nftables filter.\n",
+        );
         buffer.push_str("# TYPE aegis_firewall_drops_total counter\n");
-        buffer.push_str(&format!("aegis_firewall_drops_total {}\n\n", self.firewall_drops_total.load(Ordering::Relaxed)));
+        buffer.push_str(&format!(
+            "aegis_firewall_drops_total {}\n\n",
+            self.firewall_drops_total.load(Ordering::Relaxed)
+        ));
 
         // 5. Active Blocked IPs Metric
-        buffer.push_str("# HELP aegis_active_blocks_total Total currently blocked IPs in auto-blocker set.\n");
+        buffer.push_str(
+            "# HELP aegis_active_blocks_total Total currently blocked IPs in auto-blocker set.\n",
+        );
         buffer.push_str("# TYPE aegis_active_blocks_total gauge\n");
-        buffer.push_str(&format!("aegis_active_blocks_total {}\n", self.active_blocks_total.load(Ordering::Relaxed)));
+        buffer.push_str(&format!(
+            "aegis_active_blocks_total {}\n",
+            self.active_blocks_total.load(Ordering::Relaxed)
+        ));
 
         buffer
     }

@@ -6,7 +6,9 @@ use std::result::Result as StdResult;
 use std::sync::Arc;
 
 use aegis_firewall::SystemdManager;
-use aegis_models::systemd::{JournalLogEntry, ServiceOpRequest, ServiceOpResult, ServiceUnitStatus};
+use aegis_models::systemd::{
+    JournalLogEntry, ServiceOpRequest, ServiceOpResult, ServiceUnitStatus,
+};
 use axum::extract::{Json, Path, Query, State};
 use axum::http::StatusCode;
 use serde::Deserialize;
@@ -81,9 +83,9 @@ pub async fn control_systemd_service_handler(
 ) -> Result<Json<serde_json::Value>, StatusCode> {
     let manager = SystemdManager::new();
     // Parse ServiceOperation từ chuỗi action qua serde_json (SCREAMING_SNAKE_CASE)
-    let action_json = format!("\"{}\"" , payload.action.to_uppercase());
-    let op: aegis_models::systemd::ServiceOperation = serde_json::from_str(&action_json)
-        .map_err(|_| StatusCode::BAD_REQUEST)?;
+    let action_json = format!("\"{}\"", payload.action.to_uppercase());
+    let op: aegis_models::systemd::ServiceOperation =
+        serde_json::from_str(&action_json).map_err(|_| StatusCode::BAD_REQUEST)?;
     let req = ServiceOpRequest {
         unit_name: service_name.clone(),
         operation: op,

@@ -17,7 +17,10 @@ fn test_valid_backup_creation_and_verification() {
 
     // 2. Verification phải thành công với bản sao lưu hợp lệ
     let result = BackupEngine::verify_backup(&snapshot);
-    assert!(result.is_ok(), "Xác thực bản sao lưu BackupSnapshot hợp lệ phải thành công");
+    assert!(
+        result.is_ok(),
+        "Xác thực bản sao lưu BackupSnapshot hợp lệ phải thành công"
+    );
 }
 
 #[test]
@@ -26,7 +29,12 @@ fn test_corrupted_backup_checksum_rejection() {
     let nodes = r#"[{"id": "n1", "hostname": "worker-01"}]"#.to_string();
     let audit_logs = r#"[{"id": "a1", "action": "APPLY"}]"#.to_string();
 
-    let mut snapshot = BackupEngine::create_backup(policies, nodes, audit_logs, "2026-08-02T12:00:00Z".to_string());
+    let mut snapshot = BackupEngine::create_backup(
+        policies,
+        nodes,
+        audit_logs,
+        "2026-08-02T12:00:00Z".to_string(),
+    );
 
     // Sửa đổi 1 byte trong dữ liệu policies_json của file backup
     snapshot.policies_json = r#"[{"id": "p1", "name": "HACKED-POLICY"}]"#.to_string();

@@ -126,8 +126,6 @@ impl PgRepository {
         Ok(nodes)
     }
 
-
-
     /// Lưu Enrollment Token vào PostgreSQL
     pub async fn insert_enrollment_token(
         &self,

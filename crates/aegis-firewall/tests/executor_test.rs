@@ -27,7 +27,9 @@ async fn test_executor_client_and_server_protocol() {
                         ExecRequest::InspectFirewall => ExecResponse::FirewallReport {
                             ruleset_json: "{\"tables\":[\"inet aegis_filter\"]}".to_string(),
                         },
-                        _ => ExecResponse::Success { details: "OK".to_string() },
+                        _ => ExecResponse::Success {
+                            details: "OK".to_string(),
+                        },
                     };
                     let mut resp_str = serde_json::to_string(&resp).unwrap();
                     resp_str.push('\n');

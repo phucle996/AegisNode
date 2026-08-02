@@ -56,7 +56,12 @@ impl FailoverRpcClient {
 
         for attempt in 0..max_attempts {
             let endpoint = self.active_endpoint();
-            info!("Thử kết nối mTLS tới Controller endpoint ({}/{}): {}", attempt + 1, max_attempts, endpoint);
+            info!(
+                "Thử kết nối mTLS tới Controller endpoint ({}/{}): {}",
+                attempt + 1,
+                max_attempts,
+                endpoint
+            );
 
             match f(endpoint).await {
                 Ok(val) => return Ok(val),
@@ -68,7 +73,8 @@ impl FailoverRpcClient {
         }
 
         Err(AegisError::Timeout(
-            "Đã thử kết nối tới toàn bộ Controller endpoints trong danh sách nhưng đều thất bại!".to_string(),
+            "Đã thử kết nối tới toàn bộ Controller endpoints trong danh sách nhưng đều thất bại!"
+                .to_string(),
         ))
     }
 }

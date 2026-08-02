@@ -1,8 +1,8 @@
 //! RBAC & Approval Models (Phase 21 Authorization Engine)
 //! Định nghĩa các kiểu dữ liệu Role, Permission, RiskLevel, UserSubject, Claims và ApprovalRecord.
 
-use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
 /// JWT Claims Payload chứa danh sách Roles và Permissions được inject từ Linux PAM Auth
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -62,9 +62,8 @@ impl RolloutCoordinator {
                         .map(|s| s.state == NodeRolloutState::Succeeded)
                         .unwrap_or(false)
                 });
-                let canary_failed = canary.is_some_and(|cid| {
-                    Self::should_stop_on_canary_fail(cid, node_statuses)
-                });
+                let canary_failed =
+                    canary.is_some_and(|cid| Self::should_stop_on_canary_fail(cid, node_statuses));
 
                 if canary_failed {
                     // Canary fail → DỪNG toàn fleet, không rollout thêm node nào

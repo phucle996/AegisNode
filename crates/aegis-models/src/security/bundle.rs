@@ -1,10 +1,10 @@
 //! Signed Policy Bundle Data Models (Phase 22 Cryptographic Integrity & Anti-Replay)
 //! Định nghĩa cấu trúc SignedPolicyBundle chứa Chữ ký số Ed25519, SHA-256 Checksum, Target Node ID và Sequence Number.
 
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use crate::firewall::FirewallPolicy;
 use crate::fleet::NetworkProfile;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 /// Gói Policy đã được đóng gói và ký số bởi Controller (SignedPolicyBundle)
 #[derive(Debug, Clone, Serialize, Deserialize)]

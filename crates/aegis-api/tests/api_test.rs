@@ -5,8 +5,8 @@ use std::sync::Arc;
 use aegis_api::{AppState, create_router};
 use aegis_config::AgentConfig;
 use aegis_firewall::{
-    BlockManager, CapabilityDetector, MockProcessRunner, NftablesRuntimeBackend,
-    SafeApplyManager, SnapshotManager,
+    BlockManager, CapabilityDetector, MockProcessRunner, NftablesRuntimeBackend, SafeApplyManager,
+    SnapshotManager,
 };
 use aegis_models::blocker::BlockerConfig;
 use aegis_models::firewall::FirewallPolicy;
@@ -34,9 +34,9 @@ async fn test_api_status_and_validate_endpoints() {
 
     let config = Arc::new(AgentConfig::default());
     // Khởi tạo BlockManager với cấu hình mặc định cho test environment
-    let block_manager = Arc::new(tokio::sync::Mutex::new(
-        BlockManager::new(BlockerConfig::default()),
-    ));
+    let block_manager = Arc::new(tokio::sync::Mutex::new(BlockManager::new(
+        BlockerConfig::default(),
+    )));
     let state = Arc::new(AppState::new(
         safe_mgr,
         block_manager,

@@ -10,8 +10,12 @@ pub mod network;
 pub mod rollout;
 pub mod systemd;
 
-pub use blocker::{add_block_entry_handler, get_blocker_entries_handler, remove_block_entry_handler};
-pub use enrollment::{create_enrollment_token_handler, node_heartbeat_handler, sign_agent_csr_handler};
+pub use blocker::{
+    add_block_entry_handler, get_blocker_entries_handler, remove_block_entry_handler,
+};
+pub use enrollment::{
+    create_enrollment_token_handler, node_heartbeat_handler, sign_agent_csr_handler,
+};
 pub use firewall::{
     apply_policy_handler, confirm_policy_handler, get_audit_logs_handler,
     get_docker_exposure_handler, get_policy_handler, get_status_handler,
@@ -24,14 +28,14 @@ pub use inventory::{
     report_node_inventory_handler, update_node_labels_handler,
 };
 pub use network::{
-    apply_network_config_handler, create_network_profile_handler,
-    get_network_interfaces_handler, list_network_profiles_handler,
+    apply_network_config_handler, create_network_profile_handler, get_network_interfaces_handler,
+    list_network_profiles_handler,
 };
 pub use rollout::{
     cancel_rollout_handler, create_rollout_handler, get_rollout_status_handler,
     pause_rollout_handler, resume_rollout_handler, rollback_rollout_handler,
 };
 pub use systemd::{
-    control_systemd_service_handler, execute_service_op_handler,
-    list_systemd_services_handler, query_journal_logs_handler,
+    control_systemd_service_handler, execute_service_op_handler, list_systemd_services_handler,
+    query_journal_logs_handler,
 };

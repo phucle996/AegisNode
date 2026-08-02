@@ -15,14 +15,14 @@ use crate::{AegisError, Result}; // Định nghĩa Lỗi chuẩn của AegisNode
 /// Cấu trúc đại diện cho One-Time Enrollment Token dùng để gia nhập Cluster
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnrollmentToken {
-    pub id: Uuid,              // Mã định danh định dạng UUIDv4 của Token
-    pub token_string: String,   // Chuỗi Token thô gửi cho Admin / Agent khi gia nhập
-    pub token_hash: String,     // Bản băm SHA-256 bảo mật lưu trong Cơ sở dữ liệu PostgreSQL
+    pub id: Uuid,                  // Mã định danh định dạng UUIDv4 của Token
+    pub token_string: String,      // Chuỗi Token thô gửi cho Admin / Agent khi gia nhập
+    pub token_hash: String,        // Bản băm SHA-256 bảo mật lưu trong Cơ sở dữ liệu PostgreSQL
     pub created_at: DateTime<Utc>, // Thời điểm tạo Token
     pub expires_at: DateTime<Utc>, // Thời điểm hết hạn hiệu lực của Token
-    pub max_usages: u32,        // Số lần tối đa cho phép sử dụng Token
-    pub current_usages: u32,    // Số lần Token đã được tiêu thụ thực tế
-    pub revoked: bool,          // Cờ đánh dấu Token đã bị hủy bỏ hay chưa
+    pub max_usages: u32,           // Số lần tối đa cho phép sử dụng Token
+    pub current_usages: u32,       // Số lần Token đã được tiêu thụ thực tế
+    pub revoked: bool,             // Cờ đánh dấu Token đã bị hủy bỏ hay chưa
 }
 
 impl EnrollmentToken {
@@ -77,14 +77,14 @@ impl EnrollmentToken {
 /// Certificate Record lưu trữ thông tin Chứng chỉ số cấp cho Linux Agent Node
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentCertificateRecord {
-    pub serial_number: String,   // Số Serial chứng chỉ dạng chuỗi mã hóa
-    pub node_id: Uuid,          // Mã ID của Agent Node sở hữu chứng chỉ
-    pub machine_id: String,     // Hardware UUID / Machine ID của host Linux
-    pub hostname: String,       // Tên miền / Hostname của Linux Agent
-    pub cert_pem: String,       // Nội dung Chứng chỉ số X.509v3 ở định dạng PEM
-    pub issued_at: DateTime<Utc>, // Thời điểm phát hành chứng chỉ
-    pub expires_at: DateTime<Utc>,// Thời điểm chứng chỉ hết hạn (thường là 365 ngày)
-    pub revoked: bool,          // Cờ đánh dấu chứng chỉ đã bị bãi bỏ (Revoked) hay chưa
+    pub serial_number: String,     // Số Serial chứng chỉ dạng chuỗi mã hóa
+    pub node_id: Uuid,             // Mã ID của Agent Node sở hữu chứng chỉ
+    pub machine_id: String,        // Hardware UUID / Machine ID của host Linux
+    pub hostname: String,          // Tên miền / Hostname của Linux Agent
+    pub cert_pem: String,          // Nội dung Chứng chỉ số X.509v3 ở định dạng PEM
+    pub issued_at: DateTime<Utc>,  // Thời điểm phát hành chứng chỉ
+    pub expires_at: DateTime<Utc>, // Thời điểm chứng chỉ hết hạn (thường là 365 ngày)
+    pub revoked: bool,             // Cờ đánh dấu chứng chỉ đã bị bãi bỏ (Revoked) hay chưa
 }
 
 /// Real X.509 PKI Manager quản lý việc phát hành CA, ký CSR và xác thực mTLS
@@ -98,8 +98,8 @@ impl PkiManager {
     /// Khởi tạo PKI Manager với Root CA mã hóa thực tế
     pub fn new() -> Self {
         // Gọi hàm tự tạo Root CA thực thụ nếu không nạp từ DB/File
-        let (ca_cert, ca_key) = Self::generate_internal_root_ca()
-            .unwrap_or_else(|_| ("".to_string(), "".to_string()));
+        let (ca_cert, ca_key) =
+            Self::generate_internal_root_ca().unwrap_or_else(|_| ("".to_string(), "".to_string()));
         Self {
             ca_cert_pem: ca_cert,
             ca_key_pem: ca_key,

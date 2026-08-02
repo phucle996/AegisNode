@@ -34,7 +34,10 @@ impl W3cTraceContext {
     /// Định dạng W3C Trace Context thành chuỗi header `traceparent` tiêu chuẩn
     /// Ví dụ: `00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01`
     pub fn format_traceparent(&self) -> String {
-        format!("{}-{}-{}-{}", self.version, self.trace_id, self.parent_id, self.trace_flags)
+        format!(
+            "{}-{}-{}-{}",
+            self.version, self.trace_id, self.parent_id, self.trace_flags
+        )
     }
 
     /// Parse chuỗi header `traceparent` nhận từ HTTP Request / gRPC Metadata
@@ -49,19 +52,22 @@ impl W3cTraceContext {
 
         if parts[0] != "00" {
             return Err(AegisError::Validation(format!(
-                "Phiên bản W3C traceparent version '{}' không được hỗ trợ", parts[0]
+                "Phiên bản W3C traceparent version '{}' không được hỗ trợ",
+                parts[0]
             )));
         }
 
         if parts[1].len() != 32 {
             return Err(AegisError::Validation(format!(
-                "Độ dài trace_id trong traceparent phải đúng 32 ký tự hex (Nhận: {})", parts[1].len()
+                "Độ dài trace_id trong traceparent phải đúng 32 ký tự hex (Nhận: {})",
+                parts[1].len()
             )));
         }
 
         if parts[2].len() != 16 {
             return Err(AegisError::Validation(format!(
-                "Độ dài parent_id trong traceparent phải đúng 16 ký tự hex (Nhận: {})", parts[2].len()
+                "Độ dài parent_id trong traceparent phải đúng 16 ký tự hex (Nhận: {})",
+                parts[2].len()
             )));
         }
 

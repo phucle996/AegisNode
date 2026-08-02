@@ -17,7 +17,8 @@ fn test_w3c_traceparent_format_and_parse() {
     assert!(header.starts_with("00-"));
 
     // 3. Parse lại từ header string -> Phải trả về dữ liệu nguyên vẹn
-    let parsed = W3cTraceContext::parse_traceparent(&header).expect("Parse W3C traceparent thất bại");
+    let parsed =
+        W3cTraceContext::parse_traceparent(&header).expect("Parse W3C traceparent thất bại");
     assert_eq!(parsed, ctx);
 }
 

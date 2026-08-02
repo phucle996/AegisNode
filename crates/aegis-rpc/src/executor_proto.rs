@@ -18,20 +18,13 @@ pub enum ExecRequest {
     },
 
     /// Tạo Snapshot lưu trữ cấu hình trước khi thay đổi
-    CreateSnapshot {
-        label: String,
-    },
+    CreateSnapshot { label: String },
 
     /// Phục hồi Snapshot cũ theo Snapshot ID
-    RollbackSnapshot {
-        snapshot_id: String,
-    },
+    RollbackSnapshot { snapshot_id: String },
 
     /// Thực hiện thao tác kiểm tra hoặc điều khiển Service systemd
-    ServiceOperation {
-        unit_name: String,
-        action: String,
-    },
+    ServiceOperation { unit_name: String, action: String },
 }
 
 /// Enum định nghĩa Kết quả phản hồi (ExecResponse) từ Execd
@@ -39,18 +32,11 @@ pub enum ExecRequest {
 #[serde(tag = "status", content = "data")]
 pub enum ExecResponse {
     /// Thao tác thực thi đặc quyền thành công
-    Success {
-        details: String,
-    },
+    Success { details: String },
 
     /// Thao tác thất bại với Mã lỗi và Mô tả chi tiết
-    Failure {
-        code: String,
-        message: String,
-    },
+    Failure { code: String, message: String },
 
     /// Kết quả kiểm tra Ruleset nftables
-    FirewallReport {
-        ruleset_json: String,
-    },
+    FirewallReport { ruleset_json: String },
 }

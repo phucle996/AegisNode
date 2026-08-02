@@ -19,7 +19,9 @@ pub struct PeerCredentials {
 pub fn extract_peer_credentials(stream: &UnixStream) -> Result<PeerCredentials, AegisError> {
     // Trích xuất UCred thông qua phương thức peer_cred() của Tokio trên Linux
     let cred = stream.peer_cred().map_err(|e| {
-        AegisError::Permission(format!("Không thể trích xuất SO_PEERCRED từ Unix socket: {e}"))
+        AegisError::Permission(format!(
+            "Không thể trích xuất SO_PEERCRED từ Unix socket: {e}"
+        ))
     })?;
 
     Ok(PeerCredentials {
@@ -30,7 +32,10 @@ pub fn extract_peer_credentials(stream: &UnixStream) -> Result<PeerCredentials, 
 }
 
 /// Xác thực xem UID của tiến trình gọi socket có thuộc danh sách UID được phép hay không
-pub fn validate_peer_uid(stream: &UnixStream, allowed_uids: &[u32]) -> Result<PeerCredentials, AegisError> {
+pub fn validate_peer_uid(
+    stream: &UnixStream,
+    allowed_uids: &[u32],
+) -> Result<PeerCredentials, AegisError> {
     // Trích xuất danh tính caller
     let creds = extract_peer_credentials(stream)?;
 

@@ -48,9 +48,7 @@ impl PamAuthenticator {
         }
 
         // 2. Đọc danh sách Linux Groups thực tế của User qua lệnh `id -Gn <username>`
-        let groups_output = Command::new("id")
-            .args(["-Gn", trimmed_user])
-            .output();
+        let groups_output = Command::new("id").args(["-Gn", trimmed_user]).output();
 
         match groups_output {
             Ok(out) if out.status.success() => {
@@ -60,7 +58,7 @@ impl PamAuthenticator {
                     .split_whitespace()
                     .map(|s| s.to_string())
                     .collect();
-                
+
                 // Trả về danh sách nhóm thực tế thu thập được
                 Ok(groups)
             }

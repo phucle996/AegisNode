@@ -1,10 +1,10 @@
 //! Health & High Availability Router Handlers (Phase 23 Controller HA)
 //! Liveness/Readiness probes và HA status đọc từ ControllerConfig thực tế.
 
-use std::sync::Arc;
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
+use std::sync::Arc;
 
 use crate::controller_router::ControllerState;
 

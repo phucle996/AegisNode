@@ -56,7 +56,9 @@ pub struct BundleVerifier {
 impl BundleVerifier {
     /// Khởi tạo Verifier với danh sách các Public Key tin cậy (Key Ring)
     pub fn new(trusted_public_keys: Vec<VerifyingKey>) -> Self {
-        Self { trusted_public_keys }
+        Self {
+            trusted_public_keys,
+        }
     }
 
     /// Xác thực toàn bộ tính hợp lệ của SignedPolicyBundle:
@@ -123,7 +125,8 @@ impl BundleVerifier {
 
         if !is_valid {
             return Err(AegisError::Permission(
-                "Chữ ký số Ed25519 không hợp lệ hoặc không thuộc danh sách Public Key tin cậy".to_string(),
+                "Chữ ký số Ed25519 không hợp lệ hoặc không thuộc danh sách Public Key tin cậy"
+                    .to_string(),
             ));
         }
 

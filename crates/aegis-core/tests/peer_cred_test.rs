@@ -13,7 +13,9 @@ async fn test_peer_credential_extraction_and_validation() {
 
     // 2. Kết nối từ client
     let client_task = tokio::spawn(async move {
-        UnixStream::connect(socket_path).await.expect("Client kết nối thất bại")
+        UnixStream::connect(socket_path)
+            .await
+            .expect("Client kết nối thất bại")
     });
 
     let (server_stream, _) = listener.accept().await.expect("Accept thất bại");
@@ -25,11 +27,15 @@ async fn test_peer_credential_extraction_and_validation() {
 
     // 4. Kiểm tra validate_peer_uid với UID hiện tại của user đang chạy test
     let current_uid = creds.uid;
-    let validated = validate_peer_uid(&server_stream, &[current_uid]).expect("Xác thực UID hợp lệ phải pass");
+    let validated =
+        validate_peer_uid(&server_stream, &[current_uid]).expect("Xác thực UID hợp lệ phải pass");
     assert_eq!(validated.uid, current_uid);
 
     // 5. Kiểm tra validate_peer_uid bị từ chối khi UID không trùng khớp
     let invalid_uid = current_uid + 9999;
     let err = validate_peer_uid(&server_stream, &[invalid_uid]);
-    assert!(err.is_err(), "UID không thuộc allowlist phải bị từ chối với PermissionDenied");
+    assert!(
+        err.is_err(),
+        "UID không thuộc allowlist phải bị từ chối với PermissionDenied"
+    );
 }
