@@ -8,9 +8,10 @@ use aegis_api::{AppState, ControllerState, create_controller_router, create_rout
 use aegis_config::{AgentConfig, ControllerConfig};
 use aegis_core::{AegisError, Result, validate_peer_uid};
 use aegis_firewall::{
-    CapabilityDetector, DefaultProcessRunner, EXECD_SOCKET_PATH, NftablesRuntimeBackend,
-    SafeApplyManager, SnapshotManager,
+    BlockManager, CapabilityDetector, DefaultProcessRunner, EXECD_SOCKET_PATH,
+    NftablesRuntimeBackend, SafeApplyManager, SnapshotManager,
 };
+use aegis_models::blocker::BlockerConfig;
 use aegis_rpc::{ExecRequest, ExecResponse};
 use aegis_storage::{PgRepository, SqliteRepository, init_sqlite_pool};
 use clap::{Parser, Subcommand};
@@ -137,7 +138,9 @@ async fn run_execd_daemon() -> Result<()> {
                             }
                             Ok(ExecRequest::ServiceOperation { unit_name, action }) => {
                                 ExecResponse::Success {
-                                    details: format!("Executed action '{action}' on unit '{unit_name}'"),
+                                    details: format!(
+                                        "Executed action '{action}' on unit '{unit_name}'"
+                                    ),
                                 }
                             }
                             Err(e) => ExecResponse::Failure {
@@ -162,7 +165,10 @@ async fn run_execd_daemon() -> Result<()> {
 
 /// Khởi chạy Controller Server (`aegisnode server`) cho Stage 2 Multi-Node Platform
 async fn run_controller_server(config_path: PathBuf) -> Result<()> {
-    info!("Loading Controller Configuration from '{:?}'...", config_path);
+    info!(
+        "Loading Controller Configuration from '{:?}'...",
+        config_path
+    );
     let config = match ControllerConfig::load_from_file(&config_path) {
         Ok(cfg) => cfg,
         Err(e) => {
@@ -185,7 +191,10 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
     .await
     {
         Ok(repo) => {
-            info!("Successfully connected to PostgreSQL at {}", config.database.url);
+            info!(
+                "Successfully connected to PostgreSQL at {}",
+                config.database.url
+            );
             Some(repo)
         }
         Err(e) => {
@@ -197,6 +206,10 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
     let controller_state = Arc::new(ControllerState {
         repository,
         config: config.clone(),
+        // PKI Manager khởi tạo tự động từ internal Root CA
+        pki_manager: aegis_core::pki::PkiManager::new(),
+        // Mặc định coi replica đơn này là leader; LeaderElector sẽ cập nhật sau
+        is_leader: true,
     });
 
     let router = create_controller_router(controller_state);
@@ -265,9 +278,15 @@ async fn run_local_daemon(config_path: PathBuf) -> Result<()> {
     // 4. Khởi tạo SafeApplyManager
     let safe_apply_manager = Arc::new(SafeApplyManager::new(backend, runner));
 
-    // 5. Khởi tạo AppState & Axum Router
+    // 5. Khởi tạo BlockManager với cấu hình mặc định (allowlist SSH session tự động)
+    let block_manager = Arc::new(tokio::sync::Mutex::new(BlockManager::new(
+        BlockerConfig::default(),
+    )));
+
+    // 6. Khởi tạo AppState & Axum Router
     let app_state = Arc::new(AppState::new(
         safe_apply_manager,
+        block_manager,
         capability_detector,
         repository,
         config_arc,
