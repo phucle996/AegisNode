@@ -2,6 +2,7 @@
 //! Định nghĩa các domain objects core: FirewallPolicy, DockerContainer, BlockerEntry, Inventory, NetworkProfile, Systemd, ChangePlan...
 
 pub mod blocker;
+pub mod bundle;
 pub mod change_plan;
 pub mod docker;
 pub mod firewall;
@@ -11,6 +12,7 @@ pub mod network_profile;
 pub mod rbac;
 pub mod systemd;
 
+pub use bundle::SignedPolicyBundle;
 pub use rbac::{AccessScope, ApprovalRecord, Permission, Role, UserSubject};
 
 pub use blocker::{BlockEntry, BlockerConfig};

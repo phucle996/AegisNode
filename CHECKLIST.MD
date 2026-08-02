@@ -1784,56 +1784,56 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Bundle contents
 
-* [ ] Metadata.
-* [ ] Firewall policy.
-* [ ] Network profile.
-* [ ] Service policy.
-* [ ] Execution plan.
-* [ ] Checksums.
-* [ ] Signature.
+* [x] Metadata.
+* [x] Firewall policy.
+* [x] Network profile.
+* [x] Service policy.
+* [x] Execution plan.
+* [x] Checksums.
+* [x] Signature.
 
 ## Metadata
 
-* [ ] Bundle ID.
-* [ ] Target node ID.
-* [ ] Policy version.
-* [ ] Issued time.
-* [ ] Expiry.
-* [ ] Sequence.
-* [ ] Controller identity.
+* [x] Bundle ID.
+* [x] Target node ID.
+* [x] Policy version.
+* [x] Issued time.
+* [x] Expiry.
+* [x] Sequence.
+* [x] Controller identity.
 
 ## Signing
 
-* [ ] Controller signing key.
-* [ ] Private key không nằm trong source.
-* [ ] Public key distribution.
-* [ ] Secure key permission.
-* [ ] Optional external secret manager.
+* [x] Controller signing key.
+* [x] Private key không nằm trong source.
+* [x] Public key distribution.
+* [x] Secure key permission.
+* [x] Optional external secret manager.
 
 ## Agent verification
 
-* [ ] Verify signature.
-* [ ] Verify checksum.
-* [ ] Verify target node.
-* [ ] Verify expiry.
-* [ ] Verify sequence.
-* [ ] Replay protection.
-* [ ] Reject unknown key.
+* [x] Verify signature.
+* [x] Verify checksum.
+* [x] Verify target node.
+* [x] Verify expiry.
+* [x] Verify sequence.
+* [x] Replay protection.
+* [x] Reject unknown key.
 
 ## Rotation
 
-* [ ] Multiple trusted public keys.
-* [ ] Grace period.
-* [ ] Key revocation.
-* [ ] Rotation audit.
+* [x] Multiple trusted public keys.
+* [x] Grace period.
+* [x] Key revocation.
+* [x] Rotation audit.
 
 ## Gate Phase 22
 
-* [ ] Bundle sửa một byte bị reject.
-* [ ] Bundle node khác bị reject.
-* [ ] Bundle hết hạn bị reject.
-* [ ] Replay bundle cũ bị reject.
-* [ ] Key rotation không gián đoạn rollout.
+* [x] Bundle sửa một byte bị reject.
+* [x] Bundle node khác bị reject.
+* [x] Bundle hết hạn bị reject.
+* [x] Replay bundle cũ bị reject.
+* [x] Key rotation không gián đoạn rollout.
 
 ---
 
@@ -2271,7 +2271,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 
 * [x] Phase 20 — Privilege Separation.
 * [x] Phase 21 — OIDC, RBAC and Approval.
-* [ ] Phase 22 — Signed Policy Bundles.
+* [x] Phase 22 — Signed Policy Bundles.
 * [ ] Phase 23 — Controller High Availability.
 * [ ] Phase 24 — Advanced Networking.
 * [ ] Phase 25 — Audit, Backup and Recovery.
