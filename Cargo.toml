@@ -1,0 +1,66 @@
+# AegisNode Monorepo Workspace Configuration
+# Định nghĩa các members và workspace.dependencies dùng chung cho toàn bộ dự án
+
+[workspace]
+resolver = "2"
+members = [
+    "apps/aegisnode",
+    "crates/aegis-core",
+    "crates/aegis-models",
+    "crates/aegis-config",
+    "crates/aegis-policy",
+    "crates/aegis-firewall",
+    "crates/aegis-storage",
+    "crates/aegis-api",
+    "crates/aegis-cli",
+    "crates/aegis-audit",
+    "crates/aegis-observability",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "Apache-2.0"
+repository = "https://github.com/phucle996/AegisNode"
+
+# Khai báo khóa các dependency chính ở cấp workspace để tránh xung đột phiên bản
+[workspace.dependencies]
+# Async Runtime & Networking
+tokio = { version = "1.43", features = ["full"] }
+axum = { version = "0.8", features = ["macros"] }
+tower = { version = "0.5", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace", "fs"] }
+
+# CLI Parsing
+clap = { version = "4.5", features = ["derive", "env"] }
+
+# Serialization & Deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+
+# Error Handling & Utilities
+thiserror = "2.0"
+anyhow = "1.0"
+async-trait = "0.1"
+uuid = { version = "1.13", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+
+# Storage & Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "sqlite", "chrono", "uuid"] }
+
+# Observability & Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Local workspace crate references
+aegis-core = { path = "crates/aegis-core" }
+aegis-models = { path = "crates/aegis-models" }
+aegis-config = { path = "crates/aegis-config" }
+aegis-policy = { path = "crates/aegis-policy" }
+aegis-firewall = { path = "crates/aegis-firewall" }
+aegis-storage = { path = "crates/aegis-storage" }
+aegis-api = { path = "crates/aegis-api" }
+aegis-cli = { path = "crates/aegis-cli" }
+aegis-audit = { path = "crates/aegis-audit" }
+aegis-observability = { path = "crates/aegis-observability" }

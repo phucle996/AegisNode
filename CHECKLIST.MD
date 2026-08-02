@@ -143,32 +143,32 @@ aegisnode local
 
 ## Repository
 
-* [ ] Tạo repository `aegisnode`.
-* [ ] Tạo root `Cargo.toml`.
-* [ ] Tạo `Cargo.lock`.
-* [ ] Tạo `rust-toolchain.toml`.
-* [ ] Sử dụng Rust stable.
-* [ ] Sử dụng Rust edition 2024.
-* [ ] Thêm component `rustfmt`.
-* [ ] Thêm component `clippy`.
-* [ ] Tạo `rustfmt.toml`.
-* [ ] Tạo `.gitignore`.
-* [ ] Tạo `README.md`.
-* [ ] Tạo `ARCHITECTURE.md`.
-* [ ] Tạo `ROADMAP.md`.
-* [ ] Tạo `CHECKLIST.md`.
-* [ ] Tạo `LICENSE`.
-* [ ] Tạo `justfile` hoặc `Makefile`.
+* [x] Tạo repository `aegisnode`.
+* [x] Tạo root `Cargo.toml`.
+* [x] Tạo `Cargo.lock`.
+* [x] Tạo `rust-toolchain.toml`.
+* [x] Sử dụng Rust stable.
+* [x] Sử dụng Rust edition 2024.
+* [x] Thêm component `rustfmt`.
+* [x] Thêm component `clippy`.
+* [x] Tạo `rustfmt.toml`.
+* [x] Tạo `.gitignore`.
+* [x] Tạo `README.md`.
+* [x] Tạo `ARCHITECTURE.md`.
+* [x] Tạo `ROADMAP.md`.
+* [x] Tạo `CHECKLIST.md`.
+* [x] Tạo `LICENSE`.
+* [x] Tạo `justfile` hoặc `Makefile`.
 
 ## Workspace skeleton
 
-* [ ] Tạo binary app:
+* [x] Tạo binary app:
 
 ```text
 apps/aegisnode
 ```
 
-* [ ] Tạo các crate ban đầu:
+* [x] Tạo các crate ban đầu:
 
 ```text
 crates/aegis-core
@@ -183,13 +183,13 @@ crates/aegis-audit
 crates/aegis-observability
 ```
 
-* [ ] Tạo frontend:
+* [x] Tạo frontend:
 
 ```text
 web/
 ```
 
-* [ ] Tạo các thư mục:
+* [x] Tạo các thư mục:
 
 ```text
 configs/
@@ -202,34 +202,34 @@ docs/
 
 ## Dependencies nền tảng
 
-* [ ] Thêm `tokio`.
-* [ ] Thêm `axum`.
-* [ ] Thêm `tower`.
-* [ ] Thêm `tower-http`.
-* [ ] Thêm `clap`.
-* [ ] Thêm `serde`.
-* [ ] Thêm `serde_json`.
-* [ ] Thêm `serde_yaml`.
-* [ ] Thêm `thiserror`.
-* [ ] Thêm `anyhow` cho application boundary.
-* [ ] Thêm `tracing`.
-* [ ] Thêm `tracing-subscriber`.
-* [ ] Thêm `uuid`.
-* [ ] Thêm `chrono`.
-* [ ] Thêm `sqlx`.
-* [ ] Thêm `async-trait`.
-* [ ] Thêm crate nhúng frontend như `rust-embed`.
+* [x] Thêm `tokio`.
+* [x] Thêm `axum`.
+* [x] Thêm `tower`.
+* [x] Thêm `tower-http`.
+* [x] Thêm `clap`.
+* [x] Thêm `serde`.
+* [x] Thêm `serde_json`.
+* [x] Thêm `serde_yaml`.
+* [x] Thêm `thiserror`.
+* [x] Thêm `anyhow` cho application boundary.
+* [x] Thêm `tracing`.
+* [x] Thêm `tracing-subscriber`.
+* [x] Thêm `uuid`.
+* [x] Thêm `chrono`.
+* [x] Thêm `sqlx`.
+* [x] Thêm `async-trait`.
+* [x] Thêm crate nhúng frontend như `rust-embed`.
 
 ## CI
 
-* [ ] Tạo GitHub Actions.
-* [ ] Chạy format check.
-* [ ] Chạy clippy.
-* [ ] Chạy unit test.
-* [ ] Chạy release build.
-* [ ] Cache Cargo registry.
-* [ ] Cache Cargo target hợp lý.
-* [ ] Không lưu secret trong workflow.
+* [x] Tạo GitHub Actions.
+* [x] Chạy format check.
+* [x] Chạy clippy.
+* [x] Chạy unit test.
+* [x] Chạy release build.
+* [x] Cache Cargo registry.
+* [x] Cache Cargo target hợp lý.
+* [x] Không lưu secret trong workflow.
 
 ## Gate Phase 0
 
@@ -2199,7 +2199,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 
 ## Stage MVP
 
-* [ ] Phase 0 — Repository Skeleton.
+* [x] Phase 0 — Repository Skeleton.
 * [ ] Phase 1 — Core Models and Errors.
 * [ ] Phase 2 — Policy Validation.
 * [ ] Phase 3 — nftables Compiler.

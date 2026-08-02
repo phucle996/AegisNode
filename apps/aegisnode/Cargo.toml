@@ -1,0 +1,13 @@
+[package]
+name = "aegisnode"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+aegis-core.workspace = true
+aegis-observability.workspace = true
+aegis-api.workspace = true
+tokio.workspace = true
+clap.workspace = true
+tracing.workspace = true

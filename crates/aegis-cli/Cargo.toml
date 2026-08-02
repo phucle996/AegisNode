@@ -1,0 +1,9 @@
+[package]
+name = "aegis-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+aegis-core.workspace = true
+clap.workspace = true

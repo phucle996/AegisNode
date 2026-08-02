@@ -1,0 +1,7 @@
+# AegisNode Rust Toolchain Configuration
+# Khóa phiên bản Rust stable và khai báo các thành phần bắt buộc (rustfmt, clippy)
+
+[toolchain]
+channel = "stable"
+components = ["rustfmt", "clippy"]
+targets = ["x86_64-unknown-linux-gnu"]

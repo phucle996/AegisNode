@@ -1,0 +1,33 @@
+# Rust target build output
+/target/
+
+# Cargo locks and state
+Cargo.lock
+
+# Environment and secrets
+.env
+*.env
+*.pem
+*.key
+*.crt
+
+# SQLite database files created during development/testing
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# IDE and Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node.js / Web dependencies and build output
+/web/node_modules/
+/web/dist/
+
+# System and logs
+/var/
+/tmp/
+*.log

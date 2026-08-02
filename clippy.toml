@@ -1,0 +1,5 @@
+# AegisNode Clippy Linter Configuration
+# Đảm bảo tiêu chuẩn code sạch, an toàn bộ nhớ và tối ưu hiệu năng
+
+avoid-breaking-exported-api = true
+msrv = "1.85.0"
