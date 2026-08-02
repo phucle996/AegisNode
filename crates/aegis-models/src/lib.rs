@@ -12,7 +12,8 @@ pub mod systemd;
 
 pub use blocker::{BlockEntry, BlockerConfig};
 pub use change_plan::{
-    ExecutionStep, HealthCheckSpec, NodeChangePlan, RiskLevel, RolloutReport, StepStatus,
+    BatchConfig, ExecutionStep, HealthCheckSpec, NodeChangePlan, NodeRolloutState,
+    NodeRolloutStatus, RiskLevel, RolloutReport, RolloutSpec, RolloutStrategy, StepStatus,
 };
 pub use docker::{
     ContainerExposure, ContainerLabelPolicy, DockerContainer, DockerNetwork, PublishedPort,

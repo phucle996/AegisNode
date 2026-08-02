@@ -6,19 +6,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     tonic_build::configure()
         .build_server(true)
         .build_client(true)
-        .compile_protos(
-            &["proto/agent.proto"],
-            &["proto"],
-        )?;
+        .compile_protos(&["proto/agent.proto"], &["proto"])?;
 
     // Compile controller.proto → gen ControllerServiceServer / ControllerServiceClient
     tonic_build::configure()
         .build_server(true)
         .build_client(true)
-        .compile_protos(
-            &["proto/controller.proto"],
-            &["proto"],
-        )?;
+        .compile_protos(&["proto/controller.proto"], &["proto"])?;
 
     Ok(())
 }

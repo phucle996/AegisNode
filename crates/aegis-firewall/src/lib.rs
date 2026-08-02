@@ -7,6 +7,7 @@ pub mod compiler;
 pub mod inspectors;
 pub mod inventory_collector;
 pub mod network_backend;
+pub mod rollout_coordinator;
 pub mod runtime;
 pub mod systemd_manager;
 pub mod transaction;
@@ -21,6 +22,7 @@ pub use inventory_collector::{
     collect_full_node_inventory, collect_network_interfaces, collect_system_inventory,
 };
 pub use network_backend::{NetworkBackendDetector, NetworkBackendReport, NetworkBackendType};
+pub use rollout_coordinator::RolloutCoordinator;
 pub use runtime::{
     ApplyResult, CapabilityDetector, DefaultProcessRunner, FirewallBackend, FirewallState,
     MockProcessRunner, NftCapabilityReport, NftablesRuntimeBackend, ProcessOutput, ProcessRequest,

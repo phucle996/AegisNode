@@ -10,7 +10,7 @@ use tonic::transport::{Channel, Endpoint, Uri};
 use tower::service_fn;
 
 use crate::agent_grpc::agent::{
-    agent_service_client::AgentServiceClient, ApplyFirewallPolicyRequest, ServiceOpRequest,
+    ApplyFirewallPolicyRequest, ServiceOpRequest, agent_service_client::AgentServiceClient,
 };
 
 /// Khởi tạo gRPC channel qua Unix Domain Socket tới Agent daemon
@@ -55,9 +55,7 @@ impl IpcAgentClient {
     }
 
     /// Gọi GetStatus RPC — lấy trạng thái tổng quan Agent
-    pub async fn get_status(
-        &mut self,
-    ) -> Result<crate::agent_grpc::agent::AgentStatusResponse> {
+    pub async fn get_status(&mut self) -> Result<crate::agent_grpc::agent::AgentStatusResponse> {
         let req = tonic::Request::new(crate::agent_grpc::agent::Empty {});
         let resp = self
             .inner
@@ -77,13 +75,9 @@ impl IpcAgentClient {
             policy_json,
             rollback_timeout_secs,
         });
-        let resp = self
-            .inner
-            .apply_firewall_policy(req)
-            .await
-            .map_err(|e| {
-                AegisError::Internal(format!("ApplyFirewallPolicy gRPC call failed: {e}"))
-            })?;
+        let resp = self.inner.apply_firewall_policy(req).await.map_err(|e| {
+            AegisError::Internal(format!("ApplyFirewallPolicy gRPC call failed: {e}"))
+        })?;
         Ok(resp.into_inner())
     }
 
@@ -99,11 +93,8 @@ impl IpcAgentClient {
             operation,
             reason,
         });
-        let resp = self
-            .inner
-            .execute_service_op(req)
-            .await
-            .map_err(|e| {
+        let resp =
+            self.inner.execute_service_op(req).await.map_err(|e| {
                 AegisError::Internal(format!("ExecuteServiceOp gRPC call failed: {e}"))
             })?;
         Ok(resp.into_inner())

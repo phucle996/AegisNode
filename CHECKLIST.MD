@@ -1484,60 +1484,60 @@ nftables / NetworkManager / systemd
 
 ## Rollout models
 
-* [ ] Rollout ID.
-* [ ] Strategy.
-* [ ] Targets.
-* [ ] Current batch.
-* [ ] Node status.
-* [ ] Failure threshold.
-* [ ] Previous version.
+* [x] Rollout ID.
+* [x] Strategy.
+* [x] Targets.
+* [x] Current batch.
+* [x] Node status.
+* [x] Failure threshold.
+* [x] Previous version.
 
 ## Strategies
 
-* [ ] Manual.
-* [ ] All-at-once.
-* [ ] Canary.
-* [ ] Batch.
+* [x] Manual.
+* [x] All-at-once.
+* [x] Canary.
+* [x] Batch.
 
 ## Canary
 
-* [ ] Select canary node.
-* [ ] Apply canary.
-* [ ] Wait health gate.
-* [ ] Continue hoặc stop.
-* [ ] Manual approval option.
+* [x] Select canary node.
+* [x] Apply canary.
+* [x] Wait health gate.
+* [x] Continue hoặc stop.
+* [x] Manual approval option.
 
 ## Batch
 
-* [ ] Configurable batch size.
-* [ ] Maximum unavailable.
-* [ ] Pause duration.
-* [ ] Health gate.
-* [ ] Failure threshold.
+* [x] Configurable batch size.
+* [x] Maximum unavailable.
+* [x] Pause duration.
+* [x] Health gate.
+* [x] Failure threshold.
 
 ## Control
 
-* [ ] Pause.
-* [ ] Resume.
-* [ ] Cancel.
-* [ ] Rollback.
-* [ ] Retry failed node.
-* [ ] Skip node với audit.
+* [x] Pause.
+* [x] Resume.
+* [x] Cancel.
+* [x] Rollback.
+* [x] Retry failed node.
+* [x] Skip node với audit.
 
 ## Coordination
 
-* [ ] Không rollout conflict trên cùng node.
-* [ ] Controller restart phục hồi rollout.
-* [ ] Agent offline được xử lý.
-* [ ] Node quay lại online được reconcile.
-* [ ] Rollback về version trước.
+* [x] Không rollout conflict trên cùng node.
+* [x] Controller restart phục hồi rollout.
+* [x] Agent offline được xử lý.
+* [x] Node quay lại online được reconcile.
+* [x] Rollback về version trước.
 
 ## Gate Phase 18
 
-* [ ] Canary fail thì không rollout node còn lại.
-* [ ] Batch tuân thủ maximum unavailable.
-* [ ] Controller restart không duplicate rollout.
-* [ ] Rollback fleet hoạt động.
+* [x] Canary fail thì không rollout node còn lại.
+* [x] Batch tuân thủ maximum unavailable.
+* [x] Controller restart không duplicate rollout.
+* [x] Rollback fleet hoạt động.
 
 ---
 
@@ -1582,19 +1582,19 @@ nftables / NetworkManager / systemd
 * [ ] Risk.
 * [ ] Apply.
 * [ ] Confirm.
-* [ ] Rollback.
+* [x] Rollback.
 * [ ] Execution timeline.
 
 ## Rollout UI
 
 * [ ] Target selector.
-* [ ] Strategy.
+* [x] Strategy.
 * [ ] Canary progress.
 * [ ] Batch progress.
 * [ ] Failure details.
-* [ ] Pause.
-* [ ] Resume.
-* [ ] Rollback.
+* [x] Pause.
+* [x] Resume.
+* [x] Rollback.
 
 ## Metrics
 
@@ -1896,7 +1896,7 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 * [ ] Active-backup.
 * [ ] 802.3ad nếu backend hỗ trợ.
 * [ ] Member validation.
-* [ ] Rollback.
+* [x] Rollback.
 * [ ] Management protection.
 
 ## VRF
@@ -1906,7 +1906,7 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 * [ ] Attach interface.
 * [ ] Route table association.
 * [ ] Delete validation.
-* [ ] Rollback.
+* [x] Rollback.
 
 ## Policy routing
 
@@ -1915,7 +1915,7 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 * [ ] Interface-based rule.
 * [ ] Priority validation.
 * [ ] Conflict detection.
-* [ ] Rollback.
+* [x] Rollback.
 
 ## Multiple gateways
 

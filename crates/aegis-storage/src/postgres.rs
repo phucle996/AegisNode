@@ -375,6 +375,7 @@ impl PgRepository {
     }
 
     /// Khởi tạo Combined Rollout Plan với Idempotency Key
+    /// Khởi tạo Combined Rollout Plan với Idempotency Key (Phase 17)
     pub async fn create_rollout(&self, plan: &NodeChangePlan) -> Result<Uuid> {
         let risk_str = format!("{:?}", plan.risk_level);
         sqlx::query(
@@ -409,5 +410,72 @@ impl PgRepository {
         .map_err(|e| AegisError::Storage(format!("Failed to create rollout target: {e}")))?;
 
         Ok(plan.id)
+    }
+
+    /// Cập nhật trạng thái tổng thể Rollout (idempotent state transition cho Controller Restart recovery)
+    pub async fn update_rollout_state(&self, rollout_id: Uuid, state: &str) -> Result<()> {
+        sqlx::query(
+            r#"
+            UPDATE rollouts
+            SET state = $1, updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            "#,
+        )
+        .bind(state)
+        .bind(rollout_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to update rollout state: {e}")))?;
+        Ok(())
+    }
+
+    /// Cập nhật trạng thái Node trong Rollout (chống duplicate bằng ON CONFLICT)
+    pub async fn update_node_rollout_status(
+        &self,
+        rollout_id: Uuid,
+        node_id: Uuid,
+        state: &str,
+        current_step: Option<&str>,
+        error_message: Option<&str>,
+    ) -> Result<()> {
+        sqlx::query(
+            r#"
+            INSERT INTO rollout_targets (rollout_id, node_id, state, current_step, error_message, updated_at)
+            VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
+            ON CONFLICT (rollout_id, node_id) DO UPDATE SET
+                state = EXCLUDED.state,
+                current_step = EXCLUDED.current_step,
+                error_message = EXCLUDED.error_message,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(rollout_id)
+        .bind(node_id)
+        .bind(state)
+        .bind(current_step)
+        .bind(error_message)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| {
+            AegisError::Storage(format!("Failed to update node rollout status: {e}"))
+        })?;
+        Ok(())
+    }
+
+    /// Lấy danh sách NodeRolloutStatus để Resume sau Controller Restart
+    pub async fn get_rollout_targets(&self, rollout_id: Uuid) -> Result<Vec<(Uuid, String)>> {
+        let rows = sqlx::query_as::<_, (Uuid, String)>(
+            r#"
+            SELECT node_id, state
+            FROM rollout_targets
+            WHERE rollout_id = $1
+            ORDER BY updated_at ASC
+            "#,
+        )
+        .bind(rollout_id)
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to get rollout targets: {e}")))?;
+        Ok(rows)
     }
 }

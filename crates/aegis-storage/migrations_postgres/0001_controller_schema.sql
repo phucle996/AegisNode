@@ -156,12 +156,17 @@ CREATE TABLE IF NOT EXISTS service_policies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- 15. Bảng Rollouts & Rollout Targets (Phase 17 Combined Change Plan)
+-- 15. Bảng Rollouts & Rollout Targets (Phase 17 Combined Change Plan / Phase 18 Multi-Node Rollout)
 CREATE TABLE IF NOT EXISTS rollouts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     idempotency_key VARCHAR(128) NOT NULL UNIQUE,
     risk_level VARCHAR(32) NOT NULL DEFAULT 'LOW',
     state VARCHAR(32) NOT NULL DEFAULT 'CREATED',
+    -- Phase 18: Multi-Node Rollout Strategy fields
+    strategy VARCHAR(32) NOT NULL DEFAULT 'CANARY',
+    batch_size INT NOT NULL DEFAULT 1,
+    max_unavailable INT NOT NULL DEFAULT 1,
+    failure_threshold_percent INT NOT NULL DEFAULT 20,
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );

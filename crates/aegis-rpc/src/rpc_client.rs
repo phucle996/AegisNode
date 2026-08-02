@@ -5,8 +5,8 @@ use aegis_core::{AegisError, Result};
 use tonic::transport::{Certificate, Channel, ClientTlsConfig, Endpoint, Identity};
 
 use crate::controller_grpc::controller::{
-    controller_service_client::ControllerServiceClient, HeartbeatRequest, InventoryReport,
-    RolloutStatusUpdate,
+    HeartbeatRequest, InventoryReport, RolloutStatusUpdate,
+    controller_service_client::ControllerServiceClient,
 };
 
 /// Config cho mTLS connection từ Agent → Controller
@@ -30,7 +30,9 @@ pub async fn connect_mtls(controller_url: &str, tls: &MtlsConfig) -> Result<Chan
         .domain_name(&tls.server_domain);
 
     let channel = Endpoint::try_from(controller_url.to_string())
-        .map_err(|e| AegisError::Internal(format!("Invalid Controller URL '{controller_url}': {e}")))?
+        .map_err(|e| {
+            AegisError::Internal(format!("Invalid Controller URL '{controller_url}': {e}"))
+        })?
         .tls_config(tls_config)
         .map_err(|e| AegisError::Internal(format!("TLS config error: {e}")))?
         .connect()
@@ -64,11 +66,10 @@ impl RpcControllerClient {
         heartbeat: HeartbeatRequest,
     ) -> Result<crate::controller_grpc::controller::HeartbeatAck> {
         let req = tonic::Request::new(heartbeat);
-        let resp = self
-            .inner
-            .report_heartbeat(req)
-            .await
-            .map_err(|e| AegisError::Internal(format!("ReportHeartbeat gRPC call failed: {e}")))?;
+        let resp =
+            self.inner.report_heartbeat(req).await.map_err(|e| {
+                AegisError::Internal(format!("ReportHeartbeat gRPC call failed: {e}"))
+            })?;
         Ok(resp.into_inner())
     }
 
@@ -85,12 +86,9 @@ impl RpcControllerClient {
     /// Báo cáo tiến độ Rollout Step lên Controller
     pub async fn report_rollout_status(&mut self, update: RolloutStatusUpdate) -> Result<()> {
         let req = tonic::Request::new(update);
-        self.inner
-            .report_rollout_status(req)
-            .await
-            .map_err(|e| {
-                AegisError::Internal(format!("ReportRolloutStatus gRPC call failed: {e}"))
-            })?;
+        self.inner.report_rollout_status(req).await.map_err(|e| {
+            AegisError::Internal(format!("ReportRolloutStatus gRPC call failed: {e}"))
+        })?;
         Ok(())
     }
 }

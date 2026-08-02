@@ -8,7 +8,7 @@ use aegis_storage::PgRepository;
 use axum::Router;
 use axum::extract::{Json, State};
 use axum::middleware;
-use axum::routing::{get, post};
+use axum::routing::{get, patch, post};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -18,7 +18,10 @@ use crate::enrollment::{
 };
 use crate::inventory_router::{get_node_inventory_handler, report_node_inventory_handler};
 use crate::network_router::{create_network_profile_handler, list_network_profiles_handler};
-use crate::rollout_router::{create_rollout_handler, get_rollout_status_handler};
+use crate::rollout_router::{
+    cancel_rollout_handler, create_rollout_handler, get_rollout_status_handler,
+    pause_rollout_handler, resume_rollout_handler, rollback_rollout_handler,
+};
 use crate::systemd_router::{execute_service_op_handler, query_journal_logs_handler};
 
 /// Controller App State chứa PgRepository và ControllerConfig
@@ -137,6 +140,11 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         )
         .route("/v1/rollouts", post(create_rollout_handler))
         .route("/v1/rollouts/:id", get(get_rollout_status_handler))
+        // Phase 18: Rollout Control (Pause / Resume / Cancel / Rollback)
+        .route("/v1/rollouts/:id/pause", patch(pause_rollout_handler))
+        .route("/v1/rollouts/:id/resume", patch(resume_rollout_handler))
+        .route("/v1/rollouts/:id/cancel", patch(cancel_rollout_handler))
+        .route("/v1/rollouts/:id/rollback", patch(rollback_rollout_handler))
         .route(
             "/v1/enrollment/token/create",
             post(create_enrollment_token_handler),
