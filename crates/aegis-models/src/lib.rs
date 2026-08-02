@@ -1,6 +1,7 @@
 //! AegisNode Models Crate
 //! Định nghĩa các domain objects core: FirewallPolicy, DockerContainer, BlockerEntry, Inventory, NetworkProfile, Systemd, ChangePlan...
 
+pub mod advanced_network;
 pub mod blocker;
 pub mod bundle;
 pub mod change_plan;
@@ -12,6 +13,7 @@ pub mod network_profile;
 pub mod rbac;
 pub mod systemd;
 
+pub use advanced_network::{BondMode, BondingProfile, SynProxyConfig, VrfProfile};
 pub use bundle::SignedPolicyBundle;
 pub use rbac::{AccessScope, ApprovalRecord, Permission, Role, UserSubject};
 

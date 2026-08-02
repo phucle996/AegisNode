@@ -1901,51 +1901,51 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## VRF
 
-* [ ] Inventory.
-* [ ] Create.
-* [ ] Attach interface.
-* [ ] Route table association.
-* [ ] Delete validation.
+* [x] Inventory.
+* [x] Create.
+* [x] Attach interface.
+* [x] Route table association.
+* [x] Delete validation.
 * [x] Rollback.
 
 ## Policy routing
 
-* [ ] Multiple routing tables.
-* [ ] Source-based rule.
-* [ ] Interface-based rule.
-* [ ] Priority validation.
-* [ ] Conflict detection.
+* [x] Multiple routing tables.
+* [x] Source-based rule.
+* [x] Interface-based rule.
+* [x] Priority validation.
+* [x] Conflict detection.
 * [x] Rollback.
 
 ## Multiple gateways
 
-* [ ] Route metric.
-* [ ] Default route conflict detection.
-* [ ] Gateway reachability.
-* [ ] Failover design documentation.
+* [x] Route metric.
+* [x] Default route conflict detection.
+* [x] Gateway reachability.
+* [x] Failover design documentation.
 
 ## WireGuard
 
-* [ ] Read-only inventory.
-* [ ] Peer status.
-* [ ] Traffic counters.
-* [ ] Optional write support sau feature gate.
-* [ ] Không log private key.
+* [x] Read-only inventory.
+* [x] Peer status.
+* [x] Traffic counters.
+* [x] Optional write support sau feature gate.
+* [x] Không log private key.
 
 ## HA gateway integration
 
-* [ ] Keepalived status.
-* [ ] VRRP state.
-* [ ] Virtual IP inventory.
-* [ ] Safe service reload.
-* [ ] Không tự implement VRRP.
+* [x] Keepalived status.
+* [x] VRRP state.
+* [x] Virtual IP inventory.
+* [x] Safe service reload.
+* [x] Không tự implement VRRP.
 
 ## Gate Phase 24
 
-* [ ] Backend unsupported thì reject trước apply.
-* [ ] Advanced network change rollback được.
-* [ ] Management protection vẫn hoạt động.
-* [ ] UI topology hiển thị đúng.
+* [x] Backend unsupported thì reject trước apply.
+* [x] Advanced network change rollback được.
+* [x] Management protection vẫn hoạt động.
+* [x] UI topology hiển thị đúng.
 
 ---
 
@@ -1953,11 +1953,11 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Audit
 
-* [ ] Actor.
-* [ ] Action.
-* [ ] Resource.
-* [ ] Before hash.
-* [ ] After hash.
+* [x] Actor.
+* [x] Action.
+* [x] Resource.
+* [x] Before hash.
+* [x] After hash.
 * [ ] Request ID.
 * [ ] Source IP.
 * [ ] Timestamp.
@@ -2273,7 +2273,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 21 — OIDC, RBAC and Approval.
 * [x] Phase 22 — Signed Policy Bundles.
 * [x] Phase 23 — Controller High Availability.
-* [ ] Phase 24 — Advanced Networking.
+* [x] Phase 24 — Advanced Networking.
 * [ ] Phase 25 — Audit, Backup and Recovery.
 * [ ] Phase 26 — Production Observability.
 * [ ] Phase 27 — Security Hardening and Release.
