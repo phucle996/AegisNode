@@ -1,7 +1,8 @@
 //! AegisNode Models Crate
-//! Định nghĩa các domain objects core: FirewallPolicy, DockerContainer, BlockerEntry, Inventory, NetworkProfile, Systemd...
+//! Định nghĩa các domain objects core: FirewallPolicy, DockerContainer, BlockerEntry, Inventory, NetworkProfile, Systemd, ChangePlan...
 
 pub mod blocker;
+pub mod change_plan;
 pub mod docker;
 pub mod firewall;
 pub mod inventory;
@@ -10,6 +11,9 @@ pub mod network_profile;
 pub mod systemd;
 
 pub use blocker::{BlockEntry, BlockerConfig};
+pub use change_plan::{
+    ExecutionStep, HealthCheckSpec, NodeChangePlan, RiskLevel, RolloutReport, StepStatus,
+};
 pub use docker::{
     ContainerExposure, ContainerLabelPolicy, DockerContainer, DockerNetwork, PublishedPort,
 };

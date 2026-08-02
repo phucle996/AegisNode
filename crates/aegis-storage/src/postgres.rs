@@ -1,10 +1,11 @@
 // PostgreSQL Repository Layer cho AegisNode Controller Server (`aegisnode server`)
-// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates, Inventories, Network Profiles & Service Policies
+// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates, Inventories, Network Profiles, Service Policies & Combined Change Plan Rollouts
 
 use std::time::Duration;
 
 use aegis_core::pki::AgentCertificateRecord;
 use aegis_core::{AegisError, Result};
+use aegis_models::change_plan::NodeChangePlan;
 use aegis_models::inventory::NodeInventoryPayload;
 use aegis_models::network_profile::NetworkProfile;
 use chrono::{DateTime, Utc};
@@ -371,5 +372,42 @@ impl PgRepository {
         .map_err(|e| AegisError::Storage(format!("Failed to save service policy: {e}")))?;
 
         Ok(id)
+    }
+
+    /// Khởi tạo Combined Rollout Plan với Idempotency Key
+    pub async fn create_rollout(&self, plan: &NodeChangePlan) -> Result<Uuid> {
+        let risk_str = format!("{:?}", plan.risk_level);
+        sqlx::query(
+            r#"
+            INSERT INTO rollouts (id, idempotency_key, risk_level, state, updated_at)
+            VALUES ($1, $2, $3, 'CREATED', CURRENT_TIMESTAMP)
+            ON CONFLICT (idempotency_key) DO UPDATE SET
+                risk_level = EXCLUDED.risk_level,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(plan.id)
+        .bind(&plan.idempotency_key)
+        .bind(risk_str)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to create rollout: {e}")))?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO rollout_targets (rollout_id, node_id, state, current_step, updated_at)
+            VALUES ($1, $2, 'RUNNING', 'step_01_snapshot', CURRENT_TIMESTAMP)
+            ON CONFLICT (rollout_id, node_id) DO UPDATE SET
+                state = EXCLUDED.state,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(plan.id)
+        .bind(plan.target_node_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to create rollout target: {e}")))?;
+
+        Ok(plan.id)
     }
 }

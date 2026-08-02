@@ -156,6 +156,27 @@ CREATE TABLE IF NOT EXISTS service_policies (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 15. Bảng Rollouts & Rollout Targets (Phase 17 Combined Change Plan)
+CREATE TABLE IF NOT EXISTS rollouts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    idempotency_key VARCHAR(128) NOT NULL UNIQUE,
+    risk_level VARCHAR(32) NOT NULL DEFAULT 'LOW',
+    state VARCHAR(32) NOT NULL DEFAULT 'CREATED',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS rollout_targets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    rollout_id UUID NOT NULL REFERENCES rollouts(id) ON DELETE CASCADE,
+    node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+    state VARCHAR(32) NOT NULL DEFAULT 'PENDING',
+    current_step VARCHAR(64),
+    error_message TEXT,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_rollout_node UNIQUE(rollout_id, node_id)
+);
+
 -- Indexes tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_seen ON nodes(last_seen_at);
@@ -166,3 +187,5 @@ CREATE INDEX IF NOT EXISTS idx_agent_certs_node ON agent_certificates(node_id);
 CREATE INDEX IF NOT EXISTS idx_node_ifaces_node ON node_network_interfaces(node_id);
 CREATE INDEX IF NOT EXISTS idx_network_profiles_name ON network_profiles(name);
 CREATE INDEX IF NOT EXISTS idx_service_policies_name ON service_policies(name);
+CREATE INDEX IF NOT EXISTS idx_rollouts_idempotency ON rollouts(idempotency_key);
+CREATE INDEX IF NOT EXISTS idx_rollout_targets_rollout ON rollout_targets(rollout_id);

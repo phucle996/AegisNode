@@ -1,5 +1,5 @@
 // Controller REST API Router cho `aegisnode server`
-// Cung cấp các API quản trị tập trung Multi-Node: Authentication, Node Management, Enrollment, mTLS Heartbeats, Node Inventories, Network Profiles & Systemd Service Management
+// Cung cấp các API quản trị tập trung Multi-Node: Authentication, Node Management, Enrollment, mTLS Heartbeats, Node Inventories, Network Profiles, Systemd Services & Combined Rollouts
 
 use std::sync::Arc;
 
@@ -18,6 +18,7 @@ use crate::enrollment::{
 };
 use crate::inventory_router::{get_node_inventory_handler, report_node_inventory_handler};
 use crate::network_router::{create_network_profile_handler, list_network_profiles_handler};
+use crate::rollout_router::{create_rollout_handler, get_rollout_status_handler};
 use crate::systemd_router::{execute_service_op_handler, query_journal_logs_handler};
 
 /// Controller App State chứa PgRepository và ControllerConfig
@@ -134,6 +135,8 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
             "/v1/nodes/:id/services/logs",
             get(query_journal_logs_handler),
         )
+        .route("/v1/rollouts", post(create_rollout_handler))
+        .route("/v1/rollouts/:id", get(get_rollout_status_handler))
         .route(
             "/v1/enrollment/token/create",
             post(create_enrollment_token_handler),

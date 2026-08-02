@@ -1382,59 +1382,59 @@ nftables / NetworkManager / systemd
 
 ## Models
 
-* [ ] `NodeChangePlan`.
-* [ ] `FirewallChange`.
-* [ ] `NetworkChange`.
-* [ ] `ServiceChange`.
-* [ ] `HealthCheckSpec`.
-* [ ] `RollbackPolicy`.
-* [ ] `ExecutionStep`.
-* [ ] `ExecutionResult`.
+* [x] `NodeChangePlan`.
+* [x] `FirewallChange`.
+* [x] `NetworkChange`.
+* [x] `ServiceChange`.
+* [x] `HealthCheckSpec`.
+* [x] `RollbackPolicy`.
+* [x] `ExecutionStep`.
+* [x] `ExecutionResult`.
 
 ## Planner
 
-* [ ] Resolve dependency.
-* [ ] Detect circular dependency.
-* [ ] Generate execution order.
-* [ ] Generate rollback order.
-* [ ] Generate dry-run diff.
-* [ ] Calculate risk.
+* [x] Resolve dependency.
+* [x] Detect circular dependency.
+* [x] Generate execution order.
+* [x] Generate rollback order.
+* [x] Generate dry-run diff.
+* [x] Calculate risk.
 
 ## Risk levels
 
-* [ ] LOW.
-* [ ] MEDIUM.
-* [ ] HIGH.
-* [ ] CRITICAL.
+* [x] LOW.
+* [x] MEDIUM.
+* [x] HIGH.
+* [x] CRITICAL.
 
 ## Execution order
 
-* [ ] Snapshot firewall.
-* [ ] Snapshot network.
-* [ ] Snapshot service state.
-* [ ] Install temporary management allow.
-* [ ] Stage network.
-* [ ] Stage firewall.
-* [ ] Activate network.
-* [ ] Activate firewall.
-* [ ] Execute service operations.
-* [ ] Run health checks.
-* [ ] Confirm hoặc rollback.
+* [x] Snapshot firewall.
+* [x] Snapshot network.
+* [x] Snapshot service state.
+* [x] Install temporary management allow.
+* [x] Stage network.
+* [x] Stage firewall.
+* [x] Activate network.
+* [x] Activate firewall.
+* [x] Execute service operations.
+* [x] Run health checks.
+* [x] Confirm hoặc rollback.
 
 ## Idempotency
 
-* [ ] Mỗi plan có idempotency key.
-* [ ] Retry không execute hai lần.
-* [ ] Persist execution state.
-* [ ] Resume sau agent restart.
-* [ ] Reject conflicting execution.
+* [x] Mỗi plan có idempotency key.
+* [x] Retry không execute hai lần.
+* [x] Persist execution state.
+* [x] Resume sau agent restart.
+* [x] Reject conflicting execution.
 
 ## Gate Phase 17
 
-* [ ] Network và firewall thay đổi đồng bộ.
-* [ ] Mất controller thì node tự rollback.
-* [ ] Failure ở giữa plan rollback đúng reverse order.
-* [ ] Duplicate request không chạy hai lần.
+* [x] Network và firewall thay đổi đồng bộ.
+* [x] Mất controller thì node tự rollback.
+* [x] Failure ở giữa plan rollback đúng reverse order.
+* [x] Duplicate request không chạy hai lần.
 
 ---
 

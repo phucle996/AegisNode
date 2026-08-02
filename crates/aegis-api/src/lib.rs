@@ -7,6 +7,7 @@ pub mod enrollment;
 pub mod handlers;
 pub mod inventory_router;
 pub mod network_router;
+pub mod rollout_router;
 pub mod router;
 pub mod state;
 pub mod systemd_router;
