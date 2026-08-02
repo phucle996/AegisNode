@@ -121,29 +121,39 @@ pub async fn sign_agent_csr_handler(
         return Err(StatusCode::UNAUTHORIZED);
     }
 
-    // 3. Sinh UUIDv4 duy nhất làm Node ID cho Agent
-    let node_id = Uuid::new_v4();
+    // 3. Đăng ký hoặc Cập nhật thông tin Node vào PostgreSQL Database trước để thu được node_id thực tế
+    let labels = serde_json::json!({ "machineId": req.machine_id });
+    let agent_version = req.version.as_deref().unwrap_or("1.1.5");
+    let node_record = repo
+        .upsert_node(&req.hostname, &req.ip_address, &labels, agent_version)
+        .await
+        .map_err(|e| {
+            tracing::error!("❌ Lỗi upsert_node vào PostgreSQL cho '{}/{}': {e}", req.hostname, req.ip_address);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
-    // 4. Ký X.509 Client Certificate cấp cho Agent bằng PkiManager của ControllerState
+    // 4. Ký X.509 Client Certificate cấp cho Agent khớp với node_record.id trong CSDL
     let cert_record = state
         .pki_manager
-        .sign_agent_csr(node_id, &req.machine_id, &req.hostname, &req.csr_pem, 365)
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .sign_agent_csr(node_record.id, &req.machine_id, &req.hostname, &req.csr_pem, 365)
+        .map_err(|e| {
+            tracing::error!("❌ Lỗi ký chứng chỉ số CSR cho Node '{}/{}': {e}", req.hostname, req.machine_id);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
 
-    // 5. Lưu thông tin Node & Certificate bản ghi vào PostgreSQL Database
-    let labels = serde_json::json!({ "machineId": req.machine_id });
-    // Lấy phiên bản động gửi từ Agent (mặc định 1.1.5 nếu rỗng)
-    let agent_version = req.version.as_deref().unwrap_or("1.1.5");
-    repo.upsert_node(&req.hostname, &req.ip_address, &labels, agent_version)
-        .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    // 5. Lưu bản ghi Agent Certificate vào PostgreSQL Database
     repo.save_agent_certificate(&cert_record)
         .await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+        .map_err(|e| {
+            tracing::error!("❌ Lỗi save_agent_certificate vào PostgreSQL cho '{}/{}': {e}", req.hostname, req.machine_id);
+            StatusCode::INTERNAL_SERVER_ERROR
+        })?;
+
+    tracing::info!("✅ Đã đăng ký thành công Node thực tế '{}/{}' (ID: {}) vào PostgreSQL CSDL!", req.hostname, req.ip_address, node_record.id);
 
     // 6. Trả về Response chứa Client Certificate PEM và Root CA Certificate PEM
     Ok(Json(NodeEnrollCsrResponse {
-        node_id,
+        node_id: node_record.id,
         certificate_pem: cert_record.cert_pem,
         ca_certificate_pem: state.pki_manager.ca_cert_pem.clone(),
         expires_at: cert_record.expires_at.to_rfc3339(),

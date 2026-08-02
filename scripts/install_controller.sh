@@ -142,6 +142,23 @@ EOF
     chown aegisnode:aegisnode "$CONFIG_FILE"
     echo -e "${GREEN}✓ Created Controller configuration file at $CONFIG_FILE${NC}"
 fi
+echo -e "${CYAN}[4.5/5] Installing & Setting up PostgreSQL Database Server...${NC}"
+if ! command -v psql &>/dev/null; then
+    echo -e "${CYAN}   Installing postgresql & postgresql-contrib packages...${NC}"
+    apt-get update -qq
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -qq postgresql postgresql-contrib
+fi
+
+# Khởi động dịch vụ PostgreSQL và bật tự khởi chạy cùng hệ thống
+systemctl enable postgresql
+systemctl start postgresql
+
+# Tạo tài khoản database user 'postgres' với mật khẩu 'postgres' và database 'aegisnode'
+echo -e "${CYAN}   Creating PostgreSQL user 'postgres' and database 'aegisnode'...${NC}"
+sudo -u postgres psql -c "ALTER USER postgres WITH PASSWORD 'postgres';" || true
+sudo -u postgres psql -c "CREATE DATABASE aegisnode OWNER postgres;" || true
+sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE aegisnode TO postgres;" || true
+echo -e "${GREEN}✓ PostgreSQL database 'aegisnode' initialized successfully!${NC}"
 
 # 8. Cài đặt Systemd unit service cho Controller
 echo -e "${CYAN}[5/5] Registering systemd service aegisnode-controller.service...${NC}"

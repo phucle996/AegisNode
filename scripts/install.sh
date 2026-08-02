@@ -47,23 +47,17 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# 2. Kiểm tra binary nftables và tự động cài đặt nếu thiếu trên Linux Target
-if ! command -v nft &> /dev/null; then
-    echo -e "${YELLOW}Warning: 'nft' command not found. Attempting to install nftables automatically...${NC}"
+# 2. Kiểm tra binary nftables & jq và tự động cài đặt nếu thiếu trên Linux Target
+if ! command -v nft &> /dev/null || ! command -v jq &> /dev/null; then
+    echo -e "${YELLOW}Warning: Required tools ('nft' or 'jq') not found. Installing dependencies...${NC}"
     if command -v apt-get &> /dev/null; then
-        # Cài đặt nftables cho hệ điều hành Debian / Ubuntu
-        apt-get update -qq && apt-get install -y -qq nftables
+        apt-get update -qq && apt-get install -y -qq nftables jq
     elif command -v apk &> /dev/null; then
-        # Cài đặt nftables cho Alpine Linux
-        apk add --no-cache nftables
+        apk add --no-cache nftables jq
     elif command -v dnf &> /dev/null; then
-        # Cài đặt nftables cho RHEL / Fedora / CentOS
-        dnf install -y -q nftables
+        dnf install -y -q nftables jq
     elif command -v yum &> /dev/null; then
-        yum install -y -q nftables
-    else
-        echo -e "${RED}Error: 'nft' command not found and package manager is unsupported. Please install nftables manually.${NC}" >&2
-        exit 1
+        yum install -y -q nftables jq
     fi
 fi
 
@@ -104,15 +98,15 @@ DOWNLOAD_URL="https://github.com/${REPO}/releases/download/${VERSION}/${TARBALL}
 
 if curl -sSL -f -o "${TMP_DIR}/${TARBALL}" "$DOWNLOAD_URL"; then
     tar -xzf "${TMP_DIR}/${TARBALL}" -C "$TMP_DIR"
-    cp "${TMP_DIR}/aegisnode" /usr/local/bin/aegisnode
-    chmod 0755 /usr/local/bin/aegisnode
+    systemctl stop aegisnode-agent || true
+    install -m 0755 "${TMP_DIR}/aegisnode" /usr/local/bin/aegisnode
     echo -e "${GREEN}✓ Downloaded & installed binary to /usr/local/bin/aegisnode${NC}"
 else
     echo -e "${YELLOW}Warning: Could not download release ${VERSION} from GitHub. Checking local binary build...${NC}"
     LOCAL_BIN="target/release/aegisnode"
     if [ -f "$LOCAL_BIN" ]; then
-        cp "$LOCAL_BIN" /usr/local/bin/aegisnode
-        chmod 0755 /usr/local/bin/aegisnode
+        systemctl stop aegisnode-agent || true
+        install -m 0755 "$LOCAL_BIN" /usr/local/bin/aegisnode
         echo -e "${GREEN}✓ Installed local binary from $LOCAL_BIN${NC}"
     elif [ -f "/usr/local/bin/aegisnode" ]; then
         echo -e "${GREEN}✓ Using existing binary at /usr/local/bin/aegisnode${NC}"
@@ -138,18 +132,21 @@ if [ -n "$CONTROLLER_URL" ] && [ -n "$ENROLLMENT_TOKEN" ]; then
     chmod 0600 "$AGENT_KEY"
 
     # Sinh CSR (Certificate Signing Request) cho Agent
+    HOSTNAME=$(hostname)
+    MACHINE_ID=$(cat /etc/machine-id 2>/dev/null || hostname)
+    LOCAL_IP=$(hostname -I | awk '{print $1}')
+
     TMP_CSR=$(mktemp)
     openssl req -new -key "$AGENT_KEY" -out "$TMP_CSR" -subj "/O=AegisNode/CN=${HOSTNAME}"
     CSR_PEM=$(cat "$TMP_CSR")
     rm -f "$TMP_CSR"
 
     echo -e "${CYAN}   Sending Enrollment CSR Request to Controller (${CONTROLLER_URL})...${NC}"
-    # Gửi REST API request lên Controller để nhận Client Cert đã ký
     PAYLOAD=$(jq -n \
       --arg token "$ENROLLMENT_TOKEN" \
       --arg host "$HOSTNAME" \
       --arg mach "$MACHINE_ID" \
-      --arg ip "127.0.0.1" \
+      --arg ip "$LOCAL_IP" \
       --arg csr "$CSR_PEM" \
       '{enrollmentToken: $token, hostname: $host, machineId: $mach, ipAddress: $ip, csrPem: $csr}')
 

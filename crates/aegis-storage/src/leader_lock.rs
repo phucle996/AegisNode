@@ -63,7 +63,7 @@ impl LeaderElector {
         }
     }
 
-    /// Khởi chạy vòng lặp bầu chọn Leader background (Renew lock mỗi 5 giây)
+    /// Khởi chạy vòng lặp bầu chọn Leader background (Duy trì session connection liên tục)
     pub async fn run_election_loop(self) {
         let pool = match self.pool {
             Some(p) => p,
@@ -76,25 +76,45 @@ impl LeaderElector {
             }
         };
 
+        // Giữ kết nối Session duy nhất cho PostgreSQL Advisory Lock
+        let mut dedicated_conn: Option<sqlx::pool::PoolConnection<sqlx::Postgres>> = None;
         let mut interval = tokio::time::interval(Duration::from_secs(5));
 
         loop {
             interval.tick().await;
 
-            match PostgresLeaderLock::try_acquire_lock(&pool, self.lock_key).await {
-                Ok(acquired) => {
-                    let was_leader = self.is_leader.swap(acquired, Ordering::SeqCst);
-                    if acquired && !was_leader {
-                        info!(
-                            "🎉 Replica này vừa chiếm được PostgreSQL Advisory Lock. Trở thành ACTIVE LEADER!"
-                        );
-                    } else if !acquired && was_leader {
-                        warn!("⚠️ Mất PostgreSQL Advisory Lock. Chuyển sang trạng thái FOLLOWER!");
+            if dedicated_conn.is_none() {
+                // Nếu chưa có lock, thử mở connection mới và chiếm pg_try_advisory_lock
+                if let Ok(mut conn) = pool.acquire().await {
+                    let row: Result<(bool,), _> = sqlx::query_as("SELECT pg_try_advisory_lock($1)")
+                        .bind(self.lock_key)
+                        .fetch_one(&mut *conn)
+                        .await;
+
+                    if let Ok((true,)) = row {
+                        // Giữ nguyên kết nối connection này trong dedicated_conn để duy trì Lock ở cấp độ Session
+                        dedicated_conn = Some(conn);
+                        let was_leader = self.is_leader.swap(true, Ordering::SeqCst);
+                        if !was_leader {
+                            info!(
+                                "🎉 Replica này vừa chiếm được PostgreSQL Advisory Lock. Trở thành ACTIVE LEADER!"
+                            );
+                        }
+                    } else {
+                        self.is_leader.store(false, Ordering::SeqCst);
                     }
                 }
-                Err(e) => {
-                    warn!("Lỗi khi thử chiếm giữ Leader Advisory Lock: {e}");
-                    self.is_leader.store(false, Ordering::SeqCst);
+            } else {
+                // Đã có Lock, gửi ping kiểm tra kết nối định kỳ 5 giây
+                if let Some(ref mut conn) = dedicated_conn {
+                    if sqlx::query("SELECT 1").execute(&mut **conn).await.is_err() {
+                        // Nếu kết nối tới CSDL bị gián đoạn, giải phóng dedicated_conn và hạ cấp xuống FOLLOWER
+                        dedicated_conn = None;
+                        let was_leader = self.is_leader.swap(false, Ordering::SeqCst);
+                        if was_leader {
+                            warn!("⚠️ Mất kết nối PostgreSQL Session. Chuyển sang trạng thái FOLLOWER!");
+                        }
+                    }
                 }
             }
         }

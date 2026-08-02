@@ -25,7 +25,8 @@ pub struct ControllerState {
     // Trạng thái cờ bầu chọn leader đồng bộ luồng Arc<AtomicBool>
     pub is_leader: Arc<std::sync::atomic::AtomicBool>,
     // Lưu danh sách máy chủ Nodes hoạt động thực tế trong bộ nhớ tạm In-Memory (Tuyệt đối không dùng dữ liệu giả/mock)
-    pub active_nodes: Arc<tokio::sync::RwLock<std::collections::HashMap<String, serde_json::Value>>>,
+    pub active_nodes:
+        Arc<tokio::sync::RwLock<std::collections::HashMap<String, serde_json::Value>>>,
 }
 
 impl ControllerState {
@@ -136,8 +137,6 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
 
     // 2. Routes yêu cầu Authentication & RBAC middleware kiểm tra quyền hạn (object:behavior)
     let protected_routes = Router::new()
-        // Route truy vấn danh sách Node: Yêu cầu quyền `nodes:read`
-        .merge(perm_route("/v1/nodes", get(controller_list_nodes_handler), "nodes:read"))
         // Route đăng ký Node vào Cluster: Yêu cầu quyền `nodes:write`
         .merge(perm_route("/v1/nodes/enroll", post(enroll_node_handler), "nodes:write"))
         // Route tiếp nhận và đọc Node Inventory: Yêu cầu quyền `nodes:write` cho POST và `nodes:read` cho GET (cú pháp Axum v0.7+ dùng `{id}`)
