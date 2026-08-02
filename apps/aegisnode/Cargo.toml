@@ -12,6 +12,7 @@ aegis-models.workspace = true
 aegis-firewall.workspace = true
 aegis-storage.workspace = true
 aegis-api.workspace = true
+aegis-cli.workspace = true
 axum.workspace = true
 tokio.workspace = true
 clap.workspace = true

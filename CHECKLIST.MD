@@ -702,50 +702,50 @@ nft --check --file candidate.nft
 
 ## CLI commands
 
-* [ ] `aegisnode ctl status`.
-* [ ] `aegisnode ctl firewall validate`.
-* [ ] `aegisnode ctl firewall compile`.
-* [ ] `aegisnode ctl firewall apply`.
-* [ ] `aegisnode ctl firewall confirm`.
-* [ ] `aegisnode ctl firewall rollback`.
-* [ ] `aegisnode ctl firewall rules`.
-* [ ] `aegisnode ctl firewall counters`.
-* [ ] `aegisnode ctl audit list`.
-* [ ] `aegisnode ctl version`.
+* [x] `aegisnode ctl status`.
+* [x] `aegisnode ctl firewall validate`.
+* [x] `aegisnode ctl firewall compile`.
+* [x] `aegisnode ctl firewall apply`.
+* [x] `aegisnode ctl firewall confirm`.
+* [x] `aegisnode ctl firewall rollback`.
+* [x] `aegisnode ctl firewall rules`.
+* [x] `aegisnode ctl firewall counters`.
+* [x] `aegisnode ctl audit list`.
+* [x] `aegisnode ctl version`.
 
 ## Output
 
-* [ ] Table.
-* [ ] JSON.
-* [ ] YAML.
-* [ ] JSON schema ổn định.
-* [ ] Không trộn log vào JSON stdout.
-* [ ] Error xuất stderr.
+* [x] Table.
+* [x] JSON.
+* [x] YAML.
+* [x] JSON schema ổn định.
+* [x] Không trộn log vào JSON stdout.
+* [x] Error xuất stderr.
 
 ## Exit codes
 
-* [ ] `0`: success.
-* [ ] `1`: generic failure.
-* [ ] `2`: validation failure.
-* [ ] `3`: permission denied.
-* [ ] `4`: not found.
-* [ ] `5`: conflict.
-* [ ] `6`: timeout hoặc rollback.
+* [x] `0`: success.
+* [x] `1`: generic failure.
+* [x] `2`: validation failure.
+* [x] `3`: permission denied.
+* [x] `4`: not found.
+* [x] `5`: conflict.
+* [x] `6`: timeout hoặc rollback.
 
 ## UX
 
-* [ ] Hiển thị warning trước apply.
-* [ ] Có `--yes`.
-* [ ] Có `--rollback-after`.
-* [ ] Có compile preview.
-* [ ] Có shell completion.
-* [ ] Có help text rõ ràng.
+* [x] Hiển thị warning trước apply.
+* [x] Có `--yes`.
+* [x] Có `--rollback-after`.
+* [x] Có compile preview.
+* [x] Có shell completion.
+* [x] Có help text rõ ràng.
 
 ## Gate Phase 7
 
-* [ ] Toàn bộ MVP firewall operation thực hiện được bằng CLI.
-* [ ] JSON output dùng được trong shell automation.
-* [ ] CLI không yêu cầu root nếu socket permission cho phép.
+* [x] Toàn bộ MVP firewall operation thực hiện được bằng CLI.
+* [x] JSON output dùng được trong shell automation.
+* [x] CLI không yêu cầu root nếu socket permission cho phép.
 
 ---
 
@@ -2206,7 +2206,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 4 — nftables Runtime Backend.
 * [x] Phase 5 — Safe Apply and Rollback.
 * [x] Phase 6 — Local Agent and Storage.
-* [ ] Phase 7 — CLI.
+* [x] Phase 7 — CLI.
 * [ ] Phase 8 — Docker and Router Mode.
 * [ ] Phase 9 — Blocker and Journald.
 * [ ] Phase 10 — Web UI.

@@ -59,7 +59,8 @@ async fn main() -> Result<()> {
             info!("Starting AegisNode Execution Daemon (Stage 2)...");
         }
         Commands::Ctl => {
-            info!("AegisNode Control CLI invocation.");
+            let exit_code = aegis_cli::run_cli_with_args(std::env::args().collect()).await;
+            std::process::exit(exit_code);
         }
     }
 
