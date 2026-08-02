@@ -1438,7 +1438,76 @@ nftables / NetworkManager / systemd
 
 ---
 
+# Middle Phase 17.5 — Transport Refactor: gRPC & IPC
+
+## Mục tiêu
+
+Thay thế toàn bộ HTTP REST nội bộ bằng gRPC (tonic) over mTLS cho giao tiếp xuyên mạng và Unix Domain Socket IPC cho giao tiếp nội bộ cùng máy. REST chỉ còn tồn tại ở lớp Controller HTTP API phục vụ Web UI.
+
+## Proto definitions
+
+* [ ] Định nghĩa `agent.proto` cho AgentService.
+* [ ] Định nghĩa `controller.proto` cho ControllerService.
+* [ ] `build.rs` tự động gen code từ `.proto` bằng `tonic-build`.
+* [ ] Các message types protobuf ánh xạ 1-1 với domain models hiện tại.
+
+## AgentService (gRPC server chạy trên Agent)
+
+* [ ] `ApplyFirewallPolicy(FirewallPolicyRequest) → ApplyResult`.
+* [ ] `GetInventory(Empty) → NodeInventoryPayload`.
+* [ ] `ExecuteServiceOp(ServiceOpRequest) → ServiceOpResult`.
+* [ ] `StreamRolloutCommands(Empty) → stream RolloutCommand` (bidirectional push từ Controller).
+* [ ] `GetStatus(Empty) → AgentStatusResponse`.
+
+## ControllerService (gRPC server chạy trên Controller)
+
+* [ ] `ReportHeartbeat(HeartbeatRequest) → HeartbeatAck`.
+* [ ] `ReportInventory(NodeInventoryPayload) → Empty`.
+* [ ] `ReportRolloutStatus(RolloutStatusUpdate) → Empty`.
+
+## Transport layer Agent
+
+* [ ] gRPC server (tonic) over **Unix Domain Socket** nhận lệnh từ CLI (IPC cùng máy).
+* [ ] gRPC client (tonic) over **TCP mTLS** gửi heartbeat và nhận lệnh từ Controller.
+* [ ] Loại bỏ HTTP REST listener trên Agent.
+
+## Transport layer Controller
+
+* [ ] gRPC server (tonic) over **TCP mTLS** nhận data từ Agents.
+* [ ] REST server (axum) over **HTTPS** giữ nguyên chỉ phục vụ Web UI và Admin API.
+* [ ] gRPC client (tonic) over **TCP mTLS** push RolloutCommand xuống các Agents.
+
+## CLI IPC refactor
+
+* [ ] CLI dùng tonic gRPC client over **Unix Domain Socket** thay cho reqwest HTTP.
+* [ ] Loại bỏ dependency `reqwest` khỏi `aegis-cli`.
+* [ ] Cùng `.proto` types cho cả CLI và Controller client.
+
+## mTLS integration
+
+* [ ] tonic TLS config dùng cert đã sign từ PKI Manager (Phase 13).
+* [ ] Server-side: load `ca.crt`, `server.crt`, `server.key`.
+* [ ] Client-side: load `ca.crt`, `agent.crt`, `agent.key`.
+* [ ] Reject kết nối không có cert hợp lệ.
+
+## Backward compatibility
+
+* [ ] REST Admin API (`/v1/*`) giữ nguyên 100%.
+* [ ] Không thay đổi domain models (`aegis-models`).
+* [ ] Không thay đổi business logic (`aegis-firewall`, `aegis-core`).
+
+## Gate Phase 17.5
+
+* [ ] CLI → Agent qua UDS gRPC hoạt động.
+* [ ] Agent → Controller qua gRPC mTLS hoạt động.
+* [ ] Controller push RolloutCommand → Agent qua streaming hoạt động.
+* [ ] REST Web UI API không bị ảnh hưởng.
+* [ ] Không còn HTTP endpoint nào trên Agent process.
+
+---
+
 # Middle Phase 18 — Multi-Node Rollout
+
 
 ## Rollout models
 
