@@ -344,54 +344,54 @@ kind: FirewallPolicy
 
 ## Schema validation
 
-* [ ] Rule ID không trống.
-* [ ] Rule ID không trùng.
-* [ ] Port hợp lệ.
-* [ ] CIDR hợp lệ.
-* [ ] Protocol và port tương thích.
-* [ ] Rate limit lớn hơn 0.
-* [ ] Interface name hợp lệ.
-* [ ] Timeout hợp lệ.
-* [ ] Action hợp lệ với rule type.
+* [x] Rule ID không trống.
+* [x] Rule ID không trùng.
+* [x] Port hợp lệ.
+* [x] CIDR hợp lệ.
+* [x] Protocol và port tương thích.
+* [x] Rate limit lớn hơn 0.
+* [x] Interface name hợp lệ.
+* [x] Timeout hợp lệ.
+* [x] Action hợp lệ với rule type.
 
 ## Semantic validation
 
-* [ ] Phát hiện thiếu allow loopback.
-* [ ] Phát hiện thiếu established/related.
-* [ ] Cảnh báo SSH mở cho toàn Internet.
-* [ ] Cảnh báo PostgreSQL mở WAN.
-* [ ] Cảnh báo Redis mở WAN.
-* [ ] Phát hiện rule không thể match.
-* [ ] Phát hiện duplicate rule.
-* [ ] Phát hiện shadowed rule.
-* [ ] Phát hiện conflicting rule.
-* [ ] Phát hiện DNAT thiếu forward allow.
-* [ ] Phát hiện duplicate external port.
+* [x] Phát hiện thiếu allow loopback.
+* [x] Phát hiện thiếu established/related.
+* [x] Cảnh báo SSH mở cho toàn Internet.
+* [x] Cảnh báo PostgreSQL mở WAN.
+* [x] Cảnh báo Redis mở WAN.
+* [x] Phát hiện rule không thể match.
+* [x] Phát hiện duplicate rule.
+* [x] Phát hiện shadowed rule.
+* [x] Phát hiện conflicting rule.
+* [x] Phát hiện DNAT thiếu forward allow.
+* [x] Phát hiện duplicate external port.
 
 ## Validation report
 
-* [ ] Có severity `ERROR`.
-* [ ] Có severity `WARNING`.
-* [ ] Có severity `INFO`.
-* [ ] Có field path.
-* [ ] Có rule ID.
-* [ ] Có machine-readable error code.
+* [x] Có severity `ERROR`.
+* [x] Có severity `WARNING`.
+* [x] Có severity `INFO`.
+* [x] Có field path.
+* [x] Có rule ID.
+* [x] Có machine-readable error code.
 
 ## Normalization
 
-* [ ] Loại port trùng.
-* [ ] Chuẩn hóa CIDR.
-* [ ] Chuẩn hóa IPv6.
-* [ ] Sắp xếp dữ liệu để output deterministic.
-* [ ] Tạo policy hash ổn định.
-* [ ] Hai policy tương đương sinh cùng hash.
+* [x] Loại port trùng.
+* [x] Chuẩn hóa CIDR.
+* [x] Chuẩn hóa IPv6.
+* [x] Sắp xếp dữ liệu để output deterministic.
+* [x] Tạo policy hash ổn định.
+* [x] Hai policy tương đương sinh cùng hash.
 
 ## Gate Phase 2
 
-* [ ] Invalid policy không đi tiếp tới compiler.
-* [ ] Mỗi validation error có test.
-* [ ] Warning không tự động chặn apply nếu người dùng xác nhận.
-* [ ] Policy hash deterministic.
+* [x] Invalid policy không đi tiếp tới compiler.
+* [x] Mỗi validation error có test.
+* [x] Warning không tự động chặn apply nếu người dùng xác nhận.
+* [x] Policy hash deterministic.
 
 ---
 
@@ -2201,7 +2201,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 
 * [x] Phase 0 — Repository Skeleton.
 * [x] Phase 1 — Core Models and Errors.
-* [ ] Phase 2 — Policy Validation.
+* [x] Phase 2 — Policy Validation.
 * [ ] Phase 3 — nftables Compiler.
 * [ ] Phase 4 — nftables Runtime Backend.
 * [ ] Phase 5 — Safe Apply and Rollback.
