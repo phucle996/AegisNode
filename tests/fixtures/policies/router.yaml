@@ -1,0 +1,27 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: router-policy
+  id: policy-router-004
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: allow-lan-to-wan-forward
+    direction: forward
+    action: accept
+    connectionStates:
+      - new
+      - established
+      - related
+    interfaces:
+      - lan
+
+  - id: allow-icmp-ping
+    direction: input
+    action: accept
+    protocol: icmp

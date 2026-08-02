@@ -1,0 +1,50 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: web-server-policy
+  id: policy-web-002
+  version: 1
+  labels:
+    environment: production
+    role: webserver
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: allow-established
+    direction: input
+    action: accept
+    connectionStates:
+      - established
+      - related
+
+  - id: allow-loopback
+    direction: input
+    action: accept
+    interfaces:
+      - lo
+
+  - id: allow-http-https
+    direction: input
+    action: accept
+    protocol: tcp
+    destinationPorts:
+      - 80
+      - 443
+    interfaces:
+      - wan
+
+  - id: allow-ssh-management
+    direction: input
+    action: accept
+    protocol: tcp
+    destinationPorts:
+      - 22
+    sourceCidrs:
+      - 10.10.0.0/16
+    interfaces:
+      - management

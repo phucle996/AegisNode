@@ -1,0 +1,18 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: minimal-policy
+  id: policy-minimal-001
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: allow-loopback
+    direction: input
+    action: accept
+    interfaces:
+      - lo

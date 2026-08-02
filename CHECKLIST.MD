@@ -257,62 +257,62 @@ ctl
 
 ## Core identifiers
 
-* [ ] Tạo `NodeId`.
-* [ ] Tạo `PolicyId`.
-* [ ] Tạo `RuleId`.
-* [ ] Tạo `SnapshotId`.
-* [ ] Tạo `ExecutionId`.
-* [ ] Tạo `ChangePlanId`.
-* [ ] Tạo `BlockEntryId`.
-* [ ] Không dùng `String` trực tiếp cho toàn bộ identifier.
+* [x] Tạo `NodeId`.
+* [x] Tạo `PolicyId`.
+* [x] Tạo `RuleId`.
+* [x] Tạo `SnapshotId`.
+* [x] Tạo `ExecutionId`.
+* [x] Tạo `ChangePlanId`.
+* [x] Tạo `BlockEntryId`.
+* [x] Không dùng `String` trực tiếp cho toàn bộ identifier.
 
 ## Error model
 
-* [ ] Tạo `AegisError`.
-* [ ] Có error code ổn định.
-* [ ] Có user-facing message.
-* [ ] Có internal context.
-* [ ] Có source error.
-* [ ] Chuyển error thành HTTP response.
-* [ ] Chuyển error thành CLI exit code.
+* [x] Tạo `AegisError`.
+* [x] Có error code ổn định.
+* [x] Có user-facing message.
+* [x] Có internal context.
+* [x] Có source error.
+* [x] Chuyển error thành HTTP response.
+* [x] Chuyển error thành CLI exit code.
 
 ## Firewall models
 
-* [ ] Tạo `FirewallPolicy`.
-* [ ] Tạo `FirewallDefaults`.
-* [ ] Tạo `FirewallRule`.
-* [ ] Tạo `FirewallDirection`.
-* [ ] Tạo `FirewallAction`.
-* [ ] Tạo `TransportProtocol`.
-* [ ] Tạo `ConnectionState`.
-* [ ] Tạo `PortSpec`.
-* [ ] Tạo `CidrSpec`.
-* [ ] Tạo `InterfaceSelector`.
-* [ ] Tạo `RateLimit`.
-* [ ] Tạo `LogOptions`.
+* [x] Tạo `FirewallPolicy`.
+* [x] Tạo `FirewallDefaults`.
+* [x] Tạo `FirewallRule`.
+* [x] Tạo `FirewallDirection`.
+* [x] Tạo `FirewallAction`.
+* [x] Tạo `TransportProtocol`.
+* [x] Tạo `ConnectionState`.
+* [x] Tạo `PortSpec`.
+* [x] Tạo `CidrSpec`.
+* [x] Tạo `InterfaceSelector`.
+* [x] Tạo `RateLimit`.
+* [x] Tạo `LogOptions`.
 
 ## NAT models
 
-* [ ] Tạo `NatPolicy`.
-* [ ] Tạo `MasqueradeRule`.
-* [ ] Tạo `SnatRule`.
-* [ ] Tạo `DnatRule`.
-* [ ] Tạo `PortForwardRule`.
+* [x] Tạo `NatPolicy`.
+* [x] Tạo `MasqueradeRule`.
+* [x] Tạo `SnatRule`.
+* [x] Tạo `DnatRule`.
+* [x] Tạo `PortForwardRule`.
 
 ## Blocklist models
 
-* [ ] Tạo `BlockEntry`.
-* [ ] Tạo `BlockReason`.
-* [ ] Tạo `BlockSource`.
-* [ ] Tạo `BlockDuration`.
-* [ ] Tạo `BlockStatus`.
+* [x] Tạo `BlockEntry`.
+* [x] Tạo `BlockReason`.
+* [x] Tạo `BlockSource`.
+* [x] Tạo `BlockDuration`.
+* [x] Tạo `BlockStatus`.
 
 ## API metadata
 
-* [ ] Policy có `apiVersion`.
-* [ ] Policy có `kind`.
-* [ ] Policy có metadata.
-* [ ] Từ chối version không hỗ trợ.
+* [x] Policy có `apiVersion`.
+* [x] Policy có `kind`.
+* [x] Policy có metadata.
+* [x] Từ chối version không hỗ trợ.
 
 ```yaml
 apiVersion: aegisnode.io/v1
@@ -321,22 +321,22 @@ kind: FirewallPolicy
 
 ## Fixtures
 
-* [ ] Tạo `minimal.yaml`.
-* [ ] Tạo `web-server.yaml`.
-* [ ] Tạo `docker-host.yaml`.
-* [ ] Tạo `router.yaml`.
-* [ ] Tạo `invalid-port.yaml`.
-* [ ] Tạo `invalid-cidr.yaml`.
-* [ ] Tạo `conflicting-rules.yaml`.
+* [x] Tạo `minimal.yaml`.
+* [x] Tạo `web-server.yaml`.
+* [x] Tạo `docker-host.yaml`.
+* [x] Tạo `router.yaml`.
+* [x] Tạo `invalid-port.yaml`.
+* [x] Tạo `invalid-cidr.yaml`.
+* [x] Tạo `conflicting-rules.yaml`.
 
 ## Gate Phase 1
 
-* [ ] Parse YAML hợp lệ thành công.
-* [ ] Parse JSON hợp lệ thành công.
-* [ ] Reject port ngoài `1..65535`.
-* [ ] Reject CIDR không hợp lệ.
-* [ ] Round-trip serialization không mất field.
-* [ ] Schema version được kiểm tra.
+* [x] Parse YAML hợp lệ thành công.
+* [x] Parse JSON hợp lệ thành công.
+* [x] Reject port ngoài `1..65535`.
+* [x] Reject CIDR không hợp lệ.
+* [x] Round-trip serialization không mất field.
+* [x] Schema version được kiểm tra.
 
 ---
 
@@ -2200,7 +2200,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 ## Stage MVP
 
 * [x] Phase 0 — Repository Skeleton.
-* [ ] Phase 1 — Core Models and Errors.
+* [x] Phase 1 — Core Models and Errors.
 * [ ] Phase 2 — Policy Validation.
 * [ ] Phase 3 — nftables Compiler.
 * [ ] Phase 4 — nftables Runtime Backend.

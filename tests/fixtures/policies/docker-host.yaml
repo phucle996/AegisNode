@@ -1,0 +1,34 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: docker-host-policy
+  id: policy-docker-003
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: allow-established
+    direction: input
+    action: accept
+    connectionStates:
+      - established
+      - related
+
+  - id: allow-docker-bridge
+    direction: input
+    action: accept
+    interfaces:
+      - docker0
+
+  - id: allow-container-ports
+    direction: input
+    action: accept
+    protocol: tcp
+    destinationPorts:
+      - "8080-8090"
+    sourceCidrs:
+      - 192.168.1.0/24

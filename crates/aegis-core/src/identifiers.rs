@@ -1,5 +1,5 @@
-// Strong types cho các Định danh (Identifiers) trong hệ thống
-// Tránh việc sử dụng String thô rải rác dễ gây lỗi logic race condition hoặc nhầm lẫn
+// Strong types cho các Định danh (Identifiers) trong toàn bộ hệ thống AegisNode
+// Việc dùng Strong Type giúp ngăn ngừa các lỗi race condition, nhầm lẫn tham số giữa các ID khác nhau
 
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -46,6 +46,10 @@ define_id!(NodeId, "Định danh duy nhất của một Linux Node");
 define_id!(PolicyId, "Định danh duy nhất của một Firewall Policy");
 define_id!(RuleId, "Định danh duy nhất của một Firewall Rule");
 define_id!(SnapshotId, "Định danh bản Snapshot trạng thái nftables");
+define_id!(
+    ChangePlanId,
+    "Định danh của kế hoạch thay đổi (Change Plan)"
+);
 define_id!(
     ExecutionId,
     "Định danh lượt thực thi Change Plan / Safe Apply"

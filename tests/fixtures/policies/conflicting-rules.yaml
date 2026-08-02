@@ -1,0 +1,26 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: conflicting-rules-policy
+  id: policy-conflicting-007
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: duplicate-rule-id
+    direction: input
+    action: accept
+    protocol: tcp
+    destinationPorts:
+      - 80
+
+  - id: duplicate-rule-id
+    direction: input
+    action: drop
+    protocol: tcp
+    destinationPorts:
+      - 80

@@ -1,0 +1,18 @@
+apiVersion: aegisnode.io/v1
+kind: FirewallPolicy
+
+metadata:
+  name: invalid-cidr-policy
+  id: policy-invalid-cidr-006
+
+defaults:
+  input: drop
+  output: accept
+  forward: drop
+
+rules:
+  - id: rule-invalid-cidr
+    direction: input
+    action: accept
+    sourceCidrs:
+      - 10.0.0.1/35
