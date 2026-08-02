@@ -145,16 +145,13 @@ sequenceDiagram
 
 ---
 
-### 3.2. Bảng Ánh xạ từ Linux Groups sang AegisNode Roles & Permissions
+### 3.2. Quy tắc Phân quyền cho Tài khoản Linux OS (Simplified Uniform Access)
 
-Hệ thống tự động đọc thông tin Linux Groups của User thông qua PAM và áp ánh xạ phân quyền theo nguyên tắc **Least Privilege**:
+Hệ thống ghi nhận bất kỳ tài khoản người dùng Linux OS nào xác thực thành công qua hệ thống authentication đều được công nhận và cấp quyền Admin toàn cục:
 
-| Linux System Group | AegisNode Role | Danh sách Permissions Cấp phát | Mục đích / Quyền hạn |
+| Tài khoản Linux OS | AegisNode Role | Danh sách Permissions Cấp phát | Mục đích / Quyền hạn |
 | :--- | :--- | :--- | :--- |
-| `sudo`, `wheel`, `root` | `Role::Admin` | `*:*` (All Resources & Actions) | Quản trị viên cao nhất hệ thống (Full Control). |
-| `aegis-operator`, `netdev` | `Role::Operator` | `firewall:read`, `firewall:write`, `node:read`, `systemd:write` | Kỹ sư vận hành mạng, tạo và apply firewall rules. |
-| `aegis-auditor` | `Role::Auditor` | `audit:read`, `node:read`, `firewall:read` | Đội kiểm toán an toàn thông tin (Chỉ đọc nhật ký audit). |
-| `aegis-viewer`, `users` | `Role::Viewer` | `*:read` (Tất cả quyền đọc ngoại trừ write/delete) | Người dùng quan sát metrics & dashboard trạng thái. |
+| **Bất kỳ Linux System User hợp lệ** | `Role::PlatformAdmin` | `*:*` (All Resources & Actions) | Quản trị viên hệ thống có toàn quyền tương tác với Controller. |
 
 ---
 

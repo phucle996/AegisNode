@@ -52,8 +52,8 @@ fn test_pam_group_mapping() {
     assert_eq!(roles, vec![Role::PlatformAdmin]);
     assert_eq!(perms, vec!["*:*"]);
 
-    let viewer_groups = vec!["guests".to_string()];
-    let (roles_v, perms_v) = PamAuthenticator::map_groups_to_permissions(&viewer_groups);
-    assert_eq!(roles_v, vec![Role::Viewer]);
-    assert!(perms_v.contains(&"nodes:read".to_string()));
+    let user_groups = vec!["guests".to_string()];
+    let (roles_v, perms_v) = PamAuthenticator::map_groups_to_permissions(&user_groups);
+    assert_eq!(roles_v, vec![Role::PlatformAdmin]);
+    assert_eq!(perms_v, vec!["*:*"]);
 }
