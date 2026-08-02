@@ -1,10 +1,10 @@
-// Node Enrollment & mTLS Certificate Signing Handlers
-// Xử lý One-Time Enrollment Tokens, CSR Verification & mTLS Heartbeats
+//! Node Enrollment & mTLS Certificate Exchange REST API Handlers (Phase 13 & 23)
+//! Tạo Token đăng ký ngắn hạn, ký CSR Agent CSR và tiếp nhận Heartbeat định kỳ.
 
 use std::result::Result as StdResult;
 use std::sync::Arc;
 
-use aegis_core::pki::{EnrollmentToken, PkiManager};
+use aegis_core::pki::EnrollmentToken;
 use axum::extract::{Json, State};
 use axum::http::StatusCode;
 use serde::{Deserialize, Serialize};
@@ -66,8 +66,10 @@ pub async fn create_enrollment_token_handler(
 ) -> StdResult<Json<CreateEnrollmentTokenResponse>, StatusCode> {
     let ttl = req.ttl_minutes.unwrap_or(60);
     let usages = req.max_usages.unwrap_or(1);
+    // Tạo enrollment token với TTL và giới hạn số lần sử dụng
     let token = EnrollmentToken::new(ttl, usages);
 
+    // Lưu token hash vào DB nếu có kết nối
     if let Some(repo) = &state.repository {
         repo.insert_enrollment_token(&token.token_hash, usages as i32, ttl)
             .await
@@ -91,11 +93,11 @@ pub async fn sign_agent_csr_handler(
         return Err(StatusCode::BAD_REQUEST);
     }
 
-    let pki = PkiManager::new();
     let node_id = Uuid::new_v4();
 
-    // Ký Certificate cấp cho Agent
-    let cert_record = pki
+    // Ký Certificate cấp cho Agent sử dụng PkiManager của ControllerState
+    let cert_record = state
+        .pki_manager
         .sign_agent_csr(node_id, &req.machine_id, &req.hostname, 365)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
@@ -113,7 +115,8 @@ pub async fn sign_agent_csr_handler(
     Ok(Json(NodeEnrollCsrResponse {
         node_id,
         certificate_pem: cert_record.cert_pem,
-        ca_certificate_pem: pki.ca_cert_pem,
+        // PkiManager lưu CA cert dưới dạng public field ca_cert_pem
+        ca_certificate_pem: state.pki_manager.ca_cert_pem.clone(),
         expires_at: cert_record.expires_at.to_rfc3339(),
     }))
 }

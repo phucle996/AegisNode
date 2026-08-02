@@ -4,6 +4,7 @@
 use std::sync::Arc;
 
 use aegis_config::ControllerConfig;
+use aegis_core::pki::PkiManager;
 use aegis_storage::PgRepository;
 use axum::Router;
 use axum::extract::{Json, State};
@@ -12,26 +13,17 @@ use axum::routing::{get, patch, post};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-use crate::auth::require_auth_middleware;
-use crate::enrollment::{
-    create_enrollment_token_handler, node_heartbeat_handler, sign_agent_csr_handler,
-};
-use crate::ha_status::{
-    ha_status_handler, health_check_handler, readiness_check_handler,
-};
-use crate::inventory_router::{get_node_inventory_handler, report_node_inventory_handler};
-use crate::network_router::{create_network_profile_handler, list_network_profiles_handler};
-use crate::rollout_router::{
-    cancel_rollout_handler, create_rollout_handler, get_rollout_status_handler,
-    pause_rollout_handler, resume_rollout_handler, rollback_rollout_handler,
-};
-use crate::systemd_router::{execute_service_op_handler, query_journal_logs_handler};
+use crate::middleware::auth::parse_bearer_token_middleware;
+use crate::routes::*;
 
-/// Controller App State chứa PgRepository và ControllerConfig
+/// Controller App State chứa PgRepository, ControllerConfig và PkiManager
 #[derive(Clone)]
 pub struct ControllerState {
     pub repository: Option<PgRepository>,
     pub config: ControllerConfig,
+    pub pki_manager: PkiManager,
+    /// Trạng thái leader election từ LeaderElector (None = luôn là leader)
+    pub is_leader: bool,
 }
 
 /// Request Payload cho Login API
@@ -68,7 +60,8 @@ pub struct CreateChangePlanRequest {
     pub target_group_id: Option<Uuid>,
 }
 
-/// Handlers cho Controller API
+/// Handler `POST /v1/auth/login`: Xác thực credential và cấp API Token thực
+/// Token được tạo ngẫu nhiên, hash bằng SHA-256 rồi lưu vào DB để xác minh sau
 pub async fn login_handler(
     State(state): State<Arc<ControllerState>>,
     Json(req): Json<LoginRequest>,
@@ -77,13 +70,44 @@ pub async fn login_handler(
         return Err(axum::http::StatusCode::BAD_REQUEST);
     }
 
+    // Xác minh password hash so sánh với HMAC của auth_secret từ config
+    // auth_secret là thông tin bí mật được nạp từ environment/config file
+    let expected_hash = {
+        use sha2::{Digest, Sha256};
+        let mut hasher = Sha256::new();
+        hasher.update(state.config.server.auth_secret.as_bytes());
+        format!("{:x}", hasher.finalize())
+    };
+
+    if req.password_hash != expected_hash {
+        return Err(axum::http::StatusCode::UNAUTHORIZED);
+    }
+
+    // Tạo token ngẫu nhiên và lưu hash vào DB để xác thực sau này
+    let raw_token = Uuid::new_v4().to_string();
+    let token_hash = {
+        use sha2::{Digest, Sha256};
+        let mut hasher = Sha256::new();
+        hasher.update(raw_token.as_bytes());
+        format!("{:x}", hasher.finalize())
+    };
+
+    if let Some(repo) = &state.repository {
+        repo.create_api_token(&req.username, &token_hash)
+            .await
+            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+    } else {
+        // Không có DB thì không thể lưu token an toàn
+        return Err(axum::http::StatusCode::SERVICE_UNAVAILABLE);
+    }
+
     Ok(Json(LoginResponse {
-        token: format!("aegis_token_{}", Uuid::new_v4().simple()),
+        token: raw_token,
         expires_in_seconds: state.config.server.session_ttl_seconds,
     }))
 }
 
-pub async fn list_nodes_handler(
+pub async fn controller_list_nodes_handler(
     State(state): State<Arc<ControllerState>>,
 ) -> Result<Json<Vec<aegis_storage::NodeRecord>>, axum::http::StatusCode> {
     if let Some(repo) = &state.repository {
@@ -97,26 +121,26 @@ pub async fn list_nodes_handler(
     }
 }
 
+/// Handler `POST /v1/nodes/enroll`: Đăng ký Node vào Cluster (yêu cầu có DB)
 pub async fn enroll_node_handler(
     State(state): State<Arc<ControllerState>>,
     Json(req): Json<NodeEnrollRequest>,
 ) -> Result<Json<serde_json::Value>, axum::http::StatusCode> {
-    if let Some(repo) = &state.repository {
-        let record = repo
-            .upsert_node(&req.hostname, &req.ip_address, &req.labels, &req.version)
-            .await
-            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
-        Ok(Json(serde_json::json!({
-            "status": "ENROLLED",
-            "nodeId": record.id,
-            "registeredAt": record.created_at
-        })))
-    } else {
-        Ok(Json(serde_json::json!({
-            "status": "ENROLLED_NO_DB",
-            "nodeId": Uuid::new_v4()
-        })))
-    }
+    let repo = state
+        .repository
+        .as_ref()
+        .ok_or(axum::http::StatusCode::SERVICE_UNAVAILABLE)?;
+
+    let record = repo
+        .upsert_node(&req.hostname, &req.ip_address, &req.labels, &req.version)
+        .await
+        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    Ok(Json(serde_json::json!({
+        "status": "ENROLLED",
+        "nodeId": record.id,
+        "registeredAt": record.created_at
+    })))
 }
 
 /// Xây dựng Axum Router ứng dụng AegisNode Controller Server (`aegisnode server`)
@@ -130,7 +154,7 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
 
     // 2. Routes yêu cầu Authentication middleware
     let protected_routes = Router::new()
-        .route("/v1/nodes", get(list_nodes_handler))
+        .route("/v1/nodes", get(controller_list_nodes_handler))
         .route("/v1/nodes/enroll", post(enroll_node_handler))
         .route(
             "/v1/nodes/:id/inventory",
@@ -161,7 +185,7 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         )
         .route("/v1/enrollment/sign", post(sign_agent_csr_handler))
         .route("/v1/nodes/heartbeat", post(node_heartbeat_handler))
-        .layer(middleware::from_fn(require_auth_middleware));
+        .layer(middleware::from_fn(parse_bearer_token_middleware));
 
     public_routes.merge(protected_routes).with_state(state)
 }

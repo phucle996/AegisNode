@@ -1,11 +1,8 @@
-// Combined Change Plan & Multi-Node Rollouts REST API Handlers & Router cho Controller
-// Phát hành Change Plan, điều phối Multi-Node Rollout với Canary/Batch/AllAtOnce/Manual
-// Phase 17: create_rollout, get_rollout_status
-// Phase 18: pause, resume, cancel, rollback controls + get targets
+//! Multi-Node Rollout & Combined Change Plan REST API Handlers (Phase 17 & 18)
+//! Phát hành Change Plan, điều phối Multi-Node Rollouts (Canary/Batch) và điều khiển Pause/Resume/Cancel/Rollback.
 
 use std::result::Result as StdResult;
 use std::sync::Arc;
-
 use aegis_firewall::CombinedChangePlanner;
 use aegis_models::change_plan::NodeChangePlan;
 use axum::extract::{Json, Path, State};
@@ -14,18 +11,18 @@ use uuid::Uuid;
 
 use crate::controller_router::ControllerState;
 
-// ─── Create Rollout ───────────────────────────────────────────────────────────
-
 /// Handler `POST /v1/rollouts`: Tạo và phát hành Combined Change Plan cho Node
 pub async fn create_rollout_handler(
     State(state): State<Arc<ControllerState>>,
     Json(mut plan): Json<NodeChangePlan>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
+    // Tính toán execution order và risk level cho plan
     let planner = CombinedChangePlanner::new();
     planner
         .plan_execution(&mut plan)
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
 
+    // Lưu rollout vào DB nếu có kết nối PostgreSQL
     if let Some(repo) = &state.repository {
         repo.create_rollout(&plan)
             .await
@@ -41,14 +38,11 @@ pub async fn create_rollout_handler(
     })))
 }
 
-// ─── Get Rollout Status ───────────────────────────────────────────────────────
-
 /// Handler `GET /v1/rollouts/:id`: Lấy báo cáo trạng thái tiến độ Rollout bao gồm node statuses
 pub async fn get_rollout_status_handler(
     State(state): State<Arc<ControllerState>>,
     Path(rollout_id): Path<Uuid>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
-    // Lấy danh sách node targets từ PostgreSQL để hiển thị trạng thái từng node
     let node_statuses = if let Some(repo) = &state.repository {
         repo.get_rollout_targets(rollout_id)
             .await
@@ -80,8 +74,6 @@ pub async fn get_rollout_status_handler(
         })).collect::<Vec<_>>()
     })))
 }
-
-// ─── Rollout Control Handlers (Phase 18) ─────────────────────────────────────
 
 /// Handler `PATCH /v1/rollouts/:id/pause`: Tạm dừng Rollout đang chạy
 pub async fn pause_rollout_handler(
@@ -139,18 +131,18 @@ pub async fn rollback_rollout_handler(
     State(state): State<Arc<ControllerState>>,
     Path(rollout_id): Path<Uuid>,
 ) -> StdResult<Json<serde_json::Value>, StatusCode> {
-    // Lấy danh sách nodes cần rollback (reverse order: cuối cùng rollout → đầu tiên rollback)
+    // Lấy danh sách các node đã succeeded để rollback theo thứ tự ngược
     let rollback_targets = if let Some(repo) = &state.repository {
         let targets = repo
             .get_rollout_targets(rollout_id)
             .await
             .unwrap_or_default();
-        // Lọc chỉ SUCCEEDED nodes và đảo thứ tự
         let mut succeeded: Vec<Uuid> = targets
             .iter()
             .filter(|(_, s)| s == "SUCCEEDED")
             .map(|(id, _)| *id)
             .collect();
+        // Đảo ngược thứ tự để rollback từ cuối về đầu (LIFO)
         succeeded.reverse();
         succeeded
     } else {
