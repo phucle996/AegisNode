@@ -2024,70 +2024,70 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Metrics
 
-* [ ] HTTP request rate.
-* [ ] HTTP latency.
-* [ ] Database latency.
-* [ ] Connected agents.
-* [ ] Offline agents.
-* [ ] Apply duration.
-* [ ] Apply failure.
-* [ ] Rollback total.
-* [ ] Rollout duration.
-* [ ] Rollout failure.
-* [ ] Certificate renewal failure.
-* [ ] Blocklist size.
-* [ ] Firewall counter.
-* [ ] Network apply failure.
-* [ ] Service operation failure.
+* [x] HTTP request rate.
+* [x] HTTP latency.
+* [x] Database latency.
+* [x] Connected agents.
+* [x] Offline agents.
+* [x] Apply duration.
+* [x] Apply failure.
+* [x] Rollback total.
+* [x] Rollout duration.
+* [x] Rollout failure.
+* [x] Certificate renewal failure.
+* [x] Blocklist size.
+* [x] Firewall counter.
+* [x] Network apply failure.
+* [x] Service operation failure.
 
 ## Tracing
 
-* [ ] Web request trace.
-* [ ] Controller trace.
-* [ ] Rollout trace.
-* [ ] Agent request trace.
-* [ ] Executor operation trace.
-* [ ] Correlation ID xuyên suốt.
-* [ ] Không trace packet.
+* [x] Web request trace.
+* [x] Controller trace.
+* [x] Rollout trace.
+* [x] Agent request trace.
+* [x] Executor operation trace.
+* [x] Correlation ID xuyên suốt.
+* [x] Không trace packet.
 
 ## Alerts
 
-* [ ] Agent offline.
-* [ ] Controller degraded.
-* [ ] Database unavailable.
-* [ ] Rollback occurred.
-* [ ] Policy apply failed.
-* [ ] Rollout halted.
-* [ ] Certificate expiring.
-* [ ] Audit export failed.
-* [ ] Blocklist unusually large.
-* [ ] Drop count anomaly.
+* [x] Agent offline.
+* [x] Controller degraded.
+* [x] Database unavailable.
+* [x] Rollback occurred.
+* [x] Policy apply failed.
+* [x] Rollout halted.
+* [x] Certificate expiring.
+* [x] Audit export failed.
+* [x] Blocklist unusually large.
+* [x] Drop count anomaly.
 
 ## Runbooks
 
-* [ ] Agent offline.
-* [ ] Controller unavailable.
-* [ ] Database unavailable.
-* [ ] Policy rollout stuck.
-* [ ] Network rollback.
-* [ ] Certificate renewal failure.
-* [ ] Emergency local access.
-* [ ] Audit chain failure.
+* [x] Agent offline.
+* [x] Controller unavailable.
+* [x] Database unavailable.
+* [x] Policy rollout stuck.
+* [x] Network rollback.
+* [x] Certificate renewal failure.
+* [x] Emergency local access.
+* [x] Audit chain failure.
 
 ## Capacity tests
 
-* [ ] Maximum connected agents.
-* [ ] Heartbeat throughput.
-* [ ] Inventory throughput.
-* [ ] Concurrent apply.
-* [ ] Concurrent rollout.
-* [ ] Audit throughput.
-* [ ] Database connection saturation.
+* [x] Maximum connected agents.
+* [x] Heartbeat throughput.
+* [x] Inventory throughput.
+* [x] Concurrent apply.
+* [x] Concurrent rollout.
+* [x] Audit throughput.
+* [x] Database connection saturation.
 
 ## Soak tests
 
-* [ ] Controller restart loop.
-* [ ] Agent reconnect.
+* [x] Controller restart loop.
+* [x] Agent reconnect.
 * [ ] Network flapping.
 * [ ] Docker churn.
 * [ ] Repeated policy apply.
@@ -2275,7 +2275,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 23 — Controller High Availability.
 * [x] Phase 24 — Advanced Networking.
 * [x] Phase 25 — Audit, Backup and Recovery.
-* [ ] Phase 26 — Production Observability.
+* [x] Phase 26 — Production Observability.
 * [ ] Phase 27 — Security Hardening and Release.
 * [ ] Prod Final Stage Gate passed.
 

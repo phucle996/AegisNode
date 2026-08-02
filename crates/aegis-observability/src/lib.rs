@@ -1,8 +1,16 @@
 //! AegisNode Observability Crate
-//! Khởi tạo Tracing Subscriber, JSON structured logging cho Production và human-readable cho Dev.
-//! Xuất chỉ số Prometheus cho Observability.
+//! Khởi tạo Tracing Subscriber, JSON structured logging cho Production, W3C Distributed Tracing, Prometheus Alerting Rules & Grafana Dashboards.
 
+pub mod alert_rules;
+pub mod grafana_dashboards;
 pub mod prometheus;
+pub mod tracing_context;
+
+pub use alert_rules::{PrometheusAlertRule, generate_prometheus_rules_yaml};
+pub use grafana_dashboards::{
+    generate_firewall_activity_dashboard_json, generate_fleet_health_dashboard_json,
+};
+pub use tracing_context::W3cTraceContext;
 
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
