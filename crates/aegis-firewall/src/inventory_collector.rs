@@ -98,7 +98,11 @@ pub fn collect_network_interfaces() -> Vec<NetworkInterfaceInfo> {
                 .unwrap_or_else(|_| "00:00:00:00:00:00".to_string());
 
             let mtu = fs::read_to_string(iface_path.join("mtu"))
-                .and_then(|s| s.trim().parse::<u32>().map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
+                .and_then(|s| {
+                    s.trim()
+                        .parse::<u32>()
+                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                })
                 .unwrap_or(1500);
 
             let operstate = fs::read_to_string(iface_path.join("operstate"))
@@ -106,11 +110,19 @@ pub fn collect_network_interfaces() -> Vec<NetworkInterfaceInfo> {
                 .unwrap_or_else(|_| "unknown".to_string());
 
             let rx_bytes = fs::read_to_string(iface_path.join("statistics/rx_bytes"))
-                .and_then(|s| s.trim().parse::<u64>().map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
+                .and_then(|s| {
+                    s.trim()
+                        .parse::<u64>()
+                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                })
                 .unwrap_or(0);
 
             let tx_bytes = fs::read_to_string(iface_path.join("statistics/tx_bytes"))
-                .and_then(|s| s.trim().parse::<u64>().map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e)))
+                .and_then(|s| {
+                    s.trim()
+                        .parse::<u64>()
+                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))
+                })
                 .unwrap_or(0);
 
             interfaces.push(NetworkInterfaceInfo {

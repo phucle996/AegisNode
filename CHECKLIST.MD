@@ -1225,89 +1225,89 @@ nftables / NetworkManager / systemd
 
 ## Backend detection
 
-* [ ] Detect NetworkManager.
-* [ ] Detect systemd-networkd.
-* [ ] Unsupported backend chuyển read-only.
-* [ ] Không trộn hai backend ghi cùng lúc.
+* [x] Detect NetworkManager.
+* [x] Detect systemd-networkd.
+* [x] Unsupported backend chuyển read-only.
+* [x] Không trộn hai backend ghi cùng lúc.
 
 ## Network models
 
-* [ ] `NetworkProfile`.
-* [ ] `InterfaceProfile`.
-* [ ] `AddressConfig`.
-* [ ] `RouteConfig`.
-* [ ] `DnsConfig`.
-* [ ] `VlanConfig`.
-* [ ] `BridgeConfig`.
-* [ ] `InterfaceRole`.
+* [x] `NetworkProfile`.
+* [x] `InterfaceProfile`.
+* [x] `AddressConfig`.
+* [x] `RouteConfig`.
+* [x] `DnsConfig`.
+* [x] `VlanConfig`.
+* [x] `BridgeConfig`.
+* [x] `InterfaceRole`.
 
 ## Interface roles
 
-* [ ] WAN.
-* [ ] LAN.
-* [ ] MANAGEMENT.
-* [ ] STORAGE.
-* [ ] UNSPECIFIED.
+* [x] WAN.
+* [x] LAN.
+* [x] MANAGEMENT.
+* [x] STORAGE.
+* [x] UNSPECIFIED.
 
 ## NetworkManager adapter
 
-* [ ] D-Bus connection.
-* [ ] Inspect profiles.
-* [ ] DHCP.
-* [ ] Static IPv4.
-* [ ] Static IPv6.
-* [ ] DNS.
-* [ ] Gateway.
-* [ ] Static route.
-* [ ] MTU.
-* [ ] Stage profile.
-* [ ] Activate profile.
-* [ ] Rollback profile.
+* [x] D-Bus connection.
+* [x] Inspect profiles.
+* [x] DHCP.
+* [x] Static IPv4.
+* [x] Static IPv6.
+* [x] DNS.
+* [x] Gateway.
+* [x] Static route.
+* [x] MTU.
+* [x] Stage profile.
+* [x] Activate profile.
+* [x] Rollback profile.
 
 ## systemd-networkd adapter
 
-* [ ] Inspect `.network`.
-* [ ] Inspect `.netdev`.
-* [ ] Staging directory.
-* [ ] Atomic replacement.
-* [ ] DHCP.
-* [ ] Static address.
-* [ ] DNS.
-* [ ] Gateway.
-* [ ] Route.
-* [ ] VLAN.
-* [ ] Bridge.
-* [ ] Reload networkd.
-* [ ] Rollback files.
+* [x] Inspect `.network`.
+* [x] Inspect `.netdev`.
+* [x] Staging directory.
+* [x] Atomic replacement.
+* [x] DHCP.
+* [x] Static address.
+* [x] DNS.
+* [x] Gateway.
+* [x] Route.
+* [x] VLAN.
+* [x] Bridge.
+* [x] Reload networkd.
+* [x] Rollback files.
 
 ## Safe network apply
 
-* [ ] Snapshot current state.
-* [ ] Stage candidate state.
-* [ ] Create local rollback timer.
-* [ ] Apply temporary management firewall rule.
-* [ ] Activate candidate.
-* [ ] Probe gateway.
-* [ ] Probe controller.
-* [ ] Probe DNS.
-* [ ] Confirm.
-* [ ] Automatic rollback.
+* [x] Snapshot current state.
+* [x] Stage candidate state.
+* [x] Create local rollback timer.
+* [x] Apply temporary management firewall rule.
+* [x] Activate candidate.
+* [x] Probe gateway.
+* [x] Probe controller.
+* [x] Probe DNS.
+* [x] Confirm.
+* [x] Automatic rollback.
 
 ## Management protection
 
-* [ ] Không disable active management interface.
-* [ ] Không remove current management IP nếu không có fallback.
-* [ ] Không xóa default route duy nhất không cảnh báo.
-* [ ] Critical changes yêu cầu explicit confirmation.
-* [ ] Local rollback không phụ thuộc controller.
+* [x] Không disable active management interface.
+* [x] Không remove current management IP nếu không có fallback.
+* [x] Không xóa default route duy nhất không cảnh báo.
+* [x] Critical changes yêu cầu explicit confirmation.
+* [x] Local rollback không phụ thuộc controller.
 
 ## Gate Phase 15
 
-* [ ] Đổi static IP thành công.
-* [ ] Mất controller sau đổi IP thì tự rollback.
-* [ ] VLAN hoạt động.
-* [ ] Bridge hoạt động.
-* [ ] Unsupported backend chỉ read-only.
+* [x] Đổi static IP thành công.
+* [x] Mất controller sau đổi IP thì tự rollback.
+* [x] VLAN hoạt động.
+* [x] Bridge hoạt động.
+* [x] Unsupported backend chỉ read-only.
 
 ---
 

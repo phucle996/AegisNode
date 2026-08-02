@@ -1,11 +1,12 @@
 // PostgreSQL Repository Layer cho AegisNode Controller Server (`aegisnode server`)
-// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates & Node Inventories
+// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates, Inventories & Network Profiles
 
 use std::time::Duration;
 
 use aegis_core::pki::AgentCertificateRecord;
 use aegis_core::{AegisError, Result};
 use aegis_models::inventory::NodeInventoryPayload;
+use aegis_models::network_profile::NetworkProfile;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
@@ -312,6 +313,33 @@ impl PgRepository {
             .await
             .map_err(|e| AegisError::Storage(format!("Failed to upsert network interface: {e}")))?;
         }
+
+        Ok(())
+    }
+
+    /// Lưu Network Profile vào PostgreSQL Database
+    pub async fn save_network_profile(&self, profile: &NetworkProfile) -> Result<()> {
+        let profile_json = serde_json::to_value(profile).map_err(|e| {
+            AegisError::Storage(format!("Failed to serialize network profile: {e}"))
+        })?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO network_profiles (id, name, description, profile_data, updated_at)
+            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (name) DO UPDATE SET
+                description = EXCLUDED.description,
+                profile_data = EXCLUDED.profile_data,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(profile.id)
+        .bind(&profile.name)
+        .bind(&profile.description)
+        .bind(profile_json)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to save network profile: {e}")))?;
 
         Ok(())
     }

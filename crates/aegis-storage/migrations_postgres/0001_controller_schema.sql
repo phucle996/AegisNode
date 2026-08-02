@@ -136,6 +136,16 @@ CREATE TABLE IF NOT EXISTS node_network_interfaces (
     CONSTRAINT unique_node_iface UNIQUE(node_id, interface_name)
 );
 
+-- 13. Bảng Network Profiles (Phase 15)
+CREATE TABLE IF NOT EXISTS network_profiles (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(128) NOT NULL UNIQUE,
+    description TEXT,
+    profile_data JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_seen ON nodes(last_seen_at);
@@ -144,3 +154,4 @@ CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC)
 CREATE INDEX IF NOT EXISTS idx_enrollment_token_hash ON enrollment_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_agent_certs_node ON agent_certificates(node_id);
 CREATE INDEX IF NOT EXISTS idx_node_ifaces_node ON node_network_interfaces(node_id);
+CREATE INDEX IF NOT EXISTS idx_network_profiles_name ON network_profiles(name);
