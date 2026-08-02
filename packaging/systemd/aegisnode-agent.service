@@ -1,0 +1,24 @@
+[Unit]
+Description=AegisNode Local Agent Daemon
+Documentation=https://github.com/phucle996/AegisNode
+After=network.target network-online.target aegisnode-execd.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aegisnode
+Group=aegisnode
+ExecStart=/usr/bin/aegisnode agent --config /etc/aegisnode/agent.yaml
+Restart=on-failure
+RestartSec=5s
+
+# Security Hardening Settings
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+PrivateTmp=true
+ReadOnlyPaths=/etc/aegisnode
+ReadWritePaths=/var/lib/aegisnode /run/aegisnode
+
+[Install]
+WantedBy=multi-user.target

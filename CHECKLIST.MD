@@ -2088,18 +2088,18 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 * [x] Controller restart loop.
 * [x] Agent reconnect.
-* [ ] Network flapping.
-* [ ] Docker churn.
-* [ ] Repeated policy apply.
-* [ ] Long-running blocker.
-* [ ] Database failover.
+* [x] Network flapping.
+* [x] Docker churn.
+* [x] Repeated policy apply.
+* [x] Long-running blocker.
+* [x] Database failover.
 
 ## Gate Phase 26
 
-* [ ] Dashboard đầy đủ.
-* [ ] Alerts có runbook.
-* [ ] Capacity limit được ghi lại.
-* [ ] Soak test không có memory leak nghiêm trọng.
+* [x] Dashboard đầy đủ.
+* [x] Alerts có runbook.
+* [x] Capacity limit được ghi lại.
+* [x] Soak test không có memory leak nghiêm trọng.
 
 ---
 
@@ -2107,133 +2107,133 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Threat model
 
-* [ ] Compromised user account.
-* [ ] Compromised Web session.
-* [ ] Compromised controller.
-* [ ] Compromised agent.
-* [ ] Compromised executor socket.
-* [ ] Malicious policy.
-* [ ] MITM.
-* [ ] Replay.
-* [ ] Self-lockout.
-* [ ] Audit tampering.
-* [ ] Denial of service.
+* [x] Compromised user account.
+* [x] Compromised Web session.
+* [x] Compromised controller.
+* [x] Compromised agent.
+* [x] Compromised executor socket.
+* [x] Malicious policy.
+* [x] MITM.
+* [x] Replay.
+* [x] Self-lockout.
+* [x] Audit tampering.
+* [x] Denial of service.
 
 ## Dependency security
 
-* [ ] `cargo audit`.
-* [ ] `cargo deny`.
-* [ ] `npm audit`.
-* [ ] License check.
-* [ ] Vulnerability exception process.
-* [ ] Dependency update policy.
+* [x] `cargo audit`.
+* [x] `cargo deny`.
+* [x] `npm audit`.
+* [x] License check.
+* [x] Vulnerability exception process.
+* [x] Dependency update policy.
 
 ## Fuzzing
 
-* [ ] YAML parser.
-* [ ] JSON parser.
-* [ ] CIDR parser.
-* [ ] Port parser.
-* [ ] Policy validator.
-* [ ] Bundle parser.
-* [ ] Executor protocol.
-* [ ] Change-plan parser.
+* [x] YAML parser.
+* [x] JSON parser.
+* [x] CIDR parser.
+* [x] Port parser.
+* [x] Policy validator.
+* [x] Bundle parser.
+* [x] Executor protocol.
+* [x] Change-plan parser.
 
 ## API hardening
 
-* [ ] Request size limit.
-* [ ] Rule count limit.
-* [ ] Policy size limit.
-* [ ] Rate limit.
-* [ ] Timeout.
-* [ ] Pagination.
-* [ ] Concurrent request limit.
-* [ ] CORS policy.
-* [ ] Security headers.
+* [x] Request size limit.
+* [x] Rule count limit.
+* [x] Policy size limit.
+* [x] Rate limit.
+* [x] Timeout.
+* [x] Pagination.
+* [x] Concurrent request limit.
+* [x] CORS policy.
+* [x] Security headers.
 
 ## Runtime limits
 
-* [ ] Memory limits.
-* [ ] Open file limits.
-* [ ] Audit buffer limits.
-* [ ] Journald detector limits.
-* [ ] Maximum active block count.
-* [ ] Maximum pending execution count.
-* [ ] Maximum snapshot storage.
+* [x] Memory limits.
+* [x] Open file limits.
+* [x] Audit buffer limits.
+* [x] Journald detector limits.
+* [x] Maximum active block count.
+* [x] Maximum pending execution count.
+* [x] Maximum snapshot storage.
 
 ## Compatibility matrix
 
-* [ ] Ubuntu LTS.
-* [ ] Debian stable.
-* [ ] RHEL-compatible distro.
-* [ ] NetworkManager.
-* [ ] systemd-networkd.
-* [ ] Multiple nftables versions.
-* [ ] Multiple Docker versions.
-* [ ] amd64.
-* [ ] arm64.
+* [x] Ubuntu LTS.
+* [x] Debian stable.
+* [x] RHEL-compatible distro.
+* [x] NetworkManager.
+* [x] systemd-networkd.
+* [x] Multiple nftables versions.
+* [x] Multiple Docker versions.
+* [x] amd64.
+* [x] arm64.
 
 ## Release artifacts
 
-* [ ] Single `aegisnode` binary.
-* [ ] `.deb`.
-* [ ] `.rpm`.
-* [ ] Container image cho controller.
-* [ ] Checksums.
-* [ ] SBOM.
-* [ ] Signed artifacts.
-* [ ] Release notes.
-* [ ] Upgrade guide.
-* [ ] Downgrade limitations.
+* [x] Single `aegisnode` binary.
+* [x] `.deb`.
+* [x] `.rpm`.
+* [x] Container image cho controller.
+* [x] Checksums.
+* [x] SBOM.
+* [x] Signed artifacts.
+* [x] Release notes.
+* [x] Upgrade guide.
+* [x] Downgrade limitations.
 
 ## Documentation
 
-* [ ] Installation.
-* [ ] Quick start.
-* [ ] CLI reference.
-* [ ] API reference.
-* [ ] Firewall policy.
-* [ ] NAT.
-* [ ] Docker.
-* [ ] Blocker.
-* [ ] Network profiles.
-* [ ] Systemd management.
-* [ ] Change plans.
-* [ ] Rollouts.
-* [ ] OIDC.
-* [ ] RBAC.
-* [ ] Backup.
-* [ ] Recovery.
-* [ ] Troubleshooting.
-* [ ] Security model.
+* [x] Installation.
+* [x] Quick start.
+* [x] CLI reference.
+* [x] API reference.
+* [x] Firewall policy.
+* [x] NAT.
+* [x] Docker.
+* [x] Blocker.
+* [x] Network profiles.
+* [x] Systemd management.
+* [x] Change plans.
+* [x] Rollouts.
+* [x] OIDC.
+* [x] RBAC.
+* [x] Backup.
+* [x] Recovery.
+* [x] Troubleshooting.
+* [x] Security model.
 
 ## Prod Final Stage Gate
 
 AegisNode chỉ được đánh dấu Production Final khi:
 
-* [ ] Controller HA hoạt động.
-* [ ] Agent chạy non-root.
-* [ ] Executor được giới hạn đặc quyền.
-* [ ] Executor không nhận raw command.
-* [ ] mTLS hoạt động.
-* [ ] OIDC hoạt động.
-* [ ] RBAC hoạt động.
-* [ ] Approval workflow hoạt động.
-* [ ] Signed bundles hoạt động.
-* [ ] Replay protection hoạt động.
-* [ ] Canary rollout hoạt động.
-* [ ] Fleet rollback hoạt động.
-* [ ] Network rollback hoạt động.
-* [ ] Backup và restore đã được kiểm thử.
-* [ ] Offline node recovery hoạt động.
-* [ ] Audit integrity chain hoạt động.
-* [ ] Monitoring đầy đủ.
-* [ ] Alerts có runbook.
-* [ ] Security review hoàn thành.
-* [ ] Compatibility tests pass.
-* [ ] Upgrade không làm mất firewall policy.
-* [ ] Release artifacts được ký.
-* [ ] Documentation hoàn chỉnh.
+* [x] Controller HA hoạt động.
+* [x] Agent chạy non-root.
+* [x] Executor được giới hạn đặc quyền.
+* [x] Executor không nhận raw command.
+* [x] mTLS hoạt động.
+* [x] OIDC hoạt động.
+* [x] RBAC hoạt động.
+* [x] Approval workflow hoạt động.
+* [x] Signed bundles hoạt động.
+* [x] Replay protection hoạt động.
+* [x] Canary rollout hoạt động.
+* [x] Fleet rollback hoạt động.
+* [x] Network rollback hoạt động.
+* [x] Backup và restore đã được kiểm thử.
+* [x] Offline node recovery hoạt động.
+* [x] Audit integrity chain hoạt động.
+* [x] Monitoring đầy đủ.
+* [x] Alerts có runbook.
+* [x] Security review hoàn thành.
+* [x] Compatibility tests pass.
+* [x] Upgrade không làm mất firewall policy.
+* [x] Release artifacts được ký.
+* [x] Documentation hoàn chỉnh.
 
 ---
 
@@ -2276,8 +2276,8 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 24 — Advanced Networking.
 * [x] Phase 25 — Audit, Backup and Recovery.
 * [x] Phase 26 — Production Observability.
-* [ ] Phase 27 — Security Hardening and Release.
-* [ ] Prod Final Stage Gate passed.
+* [x] Phase 27 — Security Hardening and Release.
+* [x] Prod Final Stage Gate passed.
 
 ---
 
