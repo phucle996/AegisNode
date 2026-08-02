@@ -81,8 +81,33 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 9. Bảng Enrollment Tokens (Phase 13)
+CREATE TABLE IF NOT EXISTS enrollment_tokens (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token_hash VARCHAR(128) NOT NULL UNIQUE,
+    max_usages INT NOT NULL DEFAULT 1,
+    current_usages INT NOT NULL DEFAULT 0,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 10. Bảng Agent Certificates (Phase 13 mTLS)
+CREATE TABLE IF NOT EXISTS agent_certificates (
+    serial_number VARCHAR(128) PRIMARY KEY,
+    node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+    machine_id VARCHAR(128) NOT NULL,
+    hostname VARCHAR(128) NOT NULL,
+    cert_pem TEXT NOT NULL,
+    issued_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMPTZ NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE
+);
+
 -- Indexes tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_seen ON nodes(last_seen_at);
 CREATE INDEX IF NOT EXISTS idx_policy_versions_policy ON policy_versions(policy_id);
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_enrollment_token_hash ON enrollment_tokens(token_hash);
+CREATE INDEX IF NOT EXISTS idx_agent_certs_node ON agent_certificates(node_id);

@@ -27,7 +27,11 @@ pub async fn require_auth_middleware(
         _ => {
             // Cho phép các endpoint công khai (như /v1/status hoặc /v1/auth/login) đi qua
             let path = request.uri().path();
-            if path == "/v1/status" || path == "/v1/auth/login" || path == "/v1/nodes/enroll" {
+            if path == "/v1/status"
+                || path == "/v1/auth/login"
+                || path == "/v1/nodes/enroll"
+                || path == "/v1/enrollment/sign"
+            {
                 Ok(next.run(request).await)
             } else {
                 Err(StatusCode::UNAUTHORIZED)

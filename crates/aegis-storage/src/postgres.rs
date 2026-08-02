@@ -1,8 +1,9 @@
 // PostgreSQL Repository Layer cho AegisNode Controller Server (`aegisnode server`)
-// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking
+// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking và Quản lý mTLS Certificates
 
 use std::time::Duration;
 
+use aegis_core::pki::AgentCertificateRecord;
 use aegis_core::{AegisError, Result};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -100,6 +101,24 @@ impl PgRepository {
         Ok(record)
     }
 
+    /// Cập nhật Heartbeat của Node theo Node ID
+    pub async fn update_node_heartbeat(&self, node_id: Uuid, status: &str) -> Result<()> {
+        sqlx::query(
+            r#"
+            UPDATE nodes
+            SET status = $1, last_seen_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            "#,
+        )
+        .bind(status)
+        .bind(node_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to update node heartbeat: {e}")))?;
+
+        Ok(())
+    }
+
     /// Lấy danh sách tất cả các Nodes trong Cluster
     pub async fn list_nodes(&self) -> Result<Vec<NodeRecord>> {
         let nodes = sqlx::query_as::<_, NodeRecord>(
@@ -148,5 +167,75 @@ impl PgRepository {
         .map_err(|e| AegisError::Storage(format!("Failed to verify token: {e}")))?;
 
         Ok(row.is_some())
+    }
+
+    /// Lưu Enrollment Token vào PostgreSQL
+    pub async fn insert_enrollment_token(
+        &self,
+        token_hash: &str,
+        max_usages: i32,
+        ttl_minutes: i64,
+    ) -> Result<Uuid> {
+        let id = Uuid::new_v4();
+        sqlx::query(
+            r#"
+            INSERT INTO enrollment_tokens (id, token_hash, max_usages, current_usages, expires_at)
+            VALUES ($1, $2, $3, 0, CURRENT_TIMESTAMP + ($4 || ' minutes')::INTERVAL)
+            "#,
+        )
+        .bind(id)
+        .bind(token_hash)
+        .bind(max_usages)
+        .bind(ttl_minutes.to_string())
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to insert enrollment token: {e}")))?;
+
+        Ok(id)
+    }
+
+    /// Tiêu thụ One-Time Enrollment Token (Atomic Usage Increment)
+    pub async fn consume_enrollment_token(&self, token_hash: &str) -> Result<bool> {
+        let result = sqlx::query(
+            r#"
+            UPDATE enrollment_tokens
+            SET current_usages = current_usages + 1
+            WHERE token_hash = $1 AND revoked = FALSE AND expires_at > CURRENT_TIMESTAMP AND current_usages < max_usages
+            RETURNING id
+            "#,
+        )
+        .bind(token_hash)
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to consume enrollment token: {e}")))?;
+
+        Ok(result.is_some())
+    }
+
+    /// Lưu trữ Agent Certificate vào PostgreSQL
+    pub async fn save_agent_certificate(&self, cert: &AgentCertificateRecord) -> Result<()> {
+        sqlx::query(
+            r#"
+            INSERT INTO agent_certificates (serial_number, node_id, machine_id, hostname, cert_pem, issued_at, expires_at, revoked)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (serial_number) DO UPDATE SET
+                cert_pem = EXCLUDED.cert_pem,
+                expires_at = EXCLUDED.expires_at,
+                revoked = EXCLUDED.revoked
+            "#,
+        )
+        .bind(&cert.serial_number)
+        .bind(cert.node_id)
+        .bind(&cert.machine_id)
+        .bind(&cert.hostname)
+        .bind(&cert.cert_pem)
+        .bind(cert.issued_at)
+        .bind(cert.expires_at)
+        .bind(cert.revoked)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to save agent certificate: {e}")))?;
+
+        Ok(())
     }
 }

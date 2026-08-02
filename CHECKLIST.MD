@@ -1106,56 +1106,56 @@ nftables / NetworkManager / systemd
 
 ## Enrollment
 
-* [ ] One-time enrollment token.
-* [ ] Token expiration.
-* [ ] Token revocation.
-* [ ] Token usage limit.
-* [ ] Enrollment audit.
+* [x] One-time enrollment token.
+* [x] Token expiration.
+* [x] Token revocation.
+* [x] Token usage limit.
+* [x] Enrollment audit.
 
 ## Agent identity
 
-* [ ] Node ID.
-* [ ] Hostname.
-* [ ] Machine ID.
-* [ ] Agent version.
-* [ ] Public key.
-* [ ] Basic system inventory.
+* [x] Node ID.
+* [x] Hostname.
+* [x] Machine ID.
+* [x] Agent version.
+* [x] Public key.
+* [x] Basic system inventory.
 
 ## Certificates
 
-* [ ] Internal CA hoặc configurable CA.
-* [ ] Issue client certificate.
-* [ ] Store certificate an toàn.
-* [ ] Certificate renewal.
-* [ ] Certificate revocation.
-* [ ] Certificate expiry monitoring.
+* [x] Internal CA hoặc configurable CA.
+* [x] Issue client certificate.
+* [x] Store certificate an toàn.
+* [x] Certificate renewal.
+* [x] Certificate revocation.
+* [x] Certificate expiry monitoring.
 
 ## mTLS connection
 
-* [ ] Agent xác minh controller.
-* [ ] Controller xác minh agent.
-* [ ] Reject unknown agent.
-* [ ] Reject revoked agent.
-* [ ] Retry với backoff.
-* [ ] Jitter.
-* [ ] Không retry loop tiêu tốn CPU.
+* [x] Agent xác minh controller.
+* [x] Controller xác minh agent.
+* [x] Reject unknown agent.
+* [x] Reject revoked agent.
+* [x] Retry với backoff.
+* [x] Jitter.
+* [x] Không retry loop tiêu tốn CPU.
 
 ## Heartbeat
 
-* [ ] Agent version.
-* [ ] Uptime.
-* [ ] Policy hash.
-* [ ] Health.
-* [ ] Last apply result.
-* [ ] Pending execution.
-* [ ] Timestamp.
+* [x] Agent version.
+* [x] Uptime.
+* [x] Policy hash.
+* [x] Health.
+* [x] Last apply result.
+* [x] Pending execution.
+* [x] Timestamp.
 
 ## Gate Phase 13
 
-* [ ] Agent không certificate không kết nối được.
-* [ ] Token hết hạn bị từ chối.
-* [ ] Revoked certificate bị từ chối.
-* [ ] Controller restart không mất enrollment state.
+* [x] Agent không certificate không kết nối được.
+* [x] Token hết hạn bị từ chối.
+* [x] Revoked certificate bị từ chối.
+* [x] Controller restart không mất enrollment state.
 
 ---
 
