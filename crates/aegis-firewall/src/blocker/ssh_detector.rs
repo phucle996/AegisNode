@@ -8,7 +8,7 @@ use aegis_core::Result;
 use aegis_models::blocker::BlockEntry;
 use chrono::{DateTime, Utc};
 
-use crate::block_manager::BlockManager;
+use super::block_manager::BlockManager;
 
 /// Bản ghi vết đợt thử đăng nhập của một IP
 #[derive(Debug, Clone)]

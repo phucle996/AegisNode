@@ -6,7 +6,7 @@ use std::sync::Arc;
 use aegis_core::Result;
 use serde::{Deserialize, Serialize};
 
-use crate::process_runner::{ProcessRequest, ProcessRunner};
+use super::process_runner::{ProcessRequest, ProcessRunner};
 
 /// Báo cáo khả năng hoạt động của nftables trên host Linux
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -39,34 +39,35 @@ impl CapabilityDetector {
             ipv6_support: false,
         };
 
-        // 1. Kiểm tra nft binary & version
-        let req = ProcessRequest::new("nft", vec!["--version".to_string()]);
-        if let Ok(out) = self.runner.run(req).await {
-            if out.is_success() {
+        // 1. Kiểm tra sự tồn tại của binary 'nft' và phiên bản
+        let version_req = ProcessRequest::new("nft", vec!["--version".to_string()]);
+        if let Ok(output) = self.runner.run(version_req).await {
+            if output.is_success() {
                 report.nft_installed = true;
-                report.nft_version = out.stdout.trim().to_string();
+                report.nft_version = output.stdout.trim().to_string();
+            }
+        }
+
+        if !report.nft_installed {
+            return Ok(report);
+        }
+
+        // 2. Kiểm tra quyền hạn và kernel nftables support bằng câu lệnh syntax check rỗng
+        let check_req = ProcessRequest::new("nft", vec!["list".to_string(), "tables".to_string()]);
+        if let Ok(output) = self.runner.run(check_req).await {
+            if output.is_success() {
+                report.has_permissions = true;
                 report.kernel_support = true;
+            } else if output.stderr.contains("Permission denied")
+                || output.stderr.contains("Operation not permitted")
+            {
+                report.kernel_support = true;
+                report.has_permissions = false;
             }
         }
 
-        // 2. Kiểm tra quyền hạn (Thử list ruleset hoặc nft --check)
-        if report.nft_installed {
-            let req_perm =
-                ProcessRequest::new("nft", vec!["list".to_string(), "ruleset".to_string()]);
-            if let Ok(out) = self.runner.run(req_perm).await {
-                if out.is_success() {
-                    report.has_permissions = true;
-                }
-            }
-        }
-
-        // 3. Kiểm tra hỗ trợ IPv6
-        let req_v6 = ProcessRequest::new("ip", vec!["-6".to_string(), "addr".to_string()]);
-        if let Ok(out) = self.runner.run(req_v6).await {
-            if out.is_success() && !out.stdout.is_empty() {
-                report.ipv6_support = true;
-            }
-        }
+        // 3. Kiểm tra IPv6 Kernel support
+        report.ipv6_support = std::path::Path::new("/proc/sys/net/ipv6").exists();
 
         Ok(report)
     }

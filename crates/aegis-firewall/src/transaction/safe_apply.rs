@@ -9,11 +9,11 @@ use aegis_core::{AegisError, ExecutionId, Result};
 use aegis_models::firewall::FirewallPolicy;
 use tokio::task::JoinHandle;
 
-use crate::backend::FirewallBackend;
-use crate::execution::{ApplyExecution, ExecutionState};
-use crate::health_check::HealthChecker;
-use crate::process_runner::ProcessRunner;
-use crate::snapshot::FirewallSnapshot;
+use super::execution::{ApplyExecution, ExecutionState};
+use super::health_check::HealthChecker;
+use super::snapshot::FirewallSnapshot;
+use crate::runtime::backend::FirewallBackend;
+use crate::runtime::process_runner::ProcessRunner;
 
 /// Struct SafeApplyManager điều phối toàn bộ chu trình Safe Apply
 pub struct SafeApplyManager {
@@ -100,7 +100,7 @@ impl SafeApplyManager {
         };
 
         // 5. Apply compiled ruleset via backend
-        let _apply_result = match self.backend.apply(&compiled).await {
+        match self.backend.apply(&compiled).await {
             Ok(res) => res,
             Err(e) => {
                 self.release_lock(&execution_id);

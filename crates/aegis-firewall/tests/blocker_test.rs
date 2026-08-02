@@ -1,25 +1,40 @@
-// Integration tests cho BlockManager (Allowlist protection) và SshDetector (Sliding Window Threshold Engine)
+// Integration tests cho BlockManager (Dynamic Allowlist & Active Admin IP detection) và SshDetector
 
 use aegis_firewall::{BlockManager, SshDetector};
 use aegis_models::blocker::BlockerConfig;
+use aegis_models::firewall::CidrSpec;
 
 #[test]
 fn test_block_manager_allowlist_protection() {
-    let mut mgr = BlockManager::new(BlockerConfig::default());
+    let mut config = BlockerConfig::default();
+    config.allowlist.push(CidrSpec("10.50.0.0/16".to_string()));
 
-    // 1. Block IP hợp lệ
+    let mut mgr = BlockManager::new(config);
+
+    // 1. Block IP hợp lệ không thuộc allowlist
     let res = mgr.add_block("203.0.113.100", Some(1800), "suspicious activity", "admin");
     assert!(res.is_ok());
     let entry = res.unwrap();
     assert_eq!(entry.ip, "203.0.113.100");
 
-    // 2. Thử block IP thuộc Allowlist (127.0.0.1) -> phải bị từ chối
+    // 2. Thử block IP thuộc Loopback (127.0.0.1) -> phải bị từ chối
     let res_loopback = mgr.add_block("127.0.0.1", Some(1800), "loopback block", "admin");
     assert!(res_loopback.is_err());
 
-    // 3. Thử block IP thuộc Management CIDR (10.1.2.3) -> phải bị từ chối
-    let res_mgmt = mgr.add_block("10.1.2.3", Some(1800), "mgmt block", "admin");
-    assert!(res_mgmt.is_err());
+    // 3. Thử block IP thuộc Explicit Allowlist (10.50.1.2) -> phải bị từ chối
+    let res_explicit = mgr.add_block("10.50.1.2", Some(1800), "explicit allowlist block", "admin");
+    assert!(res_explicit.is_err());
+
+    // 4. Thử block IP thuộc môi trường SSH_CLIENT giả lập (Admin active session) -> phải bị từ chối
+    unsafe {
+        std::env::set_var("SSH_CLIENT", "192.168.1.100 54321 22");
+    }
+    let res_admin_session =
+        mgr.add_block("192.168.1.100", Some(1800), "admin session block", "admin");
+    assert!(res_admin_session.is_err());
+    unsafe {
+        std::env::remove_var("SSH_CLIENT");
+    }
 }
 
 #[test]

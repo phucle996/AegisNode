@@ -53,11 +53,10 @@ async fn test_backend_apply_transaction_with_mock() {
     let yaml_str = include_str!("../../../tests/fixtures/policies/web-server.yaml");
     let policy: FirewallPolicy = serde_yaml::from_str(yaml_str).unwrap();
 
-    let compiled = backend.compile(&policy).await.expect("Failed to compile");
-    let apply_res = backend.apply(&compiled).await.expect("Apply failed");
+    let apply_res = backend.apply_policy(&policy).await.expect("Apply failed");
 
-    assert!(apply_res.success);
-    assert_eq!(apply_res.applied_tables, vec!["inet aegis_filter"]);
+    assert!(apply_res.applied);
+    assert!(apply_res.syntax_check_passed);
 
     let _ = tokio::fs::remove_dir_all(&temp_snap_dir).await;
     let _ = tokio::fs::remove_dir_all(&temp_cand_dir).await;

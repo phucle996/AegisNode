@@ -1,9 +1,13 @@
-// Architecture và Trait định nghĩa cho nftables Compiler
-// Chịu trách nhiệm chuyển đổi FirewallPolicy đã qua validate thành nftables Script chuẩn
+// Module Domain: Compiler (Biên dịch FirewallPolicy & NatPolicy sang nftables script)
+
+pub mod nat;
+pub mod nftables;
 
 use aegis_core::Result;
 use aegis_models::firewall::FirewallPolicy;
 use chrono::{DateTime, Utc};
+pub use nat::NatCompiler;
+pub use nftables::NftablesCompiler;
 use serde::{Deserialize, Serialize};
 
 /// Kết quả đầu ra của quá trình Biên dịch Policy sang nftables Script

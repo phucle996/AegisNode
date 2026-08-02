@@ -1,5 +1,6 @@
 // Trình quản lý BlockManager xử lý việc khóa IP (Manual Block & Auto Block)
-// Đảm bảo kiểm tra Allowlist tuyệt đối trước khi block, hỗ trợ nftables set element generation và dọn dẹp expired entries
+// Tự động detect IP kết nối SSH hiện tại (SSH_CLIENT / SSH_CONNECTION) và loopback
+// KHÔNG hardcode CIDR nội bộ, tôn trọng tuyệt đối cấu hình allowlist động và bảo mật hệ thống
 
 use std::collections::HashMap;
 use std::net::IpAddr;
@@ -23,6 +24,21 @@ impl BlockManager {
         }
     }
 
+    /// Tự động phát hiện IP kết nối quản trị SSH hiện tại của admin (SSH_CLIENT)
+    pub fn detect_active_admin_ip() -> Option<String> {
+        if let Ok(val) = std::env::var("SSH_CLIENT") {
+            if let Some(ip) = val.split_whitespace().next() {
+                return Some(ip.to_string());
+            }
+        }
+        if let Ok(val) = std::env::var("SSH_CONNECTION") {
+            if let Some(ip) = val.split_whitespace().next() {
+                return Some(ip.to_string());
+            }
+        }
+        None
+    }
+
     /// Thêm một IP vào danh sách Block
     pub fn add_block(
         &mut self,
@@ -33,10 +49,10 @@ impl BlockManager {
     ) -> Result<BlockEntry> {
         let trimmed_ip = ip.trim();
 
-        // 1. Kiểm tra Allowlist bảo vệ loopback và management CIDRs
+        // 1. Kiểm tra Allowlist tự động (Loopback, Admin IP hiện tại và Explicit Allowlist CIDRs)
         if self.is_allowlisted(trimmed_ip) {
             return Err(AegisError::Validation(format!(
-                "Cannot block IP '{trimmed_ip}' because it is in the management Allowlist!"
+                "Cannot block IP '{trimmed_ip}' because it is in the management Allowlist or active Admin session!"
             )));
         }
 
@@ -67,17 +83,26 @@ impl BlockManager {
         self.entries.values().cloned().collect()
     }
 
-    /// Kiểm tra một IP có nằm trong Allowlist hay không
+    /// Kiểm tra một IP có nằm trong Allowlist hay không (Auto-detect + Explicit Allowlist)
     pub fn is_allowlisted(&self, ip: &str) -> bool {
         let ip_addr: IpAddr = match ip.parse() {
             Ok(addr) => addr,
             Err(_) => return false,
         };
 
+        // 1. Luôn bảo vệ Loopback
         if ip_addr.is_loopback() {
             return true;
         }
 
+        // 2. Tự động bảo vệ IP session Admin hiện tại (SSH_CLIENT)
+        if let Some(admin_ip) = Self::detect_active_admin_ip() {
+            if admin_ip == ip {
+                return true;
+            }
+        }
+
+        // 3. Kiểm tra danh sách Explicit Allowlist được cấu hình trong Policy
         for cidr in &self.config.allowlist {
             if let Ok(net) = cidr.0.parse::<IpNet>() {
                 if net.contains(&ip_addr) {

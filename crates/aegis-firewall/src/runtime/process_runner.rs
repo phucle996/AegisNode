@@ -3,7 +3,7 @@
 // Tích hợp Timeout và Capture đầy đủ stdout/stderr
 
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 use std::time::Duration;
 
 use aegis_core::{AegisError, Result};
@@ -101,49 +101,47 @@ impl ProcessRunner for DefaultProcessRunner {
                 })
             }
             Ok(Err(e)) => Err(AegisError::Internal(format!(
-                "Failed to execute program '{}': {}",
-                request.program, e
+                "Failed to execute process '{}': {e}",
+                request.program
             ))),
             Err(_) => Err(AegisError::Timeout(format!(
-                "Process '{}' timed out after {}s",
-                request.program, timeout_secs
+                "Process '{}' execution timed out after {timeout_secs}s",
+                request.program
             ))),
         }
     }
 }
 
-/// Mock ProcessRunner phục vụ cho Unit Testing không tác động lên môi trường Linux thực
-#[derive(Clone, Default)]
+/// Mock ProcessRunner phục vụ unit tests và kiểm thử không cần root / Kernel
+#[derive(Default)]
 pub struct MockProcessRunner {
-    responses: Arc<Mutex<HashMap<String, ProcessOutput>>>,
+    mock_responses: Mutex<HashMap<String, ProcessOutput>>,
 }
 
 impl MockProcessRunner {
     pub fn new() -> Self {
         Self {
-            responses: Arc::new(Mutex::new(HashMap::new())),
+            mock_responses: Mutex::new(HashMap::new()),
         }
     }
 
-    /// Đăng ký trước output giả lập cho một câu lệnh (VD: "nft --version" hoặc "nft --check")
-    pub fn register_response(&self, command_key: impl Into<String>, output: ProcessOutput) {
-        let mut guard = self.responses.lock().unwrap();
-        guard.insert(command_key.into(), output);
+    pub fn register_response(&self, program: &str, output: ProcessOutput) {
+        let mut guard = self.mock_responses.lock().unwrap();
+        guard.insert(program.to_string(), output);
+    }
+
+    pub fn set_response(&self, program: &str, output: ProcessOutput) {
+        self.register_response(program, output);
     }
 }
 
 #[async_trait]
 impl ProcessRunner for MockProcessRunner {
     async fn run(&self, request: ProcessRequest) -> Result<ProcessOutput> {
-        let key = format!("{} {}", request.program, request.args.join(" "));
-        let guard = self.responses.lock().unwrap();
-
-        if let Some(output) = guard.get(&key) {
-            Ok(output.clone())
-        } else if let Some(output) = guard.get(&request.program) {
-            Ok(output.clone())
+        let guard = self.mock_responses.lock().unwrap();
+        if let Some(resp) = guard.get(&request.program) {
+            Ok(resp.clone())
         } else {
-            // Trả về ngầm định thành công nếu không có đăng ký đặc biệt
             Ok(ProcessOutput::success(""))
         }
     }

@@ -1,5 +1,6 @@
 // Domain Models cho Blocker, Block Entries, Allowlist và SSH Auto-Blocker
 // Quản lý thông tin IP bị cấm (Temporary & Permanent) và chính sách dọn dẹp bộ nhớ
+// Không hardcode CIDRs nội bộ, chỉ cấu hình loopback mặc định và tự động phát hiện IP quản trị hiện tại
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -47,12 +48,10 @@ impl Default for BlockerConfig {
             threshold: 10,
             window_seconds: 60,
             block_seconds: 1800,
+            // Mặc định chỉ cho phép Loopback, KHÔNG hardcode các dải IP nội bộ RFC1918
             allowlist: vec![
                 CidrSpec("127.0.0.0/8".to_string()),
                 CidrSpec("::1/128".to_string()),
-                CidrSpec("10.0.0.0/8".to_string()),
-                CidrSpec("172.16.0.0/12".to_string()),
-                CidrSpec("192.168.0.0/16".to_string()),
             ],
         }
     }

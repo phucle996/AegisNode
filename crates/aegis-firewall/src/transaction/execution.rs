@@ -65,7 +65,6 @@ impl ApplyExecution {
         }
     }
 
-    /// Kiểm tra xem đợt thực thi đã quá hạn xác nhận (expired) chưa
     pub fn is_expired(&self) -> bool {
         Utc::now() > self.expires_at
     }

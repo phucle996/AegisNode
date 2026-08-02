@@ -61,28 +61,12 @@ impl NatCompiler {
         script.push_str("        type nat hook postrouting priority srcnat; policy accept;\n");
 
         for masq in &policy.masquerade_rules {
-            let src_cond = masq
-                .source_cidr
-                .as_ref()
-                .map_or(String::new(), |c| format!("ip saddr {} ", c.0));
             script.push_str(&format!(
-                "        oifname \"{}\" {}counter masquerade comment \"aegis:nat:{}\"\n",
-                masq.out_interface, src_cond, masq.id
-            ));
-        }
-
-        for snat in &policy.snat_rules {
-            let src_cond = snat
-                .source_cidr
-                .as_ref()
-                .map_or(String::new(), |c| format!("ip saddr {} ", c.0));
-            script.push_str(&format!(
-                "        oifname \"{}\" {}counter snat to {} comment \"aegis:nat:{}\"\n",
-                snat.out_interface, src_cond, snat.to_source, snat.id
+                "        oifname \"{}\" counter masquerade comment \"aegis:nat:{}\"\n",
+                masq.out_interface, masq.id
             ));
         }
         script.push_str("    }\n");
-
         script.push_str("}\n");
 
         Ok(script)
