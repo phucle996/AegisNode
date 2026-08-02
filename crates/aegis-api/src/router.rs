@@ -1,13 +1,57 @@
-//! Axum Router xây dựng các RESTful Routes, API Endpoints và Web UI Static Asset Serving
-//! Phục vụ Web UI SPA tại `/` và API endpoints tại `/v1/*`
+// Axum Router xây dựng các RESTful Routes, API Endpoints và Embedded Web UI Static Asset Serving
+// Phục vụ Web UI SPA nhúng trực tiếp trong binary tại `/` và API endpoints tại `/v1/*`
+
+use std::sync::Arc;
 
 use axum::Router;
+use axum::http::{HeaderValue, StatusCode, Uri, header};
+use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
-use std::sync::Arc;
-use tower_http::services::{ServeDir, ServeFile};
+use rust_embed::RustEmbed;
 
 use crate::routes::*;
 use crate::state::AppState;
+
+/// Struct nhúng thư mục assets Web UI `web/dist` trực tiếp vào binary lúc compile
+#[derive(RustEmbed)]
+#[folder = "../../web/dist"]
+pub struct WebAssets;
+
+/// Handler phục vụ file tĩnh và SPA Fallback index.html từ bộ nhớ nhúng
+pub async fn static_asset_handler(uri: Uri) -> impl IntoResponse {
+    let mut path = uri.path().trim_start_matches('/');
+    if path.is_empty() {
+        path = "index.html";
+    }
+
+    match WebAssets::get(path) {
+        Some(content) => {
+            // Xác định MIME type phù hợp dựa vào đuôi mở rộng của file
+            let mime = mime_guess::from_path(path).first_or_octet_stream();
+            let header_val = HeaderValue::from_str(mime.as_ref())
+                .unwrap_or_else(|_| HeaderValue::from_static("application/octet-stream"));
+
+            (
+                StatusCode::OK,
+                [(header::CONTENT_TYPE, header_val)],
+                content.data,
+            )
+                .into_response()
+        }
+        None => {
+            // SPA Fallback: Trả về index.html cho mọi đường dẫn Client-side routing
+            match WebAssets::get("index.html") {
+                Some(content) => (
+                    StatusCode::OK,
+                    [(header::CONTENT_TYPE, HeaderValue::from_static("text/html"))],
+                    content.data,
+                )
+                    .into_response(),
+                None => (StatusCode::NOT_FOUND, "Web UI Assets Not Embedded").into_response(),
+            }
+        }
+    }
+}
 
 /// Xây dựng Axum Router ứng dụng AegisNode Local Agent API & Static Web UI
 pub fn create_router(state: Arc<AppState>) -> Router {
@@ -27,9 +71,6 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/v1/blocker/remove", post(remove_block_entry_handler))
         .with_state(state);
 
-    // Phục vụ Web UI static assets từ `web/dist` với SPA fallback về index.html
-    let serve_dir =
-        ServeDir::new("web/dist").not_found_service(ServeFile::new("web/dist/index.html"));
-
-    api_routes.fallback_service(serve_dir)
+    // Gắn handler static_asset_handler làm fallback service cho mọi route frontend
+    api_routes.fallback(static_asset_handler)
 }

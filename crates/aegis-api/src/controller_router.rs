@@ -180,5 +180,8 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .route("/v1/nodes/heartbeat", post(node_heartbeat_handler))
         .layer(middleware::from_fn(parse_bearer_token_middleware));
 
-    public_routes.merge(protected_routes).with_state(state)
+    public_routes
+        .merge(protected_routes)
+        .with_state(state)
+        .fallback(crate::router::static_asset_handler)
 }
