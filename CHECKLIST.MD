@@ -1315,66 +1315,66 @@ nftables / NetworkManager / systemd
 
 ## Systemd integration
 
-* [ ] D-Bus client.
-* [ ] List units.
-* [ ] Inspect unit.
-* [ ] Start.
-* [ ] Stop.
-* [ ] Restart.
-* [ ] Reload.
-* [ ] Enable.
-* [ ] Disable.
+* [x] D-Bus client.
+* [x] List units.
+* [x] Inspect unit.
+* [x] Start.
+* [x] Stop.
+* [x] Restart.
+* [x] Reload.
+* [x] Enable.
+* [x] Disable.
 
 ## Typed operation
 
-* [ ] Không nhận command string.
-* [ ] Validate unit name.
-* [ ] Validate operation.
-* [ ] Operation timeout.
-* [ ] Capture result.
-* [ ] Audit operation.
+* [x] Không nhận command string.
+* [x] Validate unit name.
+* [x] Validate operation.
+* [x] Operation timeout.
+* [x] Capture result.
+* [x] Audit operation.
 
 ## Allowlist
 
-* [ ] Configurable allowed units.
-* [ ] Deny unit ngoài allowlist.
-* [ ] Group-level service policy.
-* [ ] Node-level override.
+* [x] Configurable allowed units.
+* [x] Deny unit ngoài allowlist.
+* [x] Group-level service policy.
+* [x] Node-level override.
 
 ## Protected units
 
-* [ ] `aegisnode-agent.service`.
-* [ ] `dbus.service`.
-* [ ] `systemd-logind.service`.
-* [ ] `NetworkManager.service`.
-* [ ] `systemd-networkd.service`.
-* [ ] SSH yêu cầu elevated confirmation.
-* [ ] Không cho self-stop qua remote API.
+* [x] `aegisnode-agent.service`.
+* [x] `dbus.service`.
+* [x] `systemd-logind.service`.
+* [x] `NetworkManager.service`.
+* [x] `systemd-networkd.service`.
+* [x] SSH yêu cầu elevated confirmation.
+* [x] Không cho self-stop qua remote API.
 
 ## Journald viewer
 
-* [ ] Filter unit.
-* [ ] Filter priority.
-* [ ] Filter time range.
-* [ ] Cursor pagination.
-* [ ] Result limit.
-* [ ] Redact sensitive fields nếu cần.
+* [x] Filter unit.
+* [x] Filter priority.
+* [x] Filter time range.
+* [x] Cursor pagination.
+* [x] Result limit.
+* [x] Redact sensitive fields nếu cần.
 
 ## Desired service state
 
-* [ ] Running.
-* [ ] Stopped.
-* [ ] Enabled.
-* [ ] Disabled.
-* [ ] Drift detection.
-* [ ] Optional reconcile.
+* [x] Running.
+* [x] Stopped.
+* [x] Enabled.
+* [x] Disabled.
+* [x] Drift detection.
+* [x] Optional reconcile.
 
 ## Gate Phase 16
 
-* [ ] Không thể chạy arbitrary shell.
-* [ ] Protected unit không bị stop.
-* [ ] Journal query có pagination.
-* [ ] Mọi service operation có audit.
+* [x] Không thể chạy arbitrary shell.
+* [x] Protected unit không bị stop.
+* [x] Journal query có pagination.
+* [x] Mọi service operation có audit.
 
 ---
 

@@ -9,6 +9,7 @@ pub mod inventory_router;
 pub mod network_router;
 pub mod router;
 pub mod state;
+pub mod systemd_router;
 
 pub use controller_router::{ControllerState, create_controller_router};
 pub use router::create_router;

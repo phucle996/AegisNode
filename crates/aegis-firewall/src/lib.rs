@@ -1,5 +1,5 @@
 //! AegisNode Firewall Crate
-//! Chứa Compilers, Runtime Engine, Transaction Safe Apply, Inspectors, Inventory Collector, Network Backend Detector và Blocker Engine.
+//! Chứa Compilers, Runtime Engine, Transaction Safe Apply, Inspectors, Inventory Collector, Network Backend Detector, Systemd Manager và Blocker Engine.
 
 pub mod blocker;
 pub mod compiler;
@@ -7,6 +7,7 @@ pub mod inspectors;
 pub mod inventory_collector;
 pub mod network_backend;
 pub mod runtime;
+pub mod systemd_manager;
 pub mod transaction;
 
 pub use blocker::{BlockManager, SshDetector};
@@ -22,6 +23,9 @@ pub use runtime::{
     ApplyResult, CapabilityDetector, DefaultProcessRunner, FirewallBackend, FirewallState,
     MockProcessRunner, NftCapabilityReport, NftablesRuntimeBackend, ProcessOutput, ProcessRequest,
     ProcessRunner,
+};
+pub use systemd_manager::{
+    PROTECTED_SYSTEM_UNITS, SystemdManager, is_protected_unit, validate_unit_name,
 };
 pub use transaction::{
     ApplyExecution, ExecutionState, FirewallSnapshot, HealthCheckReport, HealthChecker,

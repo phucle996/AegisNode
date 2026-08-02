@@ -146,6 +146,16 @@ CREATE TABLE IF NOT EXISTS network_profiles (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 14. Bảng Service Policies (Phase 16 Systemd)
+CREATE TABLE IF NOT EXISTS service_policies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(128) NOT NULL UNIQUE,
+    allowed_units TEXT[] NOT NULL DEFAULT '{}',
+    protected_units TEXT[] NOT NULL DEFAULT '{}',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Indexes tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_seen ON nodes(last_seen_at);
@@ -155,3 +165,4 @@ CREATE INDEX IF NOT EXISTS idx_enrollment_token_hash ON enrollment_tokens(token_
 CREATE INDEX IF NOT EXISTS idx_agent_certs_node ON agent_certificates(node_id);
 CREATE INDEX IF NOT EXISTS idx_node_ifaces_node ON node_network_interfaces(node_id);
 CREATE INDEX IF NOT EXISTS idx_network_profiles_name ON network_profiles(name);
+CREATE INDEX IF NOT EXISTS idx_service_policies_name ON service_policies(name);

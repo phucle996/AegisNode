@@ -1,5 +1,5 @@
 // PostgreSQL Repository Layer cho AegisNode Controller Server (`aegisnode server`)
-// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates, Inventories & Network Profiles
+// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates, Inventories, Network Profiles & Service Policies
 
 use std::time::Duration;
 
@@ -342,5 +342,34 @@ impl PgRepository {
         .map_err(|e| AegisError::Storage(format!("Failed to save network profile: {e}")))?;
 
         Ok(())
+    }
+
+    /// Lưu Service Policy (Allowlist & Protected Units) vào PostgreSQL
+    pub async fn save_service_policy(
+        &self,
+        name: &str,
+        allowed_units: &[String],
+        protected_units: &[String],
+    ) -> Result<Uuid> {
+        let id = Uuid::new_v4();
+        sqlx::query(
+            r#"
+            INSERT INTO service_policies (id, name, allowed_units, protected_units, updated_at)
+            VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+            ON CONFLICT (name) DO UPDATE SET
+                allowed_units = EXCLUDED.allowed_units,
+                protected_units = EXCLUDED.protected_units,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(id)
+        .bind(name)
+        .bind(allowed_units)
+        .bind(protected_units)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to save service policy: {e}")))?;
+
+        Ok(id)
     }
 }
