@@ -26,6 +26,15 @@ impl ProcessRequest {
             timeout_seconds: Some(10), // Mặc định timeout 10 giây
         }
     }
+
+    /// Chuyển đổi ProcessRequest thành chuỗi command dạng 'program arg1 arg2'
+    pub fn to_command_string(&self) -> String {
+        if self.args.is_empty() {
+            self.program.clone()
+        } else {
+            format!("{} {}", self.program, self.args.join(" "))
+        }
+    }
 }
 
 /// Kết quả trả về sau khi thực thi lệnh hệ thống
@@ -139,7 +148,10 @@ impl MockProcessRunner {
 impl ProcessRunner for MockProcessRunner {
     async fn run(&self, request: ProcessRequest) -> Result<ProcessOutput> {
         let guard = self.mock_responses.lock().unwrap();
-        if let Some(resp) = guard.get(&request.program) {
+        let cmd = request.to_command_string();
+        if let Some(resp) = guard.get(&cmd) {
+            Ok(resp.clone())
+        } else if let Some(resp) = guard.get(&request.program) {
             Ok(resp.clone())
         } else {
             Ok(ProcessOutput::success(""))

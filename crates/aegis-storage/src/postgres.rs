@@ -198,6 +198,43 @@ impl PgRepository {
         Ok(())
     }
 
+    /// Nạp Root CA đang hoạt động từ PostgreSQL cho Controller Replicas trong môi trường HA
+    pub async fn get_active_root_ca(&self) -> Result<Option<(String, String)>> {
+        // Truy vấn bản ghi Root CA active duy nhất trong bảng cluster_pki_ca
+        let row = sqlx::query_as::<_, (String, String)>(
+            r#"
+            SELECT ca_cert_pem, ca_key_pem
+            FROM cluster_pki_ca
+            WHERE active = TRUE
+            ORDER BY created_at DESC
+            LIMIT 1
+            "#,
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to fetch active Root CA: {e}")))?;
+
+        Ok(row)
+    }
+
+    /// Lưu trữ bản ghi Root CA mới vào PostgreSQL để sử dụng chung toàn Cluster
+    pub async fn save_root_ca(&self, ca_cert_pem: &str, ca_key_pem: &str) -> Result<()> {
+        // Lưu bản ghi Root CA mới với trạng thái active = TRUE
+        sqlx::query(
+            r#"
+            INSERT INTO cluster_pki_ca (ca_cert_pem, ca_key_pem, active)
+            VALUES ($1, $2, TRUE)
+            "#,
+        )
+        .bind(ca_cert_pem)
+        .bind(ca_key_pem)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to save Root CA: {e}")))?;
+
+        Ok(())
+    }
+
     /// Cập nhật hoặc chèn mới Node Inventory (System, Network & Runtime) vào PostgreSQL
     pub async fn upsert_node_inventory(
         &self,

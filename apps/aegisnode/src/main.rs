@@ -203,11 +203,33 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
         }
     };
 
+    // Khởi tạo PKI Manager với tính năng hỗ trợ Controller High Availability (HA)
+    let pki_manager = if let Some(repo) = &repository {
+        // Kiểm tra xem đã có Root CA active duy nhất trong DB hay chưa
+        match repo.get_active_root_ca().await {
+            Ok(Some((ca_cert_pem, ca_key_pem))) => {
+                info!("Successfully loaded existing Cluster Root CA from PostgreSQL Storage.");
+                aegis_core::pki::PkiManager::from_pem(ca_cert_pem, ca_key_pem)
+            }
+            _ => {
+                // Nếu chưa có Root CA trong DB, tự sinh bộ Root CA X.509 mới và lưu vào DB
+                info!("No existing Root CA found in DB. Generating new Cluster Root CA...");
+                let (ca_cert_pem, ca_key_pem) = aegis_core::pki::PkiManager::generate_internal_root_ca()?;
+                if let Err(e) = repo.save_root_ca(&ca_cert_pem, &ca_key_pem).await {
+                    warn!("Failed to persist new Root CA to DB: {e}");
+                }
+                aegis_core::pki::PkiManager::from_pem(ca_cert_pem, ca_key_pem)
+            }
+        }
+    } else {
+        // Mode Fallback khi không có kết nối DB: Tự sinh Root CA tạm thời cho session
+        aegis_core::pki::PkiManager::new()
+    };
+
     let controller_state = Arc::new(ControllerState {
         repository,
         config: config.clone(),
-        // PKI Manager khởi tạo tự động từ internal Root CA
-        pki_manager: aegis_core::pki::PkiManager::new(),
+        pki_manager,
         // Mặc định coi replica đơn này là leader; LeaderElector sẽ cập nhật sau
         is_leader: true,
     });

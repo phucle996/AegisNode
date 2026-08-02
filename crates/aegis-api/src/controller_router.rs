@@ -72,18 +72,9 @@ pub async fn login_handler(
         return Err(axum::http::StatusCode::BAD_REQUEST);
     }
 
-    // 1. Xác thực tài khoản Linux OS qua PAM / System Groups
-    let groups = match PamAuthenticator::authenticate(&req.username, &req.password_hash) {
-        Ok(g) => g,
-        Err(_) => {
-            // Cho phép admin / root fallback nếu đang ở môi trường test hoặc dev mode
-            if req.username == "admin" || req.username == "root" {
-                vec!["sudo".to_string(), "wheel".to_string()]
-            } else {
-                return Err(axum::http::StatusCode::UNAUTHORIZED);
-            }
-        }
-    };
+    // 1. Xác thực tài khoản Linux OS qua PAM / System Groups thực sự (Không sử dụng Fallback)
+    let groups = PamAuthenticator::authenticate(&req.username, &req.password_hash)
+        .map_err(|_| axum::http::StatusCode::UNAUTHORIZED)?;
 
     // 2. Ánh xạ từ Linux Groups sang Roles & Permissions list
     let (roles, permissions) = PamAuthenticator::map_groups_to_permissions(&groups);

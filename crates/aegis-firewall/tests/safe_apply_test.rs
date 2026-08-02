@@ -26,6 +26,10 @@ fn setup_test_manager() -> (SafeApplyManager, PathBufCleaner) {
         "ip link show lo",
         ProcessOutput::success("1: lo: <LOOPBACK,UP,LOWER_UP>"),
     );
+    runner.register_response(
+        "ping -c 1 127.0.0.1",
+        ProcessOutput::success("1 packets transmitted, 1 received, 0% packet loss"),
+    );
 
     let temp_snap_dir =
         std::env::temp_dir().join(format!("aegis_safe_snap_{}", uuid::Uuid::new_v4()));
