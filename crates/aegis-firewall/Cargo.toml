@@ -7,4 +7,9 @@ license.workspace = true
 [dependencies]
 aegis-core.workspace = true
 aegis-models.workspace = true
+aegis-policy.workspace = true
+serde.workspace = true
+serde_yaml.workspace = true
+uuid.workspace = true
+chrono.workspace = true
 async-trait.workspace = true

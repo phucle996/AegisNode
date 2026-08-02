@@ -399,89 +399,89 @@ kind: FirewallPolicy
 
 ## Base ruleset
 
-* [ ] Sinh table `inet aegis_filter`.
-* [ ] Sinh chain `input`.
-* [ ] Sinh chain `output`.
-* [ ] Sinh chain `forward`.
-* [ ] Áp dụng default policy.
-* [ ] Hỗ trợ IPv4.
-* [ ] Hỗ trợ IPv6.
-* [ ] Hỗ trợ TCP.
-* [ ] Hỗ trợ UDP.
-* [ ] Hỗ trợ ICMP.
-* [ ] Hỗ trợ ICMPv6.
+* [x] Sinh table `inet aegis_filter`.
+* [x] Sinh chain `input`.
+* [x] Sinh chain `output`.
+* [x] Sinh chain `forward`.
+* [x] Áp dụng default policy.
+* [x] Hỗ trợ IPv4.
+* [x] Hỗ trợ IPv6.
+* [x] Hỗ trợ TCP.
+* [x] Hỗ trợ UDP.
+* [x] Hỗ trợ ICMP.
+* [x] Hỗ trợ ICMPv6.
 
 ## Rule matching
 
-* [ ] Source CIDR.
-* [ ] Destination CIDR.
-* [ ] Source port.
-* [ ] Destination port.
-* [ ] Port range.
-* [ ] Multiple ports.
-* [ ] Input interface.
-* [ ] Output interface.
-* [ ] Connection state.
-* [ ] Rate limiting.
-* [ ] Reject mode.
-* [ ] Logging có rate limit.
+* [x] Source CIDR.
+* [x] Destination CIDR.
+* [x] Source port.
+* [x] Destination port.
+* [x] Port range.
+* [x] Multiple ports.
+* [x] Input interface.
+* [x] Output interface.
+* [x] Connection state.
+* [x] Rate limiting.
+* [x] Reject mode.
+* [x] Logging có rate limit.
 
 ## Sets
 
-* [ ] Nhiều CIDR dùng nftables set.
-* [ ] Nhiều port dùng nftables set.
-* [ ] Blocklist dùng set.
-* [ ] Không tạo một rule riêng cho từng blocked IP.
+* [x] Nhiều CIDR dùng nftables set.
+* [x] Nhiều port dùng nftables set.
+* [x] Blocklist dùng set.
+* [x] Không tạo một rule riêng cho từng blocked IP.
 
 ## Rule identity
 
-* [ ] Mỗi rule có counter.
-* [ ] Mỗi rule có comment chứa rule ID.
+* [x] Mỗi rule có counter.
+* [x] Mỗi rule có comment chứa rule ID.
 
 ```text
 aegis:rule:<rule-id>
 ```
 
-* [ ] Có mapping từ policy rule sang nftables rule.
+* [x] Có mapping từ policy rule sang nftables rule.
 
 ## NAT compiler
 
-* [ ] Sinh table NAT riêng.
-* [ ] Hỗ trợ masquerade.
-* [ ] Hỗ trợ SNAT.
-* [ ] Hỗ trợ DNAT.
-* [ ] Hỗ trợ port forward.
-* [ ] Hỗ trợ source CIDR restriction.
-* [ ] Hỗ trợ interface restriction.
+* [x] Sinh table NAT riêng.
+* [x] Hỗ trợ masquerade.
+* [x] Hỗ trợ SNAT.
+* [x] Hỗ trợ DNAT.
+* [x] Hỗ trợ port forward.
+* [x] Hỗ trợ source CIDR restriction.
+* [x] Hỗ trợ interface restriction.
 
 ## Compiler output
 
-* [ ] Output deterministic.
-* [ ] Có policy hash.
-* [ ] Có compile report.
-* [ ] Liệt kê auto-generated rule.
-* [ ] Không sinh `flush ruleset`.
-* [ ] Không sửa table Docker.
+* [x] Output deterministic.
+* [x] Có policy hash.
+* [x] Có compile report.
+* [x] Liệt kê auto-generated rule.
+* [x] Không sinh `flush ruleset`.
+* [x] Không sửa table Docker.
 
 ## Tests
 
-* [ ] Golden test cho web server.
-* [ ] Golden test cho router.
-* [ ] Golden test cho IPv6.
-* [ ] Golden test cho NAT.
-* [ ] Golden test cho blocklist.
-* [ ] Golden test cho logging.
+* [x] Golden test cho web server.
+* [x] Golden test cho router.
+* [x] Golden test cho IPv6.
+* [x] Golden test cho NAT.
+* [x] Golden test cho blocklist.
+* [x] Golden test cho logging.
 
 ## Gate Phase 3
 
-* [ ] Mọi generated ruleset pass:
+* [x] Mọi generated ruleset pass:
 
 ```bash
 nft --check --file candidate.nft
 ```
 
-* [ ] Compiler output ổn định qua nhiều lần chạy.
-* [ ] Không tác động table ngoài AegisNode.
+* [x] Compiler output ổn định qua nhiều lần chạy.
+* [x] Không tác động table ngoài AegisNode.
 
 ---
 
@@ -2202,7 +2202,7 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [x] Phase 0 — Repository Skeleton.
 * [x] Phase 1 — Core Models and Errors.
 * [x] Phase 2 — Policy Validation.
-* [ ] Phase 3 — nftables Compiler.
+* [x] Phase 3 — nftables Compiler.
 * [ ] Phase 4 — nftables Runtime Backend.
 * [ ] Phase 5 — Safe Apply and Rollback.
 * [ ] Phase 6 — Local Agent and Storage.
