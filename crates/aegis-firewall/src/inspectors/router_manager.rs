@@ -2,7 +2,7 @@
 // Đọc/ghi /proc/sys/net/ipv4/ip_forward và /proc/sys/net/ipv6/conf/all/forwarding
 // Tự động lưu SysctlSnapshot trước khi thay đổi và khôi phục khi Rollback
 
-use aegis_core::Result;
+use aegis_core::{AegisError, Result};
 use serde::{Deserialize, Serialize};
 
 /// Bản chụp trạng thái giá trị Sysctl trước khi bật Router Mode
@@ -41,20 +41,33 @@ impl RouterManager {
         })
     }
 
-    /// Thiết lập bật/tắt IP Forwarding trên Kernel
+    /// Thiết lập bật/tắt IP Forwarding trên Kernel và kiểm tra lỗi ghi sysctl an toàn
     pub async fn set_ip_forwarding(enable: bool) -> Result<SysctlSnapshot> {
         let snapshot = Self::read_sysctl_forwarding().await?;
         let target_val = if enable { "1" } else { "0" };
 
-        let _ = tokio::fs::write("/proc/sys/net/ipv4/ip_forward", target_val).await;
-        let _ = tokio::fs::write("/proc/sys/net/ipv6/conf/all/forwarding", target_val).await;
+        // Ghi giá trị IPv4 forwarding vào kernel sysctl procfs
+        tokio::fs::write("/proc/sys/net/ipv4/ip_forward", target_val)
+            .await
+            .map_err(|e| {
+                AegisError::Firewall(format!("Không thể ghi sysctl IPv4 forwarding: {e}"))
+            })?;
+
+        // Ghi giá trị IPv6 forwarding vào kernel sysctl procfs
+        tokio::fs::write("/proc/sys/net/ipv6/conf/all/forwarding", target_val)
+            .await
+            .map_err(|e| {
+                AegisError::Firewall(format!("Không thể ghi sysctl IPv6 forwarding: {e}"))
+            })?;
 
         Ok(snapshot)
     }
 
     /// Khôi phục lại giá trị Sysctl từ Snapshot khi Rollback
     pub async fn restore_sysctl(snapshot: &SysctlSnapshot) -> Result<()> {
+        // Khôi phục lại giá trị IPv4 forwarding cũ
         let _ = tokio::fs::write("/proc/sys/net/ipv4/ip_forward", &snapshot.old_ipv4_forward).await;
+        // Khôi phục lại giá trị IPv6 forwarding cũ
         let _ = tokio::fs::write(
             "/proc/sys/net/ipv6/conf/all/forwarding",
             &snapshot.old_ipv6_forward,

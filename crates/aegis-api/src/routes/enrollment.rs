@@ -40,6 +40,8 @@ pub struct NodeEnrollCsrRequest {
     pub machine_id: String,
     pub ip_address: String,
     pub csr_pem: String,
+    // Phiên bản thực tế của Agent gửi lên khi đăng ký (mặc định 1.1.5 nếu không truyền)
+    pub version: Option<String>,
 }
 
 /// Response Payload trả về Client Certificate cho Agent
@@ -130,7 +132,9 @@ pub async fn sign_agent_csr_handler(
 
     // 5. Lưu thông tin Node & Certificate bản ghi vào PostgreSQL Database
     let labels = serde_json::json!({ "machineId": req.machine_id });
-    repo.upsert_node(&req.hostname, &req.ip_address, &labels, "1.1.2")
+    // Lấy phiên bản động gửi từ Agent (mặc định 1.1.5 nếu rỗng)
+    let agent_version = req.version.as_deref().unwrap_or("1.1.5");
+    repo.upsert_node(&req.hostname, &req.ip_address, &labels, agent_version)
         .await
         .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
     repo.save_agent_certificate(&cert_record)

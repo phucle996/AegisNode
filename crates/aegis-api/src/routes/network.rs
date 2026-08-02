@@ -128,12 +128,24 @@ pub async fn apply_network_config_handler(
     })))
 }
 
-/// Handler `GET /v1/network/profiles`: Lấy danh sách Network Profiles từ CSDL
+/// Handler `GET /v1/network/profiles`: Lấy danh sách Network Profiles từ CSDL PostgreSQL thực tế
 pub async fn list_network_profiles_handler(
-    _state: State<Arc<ControllerState>>,
+    State(state): State<Arc<ControllerState>>,
 ) -> StdResult<Json<Vec<NetworkProfile>>, StatusCode> {
-    let default_profile = NetworkProfile::default();
-    Ok(Json(vec![default_profile]))
+    // Nếu có kết nối PostgreSQL repository
+    if let Some(repo) = &state.repository {
+        // Truy vấn danh sách tất cả các Network Profiles đã lưu trong cơ sở dữ liệu
+        let profiles = repo
+            .list_network_profiles()
+            .await
+            .unwrap_or_else(|_| vec![NetworkProfile::default()]);
+        // Trả về danh sách profiles dưới dạng JSON
+        Ok(Json(profiles))
+    } else {
+        // Mode Fallback: Trả về Network Profile mặc định nếu chưa kết nối CSDL
+        let default_profile = NetworkProfile::default();
+        Ok(Json(vec![default_profile]))
+    }
 }
 
 /// Handler `POST /v1/network/profiles`: Tạo hoặc cập nhật Network Profile

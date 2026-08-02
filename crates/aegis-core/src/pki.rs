@@ -195,10 +195,17 @@ impl PkiManager {
                 .distinguished_name
                 .push(DnType::OrganizationName, "AegisNode Agent");
 
-            // Tải KeyPair từ CSR PEM nếu có hoặc tự động sinh mới
+            // Tải KeyPair từ CSR PEM nếu có hoặc tự động sinh mới một cách an toàn không dùng unwrap
             let agent_key_pair = if !csr_pem.trim().is_empty() {
-                KeyPair::from_pem(csr_pem).unwrap_or_else(|_| KeyPair::generate().unwrap())
+                // Thử parse KeyPair từ chuỗi CSR PEM
+                match KeyPair::from_pem(csr_pem) {
+                    Ok(kp) => kp,
+                    Err(_) => KeyPair::generate().map_err(|e| {
+                        AegisError::Internal(format!("Failed to gen Agent KeyPair fallback: {e}"))
+                    })?,
+                }
             } else {
+                // Sinh mới cặp khóa KeyPair bất đối xứng cho Agent nếu CSR PEM rỗng
                 KeyPair::generate().map_err(|e| {
                     AegisError::Internal(format!("Failed to gen Agent KeyPair: {e}"))
                 })?

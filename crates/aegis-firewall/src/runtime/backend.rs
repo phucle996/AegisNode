@@ -193,7 +193,10 @@ impl FirewallBackend for NftablesRuntimeBackend {
 
         let output = self.runner.run(req).await;
 
-        let _ = tokio::fs::remove_file(&candidate_path).await;
+        // Dọn dẹp tệp candidate tạm thời sau khi kiểm tra cú pháp và ghi log nếu dọn dẹp thất bại
+        if let Err(e) = tokio::fs::remove_file(&candidate_path).await {
+            tracing::warn!("Could not remove candidate temp file '{candidate_path:?}': {e}");
+        }
 
         let output = output?;
         if output.is_success() {
@@ -218,7 +221,11 @@ impl FirewallBackend for NftablesRuntimeBackend {
         );
 
         let output = self.runner.run(req).await;
-        let _ = tokio::fs::remove_file(&candidate_path).await;
+
+        // Dọn dẹp tệp candidate tạm thời sau khi nạp ruleset và ghi log nếu dọn dẹp thất bại
+        if let Err(e) = tokio::fs::remove_file(&candidate_path).await {
+            tracing::warn!("Could not remove candidate temp file '{candidate_path:?}': {e}");
+        }
 
         let output = output?;
         if output.is_success() {

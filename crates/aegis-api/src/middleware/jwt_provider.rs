@@ -40,11 +40,14 @@ impl JwtProvider {
             .map_err(|e| AegisError::Permission(format!("Không thể ký số JWT token: {e}")))
     }
 
-    /// Giải mã và xác thực chữ ký JWT Token
+    /// Giải mã và xác thực chữ ký JWT Token (Cấu hình dung sai 60 giây chống từ chối nhầm do lệch clock skew)
     pub fn verify_token(token: &str, secret: &str) -> Result<Claims> {
         let decoding_key = DecodingKey::from_secret(secret.as_bytes());
         let mut validation = Validation::default();
+        // Bật kiểm tra thời hạn hết hạn token
         validation.validate_exp = true;
+        // Thiết lập dung sai lệch thời gian hệ thống NTP tối đa 60 giây
+        validation.leeway = 60;
 
         let token_data = decode::<Claims>(token, &decoding_key, &validation)
             .map_err(|e| AegisError::Permission(format!("Xác thực JWT token thất bại: {e}")))?;

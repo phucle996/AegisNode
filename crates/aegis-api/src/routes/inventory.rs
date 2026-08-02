@@ -70,14 +70,22 @@ pub async fn get_node_inventory_handler(
     Ok(Json(inventory))
 }
 
-/// Handler `PATCH /v1/nodes/:id/labels` — Stub: PgRepository chưa hỗ trợ update labels
+/// Handler `PATCH /v1/nodes/:id/labels`: Cập nhật dữ liệu nhãn (labels) của Node vào CSDL
 pub async fn update_node_labels_handler(
-    State(_state): State<Arc<ControllerState>>,
+    State(state): State<Arc<ControllerState>>,
     Path(id): Path<Uuid>,
     Json(labels): Json<serde_json::Value>,
 ) -> Result<Json<serde_json::Value>, StatusCode> {
-    // TODO: Thêm method update_node_labels vào PgRepository khi cần
+    // Nếu có kết nối PostgreSQL repository
+    if let Some(repo) = &state.repository {
+        // Cập nhật trường nhãn (labels) của Node trong cơ sở dữ liệu
+        repo.update_node_labels(id, &labels)
+            .await
+            .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    }
+
+    // Trả về JSON thông báo cập nhật nhãn thành công
     Ok(Json(
-        serde_json::json!({ "status": "accepted", "nodeId": id, "labels": labels }),
+        serde_json::json!({ "status": "updated", "nodeId": id, "labels": labels }),
     ))
 }

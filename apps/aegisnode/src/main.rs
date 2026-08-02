@@ -58,7 +58,10 @@ async fn main() -> Result<()> {
         Commands::Local { config } => run_local_daemon(config).await?,
         Commands::Server { config } => run_controller_server(config).await?,
         Commands::Agent => {
-            info!("Starting AegisNode Managed Agent (Stage 2)...");
+            // Khởi chạy AegisNode Managed Agent trong môi trường làm việc tập trung
+            info!("Starting AegisNode Managed Agent...");
+            let default_config = PathBuf::from("/etc/aegisnode/agent.yaml");
+            run_local_daemon(default_config).await?;
         }
         Commands::Execd => {
             run_execd_daemon().await?;
@@ -92,14 +95,14 @@ async fn run_execd_daemon() -> Result<()> {
         AegisError::Internal(format!("Không thể bind Unix socket tại {socket_path}: {e}"))
     })?;
 
-    // Set permission 0600 cho socket file (chỉ owner truy cập được)
+    // Thiết lập permission 0660 cho socket file (cho phép owner và service group truy cập IPC)
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(socket_path, std::fs::Permissions::from_mode(0o600));
+        let _ = std::fs::set_permissions(socket_path, std::fs::Permissions::from_mode(0o660));
     }
 
-    info!("Execd listening on Unix socket '{socket_path}' (Permissions 0600)...");
+    info!("Execd listening on Unix socket '{socket_path}' (Permissions 0660)...");
 
     // 4. Vòng lặp lắng nghe kết nối IPC từ non-root Agent
     loop {
@@ -169,6 +172,14 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
         "Loading Controller Configuration from '{:?}'...",
         config_path
     );
+
+    // Kiểm tra quyền an toàn tệp tin cấu hình nếu tệp tin tồn tại trên đĩa
+    if config_path.exists() {
+        if let Err(e) = aegis_core::hardening::SecurityHardening::validate_file_permissions(&config_path, 0o600) {
+            warn!("Security Warning on Config File '{config_path:?}': {e}");
+        }
+    }
+
     let config = match ControllerConfig::load_from_file(&config_path) {
         Ok(cfg) => cfg,
         Err(e) => {
@@ -260,8 +271,13 @@ async fn run_controller_server(config_path: PathBuf) -> Result<()> {
 async fn run_local_daemon(config_path: PathBuf) -> Result<()> {
     info!("Starting AegisNode Local Daemon...");
 
-    // 1. Nạp tập tin cấu hình
+    // 1. Nạp tập tin cấu hình và kiểm tra bảo mật quyền tệp tin
     let config = if config_path.exists() {
+        // Cảnh báo bảo mật nếu quyền tệp cấu hình agent không phải 0600
+        if let Err(e) = aegis_core::hardening::SecurityHardening::validate_file_permissions(&config_path, 0o600) {
+            warn!("Security Warning on Agent Config File '{config_path:?}': {e}");
+        }
+
         let content = tokio::fs::read_to_string(&config_path)
             .await
             .unwrap_or_default();

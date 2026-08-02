@@ -14,9 +14,11 @@ pub async fn init_sqlite_pool(db_path: &Path) -> Result<SqlitePool> {
         let _ = tokio::fs::create_dir_all(parent).await;
     }
 
+    // Thiết lập tùy chọn kết nối SQLite tự động tạo file và busy timeout 5 giây chống lỗi DatabaseLocked
     let opts = SqliteConnectOptions::new()
         .filename(db_path)
-        .create_if_missing(true);
+        .create_if_missing(true)
+        .busy_timeout(std::time::Duration::from_secs(5));
 
     let pool = SqlitePoolOptions::new()
         .max_connections(5)

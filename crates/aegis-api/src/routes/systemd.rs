@@ -109,12 +109,22 @@ pub async fn control_systemd_service_handler(
     })))
 }
 
-/// Handler `POST /v1/nodes/:id/services/op`: Thực thi thao tác điều khiển Systemd Unit trên remote node
+/// Handler `POST /v1/nodes/:id/services/op`: Thực thi thao tác điều khiển Systemd Unit trên node
 pub async fn execute_service_op_handler(
-    _state: State<Arc<ControllerState>>,
-    Path(_node_id): Path<Uuid>,
+    state: State<Arc<ControllerState>>,
+    Path(node_id): Path<Uuid>,
     Json(req): Json<ServiceOpRequest>,
 ) -> StdResult<Json<ServiceOpResult>, StatusCode> {
+    // 1. Kiểm tra sự tồn tại của Node trong cơ sở dữ liệu nếu có kết nối PostgreSQL
+    if let Some(repo) = &state.repository {
+        let nodes = repo.list_nodes().await.unwrap_or_default();
+        if !nodes.iter().any(|n| n.id == node_id) {
+            // Trả về 404 NOT FOUND nếu node_id không tồn tại trong Cluster
+            return Err(StatusCode::NOT_FOUND);
+        }
+    }
+
+    // 2. Khởi tạo SystemdManager thực thi lệnh thao tác dịch vụ systemd
     let manager = SystemdManager::new();
     let result = manager.execute_op(&req).map_err(|e| match e {
         aegis_core::AegisError::Permission(_) => StatusCode::FORBIDDEN,
@@ -122,20 +132,32 @@ pub async fn execute_service_op_handler(
         _ => StatusCode::INTERNAL_SERVER_ERROR,
     })?;
 
+    // Trả về kết quả thực thi thao tác dịch vụ
     Ok(Json(result))
 }
 
-/// Handler `GET /v1/nodes/:id/services/logs`: Truy vấn Journald Logs của Unit
+/// Handler `GET /v1/nodes/:id/services/logs`: Truy vấn Journald Logs của Unit trên node
 pub async fn query_journal_logs_handler(
-    _state: State<Arc<ControllerState>>,
-    Path(_node_id): Path<Uuid>,
+    state: State<Arc<ControllerState>>,
+    Path(node_id): Path<Uuid>,
     Query(param): Query<JournalQueryParam>,
 ) -> StdResult<Json<Vec<JournalLogEntry>>, StatusCode> {
+    // 1. Kiểm tra sự tồn tại của Node trong cơ sở dữ liệu nếu có kết nối PostgreSQL
+    if let Some(repo) = &state.repository {
+        let nodes = repo.list_nodes().await.unwrap_or_default();
+        if !nodes.iter().any(|n| n.id == node_id) {
+            // Trả về 404 NOT FOUND nếu node_id không tồn tại trong Cluster
+            return Err(StatusCode::NOT_FOUND);
+        }
+    }
+
+    // 2. Khởi tạo SystemdManager truy vấn nhật ký journald
     let manager = SystemdManager::new();
     let limit = param.limit.unwrap_or(50);
     let logs = manager
         .query_journal_logs(&param.unit, limit)
         .map_err(|_| StatusCode::BAD_REQUEST)?;
 
+    // Trả về danh sách log entries tìm thấy
     Ok(Json(logs))
 }

@@ -353,6 +353,48 @@ impl PgRepository {
         Ok(())
     }
 
+    /// Truy vấn tất cả Network Profiles đã lưu trong PostgreSQL Database
+    pub async fn list_network_profiles(&self) -> Result<Vec<NetworkProfile>> {
+        // Lấy danh sách cột profile_data dạng JSON từ bảng network_profiles
+        let rows = sqlx::query_scalar::<_, serde_json::Value>(
+            r#"
+            SELECT profile_data
+            FROM network_profiles
+            ORDER BY updated_at DESC
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to list network profiles: {e}")))?;
+
+        // Giải mã danh sách JSON Value thành Vec<NetworkProfile>
+        let profiles = rows
+            .into_iter()
+            .filter_map(|val| serde_json::from_value::<NetworkProfile>(val).ok())
+            .collect();
+
+        Ok(profiles)
+    }
+
+    /// Cập nhật nhãn (labels) của Node theo Node ID trong PostgreSQL
+    pub async fn update_node_labels(&self, node_id: Uuid, labels: &serde_json::Value) -> Result<()> {
+        // Thực thi câu lệnh SQL UPDATE cập nhật trường labels và last_seen_at
+        sqlx::query(
+            r#"
+            UPDATE nodes
+            SET labels = $1, last_seen_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            "#,
+        )
+        .bind(labels)
+        .bind(node_id)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to update node labels: {e}")))?;
+
+        Ok(())
+    }
+
     /// Lưu Service Policy (Allowlist & Protected Units) vào PostgreSQL
     pub async fn save_service_policy(
         &self,

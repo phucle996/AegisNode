@@ -118,7 +118,10 @@ impl SafeApplyManager {
         let health_report = match self.health_checker.run_checks().await {
             Ok(h) => h,
             Err(e) => {
-                let _ = self.backend.rollback(&snapshot).await;
+                // Thực thi rollback và ghi log nếu thao tác rollback bị lỗi
+                if let Err(rb_err) = self.backend.rollback(&snapshot).await {
+                    tracing::error!("Rollback failed during health checker failure: {rb_err}");
+                }
                 self.release_lock(&execution_id);
                 return Err(AegisError::Firewall(format!(
                     "Health check system failed: {e}. Auto-rolled back."
@@ -127,7 +130,10 @@ impl SafeApplyManager {
         };
 
         if !health_report.success {
-            let _ = self.backend.rollback(&snapshot).await;
+            // Thực thi rollback và ghi log nếu health checks không thành công
+            if let Err(rb_err) = self.backend.rollback(&snapshot).await {
+                tracing::error!("Rollback failed during post-apply health check failure: {rb_err}");
+            }
             self.release_lock(&execution_id);
             return Err(AegisError::Firewall(format!(
                 "Post-apply health checks failed: {}. Automatically rolled back!",
