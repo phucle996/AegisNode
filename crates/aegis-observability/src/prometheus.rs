@@ -17,6 +17,12 @@ pub struct MetricsCollector {
     pub active_blocks_total: AtomicU64,
 }
 
+impl Default for MetricsCollector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MetricsCollector {
     /// Khởi tạo Collector chỉ số mới
     pub const fn new() -> Self {

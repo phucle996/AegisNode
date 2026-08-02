@@ -6,8 +6,8 @@
 use std::result::Result as StdResult;
 use std::sync::Arc;
 
-use aegis_firewall::{CombinedChangePlanner, RolloutCoordinator};
-use aegis_models::change_plan::{NodeChangePlan, RolloutReport};
+use aegis_firewall::CombinedChangePlanner;
+use aegis_models::change_plan::NodeChangePlan;
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
 use uuid::Uuid;
@@ -64,11 +64,7 @@ pub async fn get_rollout_status_handler(
         .count();
     let failed = node_statuses.iter().filter(|(_, s)| s == "FAILED").count();
     let pending = node_statuses.iter().filter(|(_, s)| s == "PENDING").count();
-    let progress = if total > 0 {
-        (succeeded * 100) / total
-    } else {
-        0
-    };
+    let progress = (succeeded * 100).checked_div(total).unwrap_or(0);
 
     Ok(Json(serde_json::json!({
         "rolloutId": rollout_id,

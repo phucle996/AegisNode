@@ -103,7 +103,7 @@ async fn run_execd_daemon() -> Result<()> {
     // 4. Vòng lặp lắng nghe kết nối IPC từ non-root Agent
     loop {
         match listener.accept().await {
-            Ok((mut stream, _)) => {
+            Ok((stream, _)) => {
                 // 5. Xác thực danh tính caller qua Linux SO_PEERCRED kernel check
                 let allowed_uids = [1000, 1001, 0];
                 if let Err(e) = validate_peer_uid(&stream, &allowed_uids) {

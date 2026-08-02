@@ -16,7 +16,7 @@ async fn test_executor_client_and_server_protocol() {
 
     // 2. Mock Execd Server Handler
     tokio::spawn(async move {
-        if let Ok((mut stream, _)) = listener.accept().await {
+        if let Ok((stream, _)) = listener.accept().await {
             let (reader, mut writer) = stream.into_split();
             let mut buf_reader = BufReader::new(reader);
             let mut line = String::new();

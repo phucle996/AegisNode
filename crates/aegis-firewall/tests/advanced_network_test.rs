@@ -1,7 +1,7 @@
 // Integration Test cho Advanced Networking (Phase 24 Enterprise Bonding, VRF & SYN Flood)
 
 use aegis_firewall::AdvancedNetworkManager;
-use aegis_models::advanced_network::{BondMode, BondingProfile, SynProxyConfig, VrfProfile};
+use aegis_models::advanced_network::{SynProxyConfig, VrfProfile};
 
 #[test]
 fn test_management_interface_protection() {

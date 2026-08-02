@@ -2,7 +2,7 @@
 //! Quản lý Bonding, VRF isolation, SYN Flood Protection rules và Dynamic nftables IP Sets updates.
 
 use aegis_core::AegisError;
-use aegis_models::advanced_network::{BondingProfile, SynProxyConfig, VrfProfile};
+use aegis_models::advanced_network::{SynProxyConfig, VrfProfile};
 
 /// Bộ Quản lý Mạng & Bảo mật Nâng cao (AdvancedNetworkManager)
 pub struct AdvancedNetworkManager;

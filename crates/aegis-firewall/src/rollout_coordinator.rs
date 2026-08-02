@@ -55,14 +55,14 @@ impl RolloutCoordinator {
             RolloutStrategy::Canary => {
                 // Canary: node đầu tiên là canary, sau khi Succeeded mới cho tiếp
                 let canary = Self::select_canary_node(&spec.targets);
-                let canary_done = canary.map_or(false, |cid| {
+                let canary_done = canary.is_some_and(|cid| {
                     node_statuses
                         .iter()
                         .find(|s| s.node_id == cid)
                         .map(|s| s.state == NodeRolloutState::Succeeded)
                         .unwrap_or(false)
                 });
-                let canary_failed = canary.map_or(false, |cid| {
+                let canary_failed = canary.is_some_and(|cid| {
                     Self::should_stop_on_canary_fail(cid, node_statuses)
                 });
 
