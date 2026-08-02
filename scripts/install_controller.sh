@@ -53,15 +53,21 @@ chown -R aegisnode:aegisnode /etc/aegisnode/pki
 
 # 5. Cài đặt binary aegisnode vào /usr/local/bin/
 echo -e "${CYAN}[3/5] Installing AegisNode Controller binary...${NC}"
-LOCAL_BIN="target/release/aegisnode"
-if [ -f "$LOCAL_BIN" ]; then
-    cp "$LOCAL_BIN" /usr/local/bin/aegisnode
+if [ -f "target/release/aegisnode" ]; then
+    cp "target/release/aegisnode" /usr/local/bin/aegisnode
     chmod 0755 /usr/local/bin/aegisnode
-    echo -e "${GREEN}✓ Installed binary from $LOCAL_BIN to /usr/local/bin/aegisnode${NC}"
+    echo -e "${GREEN}✓ Installed binary from target/release/aegisnode to /usr/local/bin/aegisnode${NC}"
+elif command -v aegisnode &>/dev/null; then
+    BIN_PATH=$(command -v aegisnode)
+    if [ "$BIN_PATH" != "/usr/local/bin/aegisnode" ]; then
+        cp "$BIN_PATH" /usr/local/bin/aegisnode
+        chmod 0755 /usr/local/bin/aegisnode
+    fi
+    echo -e "${GREEN}✓ Using existing binary at /usr/local/bin/aegisnode${NC}"
 elif [ -f "/usr/local/bin/aegisnode" ]; then
     echo -e "${GREEN}✓ Using existing binary at /usr/local/bin/aegisnode${NC}"
 else
-    echo -e "${RED}Error: Binary /usr/local/bin/aegisnode not found. Please build release first with 'cargo build --release'.${NC}" >&2
+    echo -e "${RED}Error: Binary aegisnode not found. Please build release first with 'cargo build --release'.${NC}" >&2
     exit 1
 fi
 

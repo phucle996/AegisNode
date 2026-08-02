@@ -47,10 +47,24 @@ if [ "$(id -u)" -ne 0 ]; then
     exit 1
 fi
 
-# 2. Kiểm tra binary nftables và systemd trên hệ thống Linux Target
+# 2. Kiểm tra binary nftables và tự động cài đặt nếu thiếu trên Linux Target
 if ! command -v nft &> /dev/null; then
-    echo -e "${RED}Error: 'nft' command (nftables) not found. Please install nftables first.${NC}" >&2
-    exit 1
+    echo -e "${YELLOW}Warning: 'nft' command not found. Attempting to install nftables automatically...${NC}"
+    if command -v apt-get &> /dev/null; then
+        # Cài đặt nftables cho hệ điều hành Debian / Ubuntu
+        apt-get update -qq && apt-get install -y -qq nftables
+    elif command -v apk &> /dev/null; then
+        # Cài đặt nftables cho Alpine Linux
+        apk add --no-cache nftables
+    elif command -v dnf &> /dev/null; then
+        # Cài đặt nftables cho RHEL / Fedora / CentOS
+        dnf install -y -q nftables
+    elif command -v yum &> /dev/null; then
+        yum install -y -q nftables
+    else
+        echo -e "${RED}Error: 'nft' command not found and package manager is unsupported. Please install nftables manually.${NC}" >&2
+        exit 1
+    fi
 fi
 
 if ! command -v systemctl &> /dev/null; then
