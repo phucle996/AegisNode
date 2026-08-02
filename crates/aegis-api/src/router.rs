@@ -1,10 +1,11 @@
-// Axum Router xây dựng các RESTful Routes và Middleware chung
-// Tích hợp Request ID, JSON Body Limit và Middleware định dạng lỗi chuẩn ErrorResponse
+// Axum Router xây dựng các RESTful Routes, API Endpoints và Web UI Static Asset Serving
+// Phục vụ Web UI SPA tại `/` và API endpoints tại `/v1/*`
 
 use std::sync::Arc;
 
 use axum::Router;
 use axum::routing::{get, post};
+use tower_http::services::{ServeDir, ServeFile};
 
 use crate::handlers::{
     add_block_entry_handler, apply_policy_handler, confirm_policy_handler, get_audit_logs_handler,
@@ -14,9 +15,9 @@ use crate::handlers::{
 };
 use crate::state::AppState;
 
-/// Xây dựng Axum Router ứng dụng AegisNode API
+/// Xây dựng Axum Router ứng dụng AegisNode API & Static Web UI
 pub fn create_router(state: Arc<AppState>) -> Router {
-    Router::new()
+    let api_routes = Router::new()
         .route("/v1/status", get(get_status_handler))
         .route("/v1/firewall/policy", get(get_policy_handler))
         .route("/v1/firewall/validate", post(validate_policy_handler))
@@ -29,5 +30,11 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/v1/blocker/entries", get(get_blocker_entries_handler))
         .route("/v1/blocker/add", post(add_block_entry_handler))
         .route("/v1/blocker/remove", post(remove_block_entry_handler))
-        .with_state(state)
+        .with_state(state);
+
+    // Phục vụ Web UI static assets từ `web/dist` với SPA fallback về index.html
+    let serve_dir =
+        ServeDir::new("web/dist").not_found_service(ServeFile::new("web/dist/index.html"));
+
+    api_routes.fallback_service(serve_dir)
 }

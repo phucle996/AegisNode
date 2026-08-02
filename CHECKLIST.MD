@@ -866,76 +866,76 @@ nft --check --file candidate.nft
 
 ## Frontend bootstrap
 
-* [ ] React.
-* [ ] TypeScript.
-* [ ] Vite.
-* [ ] API client.
-* [ ] Shared types.
-* [ ] Error boundary.
-* [ ] Routing.
-* [ ] Responsive layout cơ bản.
+* [x] React.
+* [x] TypeScript.
+* [x] Vite.
+* [x] API client.
+* [x] Shared types.
+* [x] Error boundary.
+* [x] Routing.
+* [x] Responsive layout cơ bản.
 
 ## Pages
 
-* [ ] Dashboard.
-* [ ] Firewall rules.
-* [ ] Policy editor.
-* [ ] Docker.
-* [ ] NAT.
-* [ ] Blocked IPs.
-* [ ] Audit logs.
-* [ ] Settings.
+* [x] Dashboard.
+* [x] Firewall rules.
+* [x] Policy editor.
+* [x] Docker.
+* [x] NAT.
+* [x] Blocked IPs.
+* [x] Audit logs.
+* [x] Settings.
 
 ## Dashboard
 
-* [ ] Firewall status.
-* [ ] Policy hash.
-* [ ] Rule count.
-* [ ] Allowed packet count.
-* [ ] Dropped packet count.
-* [ ] Active blocks.
-* [ ] Docker containers.
-* [ ] Public port warning.
-* [ ] Pending execution.
-* [ ] Recent audit events.
+* [x] Firewall status.
+* [x] Policy hash.
+* [x] Rule count.
+* [x] Allowed packet count.
+* [x] Dropped packet count.
+* [x] Active blocks.
+* [x] Docker containers.
+* [x] Public port warning.
+* [x] Pending execution.
+* [x] Recent audit events.
 
 ## Policy editor
 
-* [ ] Form mode.
-* [ ] YAML mode.
-* [ ] Validate.
-* [ ] Show errors.
-* [ ] Show warnings.
-* [ ] Compile preview.
-* [ ] Apply.
-* [ ] Confirm.
-* [ ] Rollback.
+* [x] Form mode.
+* [x] YAML mode.
+* [x] Validate.
+* [x] Show errors.
+* [x] Show warnings.
+* [x] Compile preview.
+* [x] Apply.
+* [x] Confirm.
+* [x] Rollback.
 
 ## Safe apply UI
 
-* [ ] Countdown.
-* [ ] Confirm button.
-* [ ] Rollback button.
-* [ ] Persist pending state qua refresh.
-* [ ] Hiển thị execution ID.
-* [ ] Hiển thị health-check result.
+* [x] Countdown.
+* [x] Confirm button.
+* [x] Rollback button.
+* [x] Persist pending state qua refresh.
+* [x] Hiển thị execution ID.
+* [x] Hiển thị health-check result.
 
 ## Embedded assets
 
-* [ ] Production build.
-* [ ] Embed vào binary.
-* [ ] Serve `index.html`.
-* [ ] Serve hashed assets.
-* [ ] SPA fallback.
-* [ ] Cache headers cho assets.
-* [ ] Không cache API response sai cách.
+* [x] Production build.
+* [x] Embed vào binary.
+* [x] Serve `index.html`.
+* [x] Serve hashed assets.
+* [x] SPA fallback.
+* [x] Cache headers cho assets.
+* [x] Không cache API response sai cách.
 
 ## Gate Phase 10
 
-* [ ] Quản lý toàn bộ MVP qua Web UI.
-* [ ] Refresh không mất pending execution.
-* [ ] Frontend không cần Node.js trên production host.
-* [ ] Binary chứa frontend assets.
+* [x] Quản lý toàn bộ MVP qua Web UI.
+* [x] Refresh không mất pending execution.
+* [x] Frontend không cần Node.js trên production host.
+* [x] Binary chứa frontend assets.
 
 ---
 
