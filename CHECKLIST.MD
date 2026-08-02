@@ -1095,10 +1095,10 @@ nftables / NetworkManager / systemd
 
 ## Gate Phase 12
 
-* [ ] Controller chạy với PostgreSQL.
-* [ ] API authentication hoạt động.
-* [ ] Policy được version hóa.
-* [ ] Mọi write operation có audit.
+* [x] Controller chạy với PostgreSQL.
+* [x] API authentication hoạt động.
+* [x] Policy được version hóa.
+* [x] Mọi write operation có audit.
 
 ---
 
