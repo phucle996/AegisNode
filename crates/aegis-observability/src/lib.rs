@@ -1,5 +1,8 @@
 //! AegisNode Observability Crate
 //! Khởi tạo Tracing Subscriber, JSON structured logging cho Production và human-readable cho Dev.
+//! Xuất chỉ số Prometheus cho Observability.
+
+pub mod prometheus;
 
 use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 

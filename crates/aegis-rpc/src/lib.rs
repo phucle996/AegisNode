@@ -1,22 +1,14 @@
-//! aegis-rpc — AegisNode gRPC Transport Layer
-//! Cung cấp generated gRPC stubs, transport adapters và IPC client/server wrappers.
-//!
-//! # Cấu trúc:
-//! - `agent_grpc`: Generated code từ agent.proto + AgentService impl helpers
-//! - `controller_grpc`: Generated code từ controller.proto + ControllerService impl helpers
-//! - `ipc_client`: gRPC client qua Unix Domain Socket (CLI → Agent)
-//! - `rpc_client`: gRPC client qua TCP mTLS (Agent → Controller)
+//! AegisNode RPC & Transport Crate
+//! Chứa gRPC Server/Client qua UDS & mTLS, IPC client và Executor Protocol (Phase 20 Privilege Separation).
 
 pub mod agent_grpc;
 pub mod controller_grpc;
+pub mod executor_proto;
 pub mod ipc_client;
 pub mod rpc_client;
 
-// Re-export generated proto types cho tiện sử dụng
-pub use agent_grpc::agent::{
-    AgentStatusResponse, ApplyFirewallPolicyRequest, ApplyFirewallPolicyResponse,
-    InventoryResponse, RolloutCommand, ServiceOpRequest, ServiceOpResponse,
-};
-pub use controller_grpc::controller::{
-    HeartbeatAck, HeartbeatRequest, InventoryReport, RolloutStatusUpdate,
-};
+pub use agent_grpc::*;
+pub use controller_grpc::*;
+pub use executor_proto::*;
+pub use ipc_client::*;
+pub use rpc_client::*;

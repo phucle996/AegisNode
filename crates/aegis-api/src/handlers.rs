@@ -228,3 +228,22 @@ pub async fn remove_block_entry_handler(
 
     Ok(Json(entry))
 }
+
+/// Handler `GET /metrics`: Xuất các chỉ số hệ thống theo chuẩn Prometheus Exposition Format
+pub async fn prometheus_metrics_handler() -> (
+    [(axum::http::HeaderName, &'static str); 1],
+    String,
+) {
+    // Tăng đếm số lượng HTTP Request
+    aegis_observability::prometheus::GLOBAL_METRICS.inc_http_requests();
+    
+    // Render định dạng Prometheus Exposition Text
+    let body = aegis_observability::prometheus::GLOBAL_METRICS.render_prometheus_exposition();
+    
+    // Trả về với Content-Type text/plain; version=0.0.4 chuẩn của Prometheus
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/plain; version=0.0.4")],
+        body,
+    )
+}
+

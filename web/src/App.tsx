@@ -1,5 +1,5 @@
 // App.tsx: Root routing với React Router DOM v6 BrowserRouter
-// Tổ chức routes theo cấu trúc: AppLayout (layout wrapper) + nested page routes
+// Thêm bớt các Routes cho Phase 19: FleetOverview và RolloutConsole
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import AppLayout from '@/components/layout/AppLayout'
 import DashboardPage from '@/pages/dashboard/DashboardPage'
@@ -8,8 +8,10 @@ import PolicyEditorPage from '@/pages/policy/PolicyEditorPage'
 import DockerPage from '@/pages/docker/DockerPage'
 import BlockedIPsPage from '@/pages/blocked/BlockedIPsPage'
 import AuditLogsPage from '@/pages/audit/AuditLogsPage'
+import { FleetOverview } from '@/components/FleetOverview'
+import { RolloutConsole } from '@/components/RolloutConsole'
 
-// Placeholder cho các pages chưa implement
+// Placeholder cho các trang chưa khả dụng
 const ComingSoon = ({ title }: { title: string }) => (
   <div className="flex items-center justify-center h-64">
     <p className="text-muted-foreground">{title} — Coming Soon</p>
@@ -24,6 +26,12 @@ export default function App() {
         <Route path="/" element={<AppLayout />}>
           {/* Index route: Dashboard */}
           <Route index element={<DashboardPage />} />
+
+          {/* Route Quản lý danh sách Node trong Fleet (Phase 19) */}
+          <Route path="fleet" element={<FleetOverview />} />
+
+          {/* Route Điều khiển đợt triển khai Rollout Console (Phase 19) */}
+          <Route path="rollouts" element={<RolloutConsole />} />
 
           {/* Firewall Rules: Inbound / Outbound / Forward visualization */}
           <Route path="firewall" element={<FirewallRulesPage />} />

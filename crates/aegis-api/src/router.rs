@@ -10,14 +10,15 @@ use tower_http::services::{ServeDir, ServeFile};
 use crate::handlers::{
     add_block_entry_handler, apply_policy_handler, confirm_policy_handler, get_audit_logs_handler,
     get_blocker_entries_handler, get_docker_exposure_handler, get_policy_handler,
-    get_status_handler, remove_block_entry_handler, rollback_policy_handler,
-    set_router_forwarding_handler, validate_policy_handler,
+    get_status_handler, prometheus_metrics_handler, remove_block_entry_handler,
+    rollback_policy_handler, set_router_forwarding_handler, validate_policy_handler,
 };
 use crate::state::AppState;
 
 /// Xây dựng Axum Router ứng dụng AegisNode API & Static Web UI
 pub fn create_router(state: Arc<AppState>) -> Router {
     let api_routes = Router::new()
+        .route("/metrics", get(prometheus_metrics_handler))
         .route("/v1/status", get(get_status_handler))
         .route("/v1/firewall/policy", get(get_policy_handler))
         .route("/v1/firewall/validate", post(validate_policy_handler))

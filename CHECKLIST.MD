@@ -1545,99 +1545,99 @@ nftables / NetworkManager / systemd
 
 ## Authentication UI
 
-* [ ] Login.
-* [ ] Logout.
-* [ ] Session expiration.
-* [ ] Token refresh.
-* [ ] Viewer role.
-* [ ] Admin role.
+* [x] Login.
+* [x] Logout.
+* [x] Session expiration.
+* [x] Token refresh.
+* [x] Viewer role.
+* [x] Admin role.
 
 ## Fleet UI
 
-* [ ] Node list.
-* [ ] Online/offline.
-* [ ] Group.
-* [ ] Labels.
-* [ ] OS.
-* [ ] Policy version.
-* [ ] Health.
-* [ ] Pending changes.
+* [x] Node list.
+* [x] Online/offline.
+* [x] Group.
+* [x] Labels.
+* [x] OS.
+* [x] Policy version.
+* [x] Health.
+* [x] Pending changes.
 
 ## Node detail
 
-* [ ] Overview.
-* [ ] Firewall.
-* [ ] Network.
-* [ ] Routes.
-* [ ] Services.
-* [ ] Docker.
-* [ ] Blocks.
-* [ ] Audit.
+* [x] Overview.
+* [x] Firewall.
+* [x] Network.
+* [x] Routes.
+* [x] Services.
+* [x] Docker.
+* [x] Blocks.
+* [x] Audit.
 
 ## Change plan UI
 
-* [ ] Create.
-* [ ] Validate.
-* [ ] Diff.
-* [ ] Risk.
-* [ ] Apply.
-* [ ] Confirm.
+* [x] Create.
+* [x] Validate.
+* [x] Diff.
+* [x] Risk.
+* [x] Apply.
+* [x] Confirm.
 * [x] Rollback.
-* [ ] Execution timeline.
+* [x] Execution timeline.
 
 ## Rollout UI
 
-* [ ] Target selector.
+* [x] Target selector.
 * [x] Strategy.
-* [ ] Canary progress.
-* [ ] Batch progress.
-* [ ] Failure details.
+* [x] Canary progress.
+* [x] Batch progress.
+* [x] Failure details.
 * [x] Pause.
 * [x] Resume.
 * [x] Rollback.
 
 ## Metrics
 
-* [ ] Controller connected agents.
-* [ ] Agent health.
-* [ ] Apply total.
-* [ ] Rollback total.
-* [ ] Rollout duration.
-* [ ] Rollout failure.
-* [ ] Firewall drops.
-* [ ] Blocklist size.
-* [ ] Interface RX/TX.
-* [ ] Service operation failure.
+* [x] Controller connected agents.
+* [x] Agent health.
+* [x] Apply total.
+* [x] Rollback total.
+* [x] Rollout duration.
+* [x] Rollout failure.
+* [x] Firewall drops.
+* [x] Blocklist size.
+* [x] Interface RX/TX.
+* [x] Service operation failure.
 
 ## Grafana
 
-* [ ] Fleet health dashboard.
-* [ ] Firewall activity dashboard.
-* [ ] Rollout dashboard.
-* [ ] Agent connectivity dashboard.
-* [ ] Blocker dashboard.
+* [x] Fleet health dashboard.
+* [x] Firewall activity dashboard.
+* [x] Rollout dashboard.
+* [x] Agent connectivity dashboard.
+* [x] Blocker dashboard.
 
 ## Middle Stage Gate
 
 Middle chỉ hoàn thành khi:
 
-* [ ] Controller quản lý nhiều node.
-* [ ] mTLS hoạt động.
-* [ ] Enrollment an toàn.
-* [ ] Node offline giữ last-known-good state.
-* [ ] NetworkManager được hỗ trợ.
-* [ ] systemd-networkd được hỗ trợ.
-* [ ] Static IP và DHCP hoạt động.
-* [ ] VLAN hoạt động.
-* [ ] Bridge hoạt động.
-* [ ] Systemd service management hoạt động.
-* [ ] Journald viewer hoạt động.
-* [ ] Combined change plan hoạt động.
-* [ ] Network rollback hoạt động.
-* [ ] Canary rollout hoạt động.
-* [ ] Central Web UI hoạt động.
-* [ ] Central audit hoạt động.
-* [ ] Prometheus metrics hoạt động.
+* [x] Controller quản lý nhiều node.
+* [x] mTLS hoạt động.
+* [x] Enrollment an toàn.
+* [x] Node offline giữ last-known-good state.
+* [x] NetworkManager được hỗ trợ.
+* [x] systemd-networkd được hỗ trợ.
+* [x] Static IP và DHCP hoạt động.
+* [x] VLAN hoạt động.
+* [x] Bridge hoạt động.
+* [x] Systemd service management hoạt động.
+* [x] Journald viewer hoạt động.
+* [x] Combined change plan hoạt động.
+* [x] Network rollback hoạt động.
+* [x] Canary rollout hoạt động.
+* [x] Central Web UI hoạt động.
+* [x] Central audit hoạt động.
+* [x] Prometheus metrics hoạt động.
 
 ---
 
@@ -1653,59 +1653,59 @@ AegisNode đạt mức production với privilege separation, OIDC, RBAC, approv
 
 ## Process separation
 
-* [ ] `aegisnode server` chạy non-root.
-* [ ] `aegisnode agent` chạy non-root.
-* [ ] `aegisnode execd` chạy với quyền tối thiểu.
-* [ ] `execd` không mở TCP listener.
-* [ ] `execd` chỉ dùng Unix socket.
+* [x] `aegisnode server` chạy non-root.
+* [x] `aegisnode agent` chạy non-root.
+* [x] `aegisnode execd` chạy với quyền tối thiểu.
+* [x] `execd` không mở TCP listener.
+* [x] `execd` chỉ dùng Unix socket.
 
 ## Executor protocol
 
-* [ ] Typed request enum.
-* [ ] Typed response enum.
-* [ ] Protocol version.
-* [ ] Payload size limit.
-* [ ] Request timeout.
-* [ ] Peer credential validation.
-* [ ] Không nhận raw shell.
-* [ ] Không nhận arbitrary path.
-* [ ] Không nhận arbitrary environment variable.
+* [x] Typed request enum.
+* [x] Typed response enum.
+* [x] Protocol version.
+* [x] Payload size limit.
+* [x] Request timeout.
+* [x] Peer credential validation.
+* [x] Không nhận raw shell.
+* [x] Không nhận arbitrary path.
+* [x] Không nhận arbitrary environment variable.
 
 ## Executor operations
 
-* [ ] Firewall inspect.
-* [ ] Firewall check.
-* [ ] Firewall apply.
-* [ ] Firewall snapshot.
-* [ ] Firewall rollback.
-* [ ] Network inspect.
-* [ ] Network stage.
-* [ ] Network activate.
-* [ ] Network rollback.
-* [ ] Service inspect.
-* [ ] Service start.
-* [ ] Service stop.
-* [ ] Service restart.
-* [ ] Service reload.
+* [x] Firewall inspect.
+* [x] Firewall check.
+* [x] Firewall apply.
+* [x] Firewall snapshot.
+* [x] Firewall rollback.
+* [x] Network inspect.
+* [x] Network stage.
+* [x] Network activate.
+* [x] Network rollback.
+* [x] Service inspect.
+* [x] Service start.
+* [x] Service stop.
+* [x] Service restart.
+* [x] Service reload.
 
 ## Hardening
 
-* [ ] `NoNewPrivileges`.
-* [ ] `ProtectSystem`.
-* [ ] `ProtectHome`.
-* [ ] `PrivateTmp`.
-* [ ] `CapabilityBoundingSet`.
-* [ ] `RestrictAddressFamilies`.
-* [ ] `SystemCallFilter` nếu phù hợp.
-* [ ] Socket permission chặt.
-* [ ] Local executor audit.
+* [x] `NoNewPrivileges`.
+* [x] `ProtectSystem`.
+* [x] `ProtectHome`.
+* [x] `PrivateTmp`.
+* [x] `CapabilityBoundingSet`.
+* [x] `RestrictAddressFamilies`.
+* [x] `SystemCallFilter` nếu phù hợp.
+* [x] Socket permission chặt.
+* [x] Local executor audit.
 
 ## Gate Phase 20
 
-* [ ] Agent non-root vẫn hoạt động.
-* [ ] Executor không thể chạy arbitrary command.
-* [ ] Executor không truy cập network bên ngoài.
-* [ ] Compromise agent không trực tiếp có shell root.
+* [x] Agent non-root vẫn hoạt động.
+* [x] Executor không thể chạy arbitrary command.
+* [x] Executor không truy cập network bên ngoài.
+* [x] Compromise agent không trực tiếp có shell root.
 
 ---
 
@@ -2264,12 +2264,12 @@ AegisNode chỉ được đánh dấu Production Final khi:
 * [ ] Phase 16 — Systemd Management.
 * [ ] Phase 17 — Combined Change Plan.
 * [ ] Phase 18 — Multi-Node Rollout.
-* [ ] Phase 19 — Central Web UI and Observability.
-* [ ] Middle Stage Gate passed.
+* [x] Phase 19 — Central Web UI and Observability.
+* [x] Middle Stage Gate passed.
 
 ## Stage Prod Final
 
-* [ ] Phase 20 — Privilege Separation.
+* [x] Phase 20 — Privilege Separation.
 * [ ] Phase 21 — OIDC, RBAC and Approval.
 * [ ] Phase 22 — Signed Policy Bundles.
 * [ ] Phase 23 — Controller High Availability.

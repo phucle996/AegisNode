@@ -4,6 +4,7 @@
 pub mod blocker;
 pub mod change_planner;
 pub mod compiler;
+pub mod executor_client;
 pub mod inspectors;
 pub mod inventory_collector;
 pub mod network_backend;
@@ -15,6 +16,7 @@ pub mod transaction;
 pub use blocker::{BlockManager, SshDetector};
 pub use change_planner::{CombinedChangePlanner, assess_risk};
 pub use compiler::{CompiledFirewallPolicy, FirewallCompiler, NatCompiler, NftablesCompiler};
+pub use executor_client::{EXECD_SOCKET_PATH, ExecutorClient};
 pub use inspectors::{
     DockerExposureReport, DockerInspector, ExposureWarning, RouterManager, SysctlSnapshot,
 };
