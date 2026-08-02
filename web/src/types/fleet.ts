@@ -30,7 +30,7 @@ export interface FleetNode {
 export type RolloutStrategyType = 'CANARY' | 'BATCH' | 'ALL_AT_ONCE' | 'MANUAL'
 
 /** Trạng thái tiến trình của đợt Rollout */
-export type RolloutStatusType = 'PENDING' | 'IN_PROGRESS' | 'PAUSED' | 'SUCCESS' | 'FAILED' | 'ROLLED_BACK'
+export type RolloutStatusType = 'PENDING' | 'IN_PROGRESS' | 'RUNNING' | 'PAUSED' | 'SUCCESS' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'ROLLED_BACK'
 
 /** Chi tiết Đợt triển khai Multi-Node Rollout */
 export interface MultiNodeRollout {

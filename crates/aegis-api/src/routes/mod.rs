@@ -53,7 +53,7 @@ pub use network::{
 };
 pub use rollout::{
     cancel_rollout_handler, create_rollout_handler, get_rollout_status_handler,
-    pause_rollout_handler, resume_rollout_handler, rollback_rollout_handler,
+    list_rollouts_handler, pause_rollout_handler, resume_rollout_handler, rollback_rollout_handler,
 };
 pub use systemd::{
     control_systemd_service_handler, execute_service_op_handler, list_systemd_services_handler,

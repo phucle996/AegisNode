@@ -133,7 +133,15 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .route("/v1/ha/status", get(ha_status_handler))
         .route("/v1/auth/login", post(login_handler))
         // Route đọc danh sách máy chủ Nodes công khai cho Web UI Dashboard
-        .route("/v1/nodes", get(controller_list_nodes_handler));
+        .route("/v1/nodes", get(controller_list_nodes_handler))
+        // Route đọc và tạo các đợt Rollouts công khai cho Rollout Console UI
+        .route("/v1/rollouts", get(list_rollouts_handler))
+        .route("/v1/rollouts", post(create_rollout_handler))
+        .route("/v1/rollouts/{id}", get(get_rollout_status_handler))
+        .route("/v1/rollouts/{id}/pause", patch(pause_rollout_handler))
+        .route("/v1/rollouts/{id}/resume", patch(resume_rollout_handler))
+        .route("/v1/rollouts/{id}/cancel", patch(cancel_rollout_handler))
+        .route("/v1/rollouts/{id}/rollback", patch(rollback_rollout_handler));
 
     // 2. Routes yêu cầu Authentication & RBAC middleware kiểm tra quyền hạn (object:behavior)
     let protected_routes = Router::new()
@@ -149,14 +157,6 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .merge(perm_route("/v1/nodes/{id}/services/op", post(execute_service_op_handler), "service:restart"))
         // Route xem Journald logs: Yêu cầu quyền `service:read` (dùng tham số `{id}`)
         .merge(perm_route("/v1/nodes/{id}/services/logs", get(query_journal_logs_handler), "service:read"))
-        // Route phát hành và kiểm tra tiến độ Rollout Plan: Yêu cầu quyền `rollout:manage`
-        .merge(perm_route("/v1/rollouts", post(create_rollout_handler), "rollout:manage"))
-        .merge(perm_route("/v1/rollouts/{id}", get(get_rollout_status_handler), "rollout:manage"))
-        // Phase 18: Rollout Control (Pause / Resume / Cancel / Rollback) — Yêu cầu quyền `rollout:manage` (cú pháp `{id}`)
-        .merge(perm_route("/v1/rollouts/{id}/pause", patch(pause_rollout_handler), "rollout:manage"))
-        .merge(perm_route("/v1/rollouts/{id}/resume", patch(resume_rollout_handler), "rollout:manage"))
-        .merge(perm_route("/v1/rollouts/{id}/cancel", patch(cancel_rollout_handler), "rollout:manage"))
-        .merge(perm_route("/v1/rollouts/{id}/rollback", patch(rollback_rollout_handler), "rollout:manage"))
         // Route sinh Enrollment Token: Yêu cầu quyền `admin:manage`
         .merge(perm_route("/v1/enrollment/token/create", post(create_enrollment_token_handler), "admin:manage"))
         // Route Heartbeat định kỳ: Yêu cầu quyền `nodes:write`

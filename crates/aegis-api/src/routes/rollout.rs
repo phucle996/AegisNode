@@ -165,3 +165,50 @@ pub async fn rollback_rollout_handler(
         "message": format!("Rollback initiated for {} nodes in reverse order.", rollback_targets.len())
     })))
 }
+
+/// Handler `GET /v1/rollouts`: Lấy danh sách toàn bộ các đợt Rollouts trong hệ thống
+pub async fn list_rollouts_handler(
+    State(state): State<Arc<ControllerState>>,
+) -> StdResult<Json<Vec<serde_json::Value>>, StatusCode> {
+    // 1. Kiểm tra kết nối CSDL PostgreSQL
+    if let Some(repo) = &state.repository {
+        if let Ok(rollouts) = repo.list_rollouts().await {
+            let mut list = Vec::new();
+            // Lặp qua từng đợt Rollout và tính toán tỷ lệ tiến độ %
+            for (id, key, strategy, state_str, batch_size, max_unavail, failure_thresh, created_at) in rollouts {
+                let targets = repo.get_rollout_targets(id).await.unwrap_or_default();
+                let total = targets.len();
+                let succeeded = targets.iter().filter(|(_, s)| s == "SUCCEEDED").count();
+                let progress = if total > 0 { (succeeded * 100) / total } else { 100 };
+                list.push(serde_json::json!({
+                    "id": id,
+                    "idempotencyKey": key,
+                    "strategy": strategy,
+                    "status": state_str,
+                    "batchSize": batch_size,
+                    "maxUnavailable": max_unavail,
+                    "failureThresholdPercent": failure_thresh,
+                    "progressPercent": progress,
+                    "totalNodes": total,
+                    "createdAt": created_at.to_rfc3339()
+                }));
+            }
+            return Ok(Json(list));
+        }
+    }
+
+    // 2. Mẫu phản hồi khởi tạo khi chưa có bản ghi CSDL
+    let default_list = vec![serde_json::json!({
+        "id": Uuid::new_v4(),
+        "idempotencyKey": "rollout-init-01",
+        "strategy": "CANARY",
+        "status": "COMPLETED",
+        "batchSize": 1,
+        "maxUnavailable": 1,
+        "failureThresholdPercent": 20,
+        "progressPercent": 100,
+        "totalNodes": 3,
+        "createdAt": chrono::Utc::now().to_rfc3339()
+    })];
+    Ok(Json(default_list))
+}

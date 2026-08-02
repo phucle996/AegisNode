@@ -145,4 +145,43 @@ impl PgRepository {
         .map_err(|e| AegisError::Storage(format!("Failed to get rollout targets: {e}")))?;
         Ok(rows)
     }
+
+    /// Truy vấn danh sách toàn bộ các đợt Rollouts trong PostgreSQL CSDL
+    pub async fn list_rollouts(
+        &self,
+    ) -> Result<Vec<(Uuid, String, String, String, i32, i32, i32, chrono::DateTime<chrono::Utc>)>> {
+        // Truy vấn danh sách các đợt Rollout sắp xếp giảm dần theo thời gian tạo
+        let rows = sqlx::query_as::<
+            _,
+            (
+                Uuid,
+                String,
+                String,
+                String,
+                i32,
+                i32,
+                i32,
+                chrono::DateTime<chrono::Utc>,
+            ),
+        >(
+            r#"
+            SELECT 
+                r.id, 
+                r.idempotency_key, 
+                r.strategy, 
+                r.state, 
+                r.batch_size, 
+                r.max_unavailable, 
+                r.failure_threshold_percent, 
+                r.created_at
+            FROM rollouts r
+            ORDER BY r.created_at DESC
+            "#,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to list rollouts: {e}")))?;
+
+        Ok(rows)
+    }
 }
