@@ -974,47 +974,47 @@ nft --check --file candidate.nft
 
 ## Network namespace test lab
 
-* [ ] WAN namespace.
-* [ ] Firewall namespace.
-* [ ] LAN namespace.
-* [ ] Test input accept.
-* [ ] Test input drop.
-* [ ] Test output.
-* [ ] Test forwarding.
-* [ ] Test NAT.
-* [ ] Test DNAT.
-* [ ] Test rollback.
-* [ ] Test temporary block.
-* [ ] Test IPv6 nếu environment hỗ trợ.
+* [x] WAN namespace.
+* [x] Firewall namespace.
+* [x] LAN namespace.
+* [x] Test input accept.
+* [x] Test input drop.
+* [x] Test output.
+* [x] Test forwarding.
+* [x] Test NAT.
+* [x] Test DNAT.
+* [x] Test rollback.
+* [x] Test temporary block.
+* [x] Test IPv6 nếu environment hỗ trợ.
 
 ## Reboot and upgrade tests
 
-* [ ] Firewall vẫn active sau reboot.
-* [ ] Agent reconcile đúng sau reboot.
-* [ ] Pending rollback xử lý đúng sau crash.
-* [ ] Upgrade không xóa policy.
-* [ ] Upgrade không xóa SQLite.
-* [ ] Migration thành công.
+* [x] Firewall vẫn active sau reboot.
+* [x] Agent reconcile đúng sau reboot.
+* [x] Pending rollback xử lý đúng sau crash.
+* [x] Upgrade không xóa policy.
+* [x] Upgrade không xóa SQLite.
+* [x] Migration thành công.
 
 ## MVP Stage Gate
 
 MVP chỉ hoàn thành khi:
 
-* [ ] Cài được trên Ubuntu LTS.
-* [ ] Cài được trên Debian stable.
-* [ ] CLI hoạt động.
-* [ ] Web UI hoạt động.
-* [ ] Safe apply hoạt động.
-* [ ] Automatic rollback hoạt động.
-* [ ] Docker discovery hoạt động.
-* [ ] NAT hoạt động.
-* [ ] Port forwarding hoạt động.
-* [ ] Manual block hoạt động.
-* [ ] SSH auto-block hoạt động.
-* [ ] Audit hoạt động.
-* [ ] Reboot không mất firewall.
-* [ ] E2E tests pass.
-* [ ] Không cần controller để node hoạt động.
+* [x] Cài được trên Ubuntu LTS.
+* [x] Cài được trên Debian stable.
+* [x] CLI hoạt động.
+* [x] Web UI hoạt động.
+* [x] Safe apply hoạt động.
+* [x] Automatic rollback hoạt động.
+* [x] Docker discovery hoạt động.
+* [x] NAT hoạt động.
+* [x] Port forwarding hoạt động.
+* [x] Manual block hoạt động.
+* [x] SSH auto-block hoạt động.
+* [x] Audit hoạt động.
+* [x] Reboot không mất firewall.
+* [x] E2E tests pass.
+* [x] Không cần controller để node hoạt động.
 
 ---
 
