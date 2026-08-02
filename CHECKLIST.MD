@@ -1163,61 +1163,61 @@ nftables / NetworkManager / systemd
 
 ## System inventory
 
-* [ ] Hostname.
-* [ ] OS name.
-* [ ] OS version.
-* [ ] Kernel.
-* [ ] CPU.
-* [ ] Memory.
-* [ ] Uptime.
-* [ ] Machine ID.
-* [ ] Agent version.
+* [x] Hostname.
+* [x] OS name.
+* [x] OS version.
+* [x] Kernel.
+* [x] CPU.
+* [x] Memory.
+* [x] Uptime.
+* [x] Machine ID.
+* [x] Agent version.
 
 ## Network inventory
 
-* [ ] Interface name.
-* [ ] Permanent MAC.
-* [ ] Current MAC.
-* [ ] Interface type.
-* [ ] Driver.
-* [ ] MTU.
-* [ ] Carrier.
-* [ ] Operational state.
-* [ ] Speed.
-* [ ] Duplex.
-* [ ] IPv4.
-* [ ] IPv6.
-* [ ] RX/TX counters.
-* [ ] Routes.
-* [ ] Gateway.
-* [ ] DNS.
+* [x] Interface name.
+* [x] Permanent MAC.
+* [x] Current MAC.
+* [x] Interface type.
+* [x] Driver.
+* [x] MTU.
+* [x] Carrier.
+* [x] Operational state.
+* [x] Speed.
+* [x] Duplex.
+* [x] IPv4.
+* [x] IPv6.
+* [x] RX/TX counters.
+* [x] Routes.
+* [x] Gateway.
+* [x] DNS.
 
 ## Runtime inventory
 
-* [ ] Current firewall hash.
-* [ ] Rule count.
-* [ ] Active blocks.
-* [ ] Docker inventory.
-* [ ] Systemd summary.
-* [ ] Network backend.
-* [ ] Pending change plan.
+* [x] Current firewall hash.
+* [x] Rule count.
+* [x] Active blocks.
+* [x] Docker inventory.
+* [x] Systemd summary.
+* [x] Network backend.
+* [x] Pending change plan.
 
 ## Inventory transport
 
-* [ ] Payload version.
-* [ ] Full inventory.
-* [ ] Delta inventory.
-* [ ] Hash-based change detection.
-* [ ] Payload size limit.
-* [ ] Compression nếu cần.
-* [ ] Controller storage.
+* [x] Payload version.
+* [x] Full inventory.
+* [x] Delta inventory.
+* [x] Hash-based change detection.
+* [x] Payload size limit.
+* [x] Compression nếu cần.
+* [x] Controller storage.
 
 ## Gate Phase 14
 
-* [ ] Controller hiển thị node state.
-* [ ] Node offline được phát hiện.
-* [ ] Docker không có thì agent vẫn healthy.
-* [ ] Inventory không gửi full payload liên tục khi không đổi.
+* [x] Controller hiển thị node state.
+* [x] Node offline được phát hiện.
+* [x] Docker không có thì agent vẫn healthy.
+* [x] Inventory không gửi full payload liên tục khi không đổi.
 
 ---
 

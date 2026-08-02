@@ -104,6 +104,38 @@ CREATE TABLE IF NOT EXISTS agent_certificates (
     revoked BOOLEAN NOT NULL DEFAULT FALSE
 );
 
+-- 11. Bảng System & Runtime Inventory cho Node (Phase 14)
+CREATE TABLE IF NOT EXISTS node_inventories (
+    node_id UUID PRIMARY KEY REFERENCES nodes(id) ON DELETE CASCADE,
+    os_name VARCHAR(128) NOT NULL,
+    os_version VARCHAR(128) NOT NULL,
+    kernel_version VARCHAR(128) NOT NULL,
+    cpu_cores INT NOT NULL DEFAULT 1,
+    total_memory_mb BIGINT NOT NULL DEFAULT 0,
+    free_memory_mb BIGINT NOT NULL DEFAULT 0,
+    uptime_seconds BIGINT NOT NULL DEFAULT 0,
+    machine_id VARCHAR(128) NOT NULL,
+    agent_version VARCHAR(32) NOT NULL,
+    runtime_summary JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 12. Bảng Network Interfaces Inventory cho Node (Phase 14)
+CREATE TABLE IF NOT EXISTS node_network_interfaces (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    node_id UUID NOT NULL REFERENCES nodes(id) ON DELETE CASCADE,
+    interface_name VARCHAR(64) NOT NULL,
+    mac_address VARCHAR(32) NOT NULL,
+    mtu INT NOT NULL DEFAULT 1500,
+    operstate VARCHAR(32) NOT NULL DEFAULT 'unknown',
+    ipv4_addresses TEXT[] NOT NULL DEFAULT '{}',
+    ipv6_addresses TEXT[] NOT NULL DEFAULT '{}',
+    rx_bytes BIGINT NOT NULL DEFAULT 0,
+    tx_bytes BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_node_iface UNIQUE(node_id, interface_name)
+);
+
 -- Indexes tối ưu hiệu năng truy vấn
 CREATE INDEX IF NOT EXISTS idx_nodes_status ON nodes(status);
 CREATE INDEX IF NOT EXISTS idx_nodes_last_seen ON nodes(last_seen_at);
@@ -111,3 +143,4 @@ CREATE INDEX IF NOT EXISTS idx_policy_versions_policy ON policy_versions(policy_
 CREATE INDEX IF NOT EXISTS idx_audit_logs_created ON audit_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_enrollment_token_hash ON enrollment_tokens(token_hash);
 CREATE INDEX IF NOT EXISTS idx_agent_certs_node ON agent_certificates(node_id);
+CREATE INDEX IF NOT EXISTS idx_node_ifaces_node ON node_network_interfaces(node_id);

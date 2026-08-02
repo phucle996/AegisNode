@@ -1,10 +1,11 @@
 // PostgreSQL Repository Layer cho AegisNode Controller Server (`aegisnode server`)
-// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking và Quản lý mTLS Certificates
+// Phục vụ lưu trữ tập trung Multi-Node, chống Race Condition qua Optimistic Locking, mTLS Certificates & Node Inventories
 
 use std::time::Duration;
 
 use aegis_core::pki::AgentCertificateRecord;
 use aegis_core::{AegisError, Result};
+use aegis_models::inventory::NodeInventoryPayload;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgPoolOptions;
@@ -235,6 +236,82 @@ impl PgRepository {
         .execute(&self.pool)
         .await
         .map_err(|e| AegisError::Storage(format!("Failed to save agent certificate: {e}")))?;
+
+        Ok(())
+    }
+
+    /// Cập nhật hoặc chèn mới Node Inventory (System, Network & Runtime) vào PostgreSQL
+    pub async fn upsert_node_inventory(
+        &self,
+        node_id: Uuid,
+        payload: &NodeInventoryPayload,
+    ) -> Result<()> {
+        let runtime_json = serde_json::to_value(&payload.runtime).map_err(|e| {
+            AegisError::Storage(format!("Failed to serialize runtime inventory: {e}"))
+        })?;
+
+        sqlx::query(
+            r#"
+            INSERT INTO node_inventories (node_id, os_name, os_version, kernel_version, cpu_cores, total_memory_mb, free_memory_mb, uptime_seconds, machine_id, agent_version, runtime_summary, updated_at)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP)
+            ON CONFLICT (node_id) DO UPDATE SET
+                os_name = EXCLUDED.os_name,
+                os_version = EXCLUDED.os_version,
+                kernel_version = EXCLUDED.kernel_version,
+                cpu_cores = EXCLUDED.cpu_cores,
+                total_memory_mb = EXCLUDED.total_memory_mb,
+                free_memory_mb = EXCLUDED.free_memory_mb,
+                uptime_seconds = EXCLUDED.uptime_seconds,
+                machine_id = EXCLUDED.machine_id,
+                agent_version = EXCLUDED.agent_version,
+                runtime_summary = EXCLUDED.runtime_summary,
+                updated_at = CURRENT_TIMESTAMP
+            "#,
+        )
+        .bind(node_id)
+        .bind(&payload.system.os_name)
+        .bind(&payload.system.os_version)
+        .bind(&payload.system.kernel_version)
+        .bind(payload.system.cpu_cores as i32)
+        .bind(payload.system.total_memory_mb as i64)
+        .bind(payload.system.free_memory_mb as i64)
+        .bind(payload.system.uptime_seconds as i64)
+        .bind(&payload.system.machine_id)
+        .bind(&payload.system.agent_version)
+        .bind(runtime_json)
+        .execute(&self.pool)
+        .await
+        .map_err(|e| AegisError::Storage(format!("Failed to upsert node inventory: {e}")))?;
+
+        for iface in &payload.network_interfaces {
+            sqlx::query(
+                r#"
+                INSERT INTO node_network_interfaces (node_id, interface_name, mac_address, mtu, operstate, ipv4_addresses, ipv6_addresses, rx_bytes, tx_bytes, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
+                ON CONFLICT (node_id, interface_name) DO UPDATE SET
+                    mac_address = EXCLUDED.mac_address,
+                    mtu = EXCLUDED.mtu,
+                    operstate = EXCLUDED.operstate,
+                    ipv4_addresses = EXCLUDED.ipv4_addresses,
+                    ipv6_addresses = EXCLUDED.ipv6_addresses,
+                    rx_bytes = EXCLUDED.rx_bytes,
+                    tx_bytes = EXCLUDED.tx_bytes,
+                    updated_at = CURRENT_TIMESTAMP
+                "#,
+            )
+            .bind(node_id)
+            .bind(&iface.name)
+            .bind(&iface.mac_address)
+            .bind(iface.mtu as i32)
+            .bind(&iface.operstate)
+            .bind(&iface.ipv4_addresses)
+            .bind(&iface.ipv6_addresses)
+            .bind(iface.rx_bytes as i64)
+            .bind(iface.tx_bytes as i64)
+            .execute(&self.pool)
+            .await
+            .map_err(|e| AegisError::Storage(format!("Failed to upsert network interface: {e}")))?;
+        }
 
         Ok(())
     }

@@ -5,6 +5,7 @@ pub mod auth;
 pub mod controller_router;
 pub mod enrollment;
 pub mod handlers;
+pub mod inventory_router;
 pub mod router;
 pub mod state;
 
