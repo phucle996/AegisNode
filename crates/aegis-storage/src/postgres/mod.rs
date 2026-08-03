@@ -8,12 +8,14 @@ use sqlx::postgres::PgPoolOptions;
 use sqlx::{Pool, Postgres};
 
 pub mod enrollment;
+pub mod firewall;
 pub mod inventory;
 pub mod network;
 pub mod node;
 pub mod pki;
 pub mod rollout;
 
+pub use firewall::LiveFirewallRuleRecord;
 pub use node::NodeRecord;
 
 /// Controller PostgreSQL Repository Interface chính

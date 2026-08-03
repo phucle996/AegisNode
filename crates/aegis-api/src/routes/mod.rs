@@ -38,9 +38,9 @@ pub use enrollment::{
 };
 pub use firewall::{
     apply_policy_handler, confirm_policy_handler, get_audit_logs_handler,
-    get_docker_exposure_handler, get_policy_handler, get_status_handler,
-    prometheus_metrics_handler, rollback_policy_handler, set_router_forwarding_handler,
-    validate_policy_handler,
+    get_docker_exposure_handler, get_live_firewall_rules_handler, get_policy_handler,
+    get_status_handler, prometheus_metrics_handler, rollback_policy_handler,
+    set_router_forwarding_handler, sync_node_firewall_rules_handler, validate_policy_handler,
 };
 pub use health::{ha_status_handler, health_check_handler, readiness_check_handler};
 pub use inventory::{
