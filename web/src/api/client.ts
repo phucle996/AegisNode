@@ -103,6 +103,10 @@ export interface DockerContainer {
   name: string
   image: string
   state: string
+  // Chỉ số % CPU tiêu thụ thực tế đọc từ docker stats
+  cpuPerc?: string
+  // Chỉ số RAM tiêu thụ (Usage / Limit) thực tế đọc từ docker stats
+  memUsage?: string
   networks: string[]
   publishedPorts: PublishedPort[]
   labels: Record<string, string>

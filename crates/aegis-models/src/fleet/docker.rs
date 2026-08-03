@@ -15,6 +15,12 @@ pub struct DockerContainer {
     pub name: String,
     pub image: String,
     pub state: String,
+    // Bổ sung thuộc tính tỉ lệ tiêu thụ CPU (%) từ docker stats
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub cpu_perc: Option<String>,
+    // Bổ sung thuộc tính bộ nhớ RAM tiêu thụ (Usage / Limit) từ docker stats
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mem_usage: Option<String>,
     #[serde(default)]
     pub networks: Vec<String>,
     #[serde(default)]

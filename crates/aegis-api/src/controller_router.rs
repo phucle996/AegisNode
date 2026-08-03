@@ -144,7 +144,9 @@ pub fn create_controller_router(state: Arc<ControllerState>) -> Router {
         .route("/v1/rollouts/{id}/rollback", patch(rollback_rollout_handler))
         // Route đồng bộ và đọc danh sách luật Firewall thực tế từ OS Kernel
         .route("/v1/nodes/firewall/sync", post(sync_node_firewall_rules_handler))
-        .route("/v1/firewall/rules", get(get_live_firewall_rules_handler));
+        .route("/v1/firewall/rules", get(get_live_firewall_rules_handler))
+        // Route đọc danh sách phơi nhiễm Docker Exposure công khai
+        .route("/v1/docker/exposure", get(get_docker_exposure_handler));
 
     // 2. Routes yêu cầu Authentication & RBAC middleware kiểm tra quyền hạn (object:behavior)
     let protected_routes = Router::new()
