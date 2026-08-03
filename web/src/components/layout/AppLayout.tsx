@@ -20,7 +20,8 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 const NAV_ITEMS = [
   { to: '/', icon: LayoutDashboardIcon, label: 'Dashboard', end: true },
   { to: '/nodes', icon: ServerIcon, label: 'Nodes Management' },
-  { to: '/rollouts', icon: LayersIcon, label: 'Rollout Console' },
+  // Điều hướng tới Phân hệ Quản lý Change Plans và Rollout Console
+  { to: '/plans', icon: LayersIcon, label: 'Change Plans' },
   { to: '/firewall', icon: ShieldIcon, label: 'Firewall Rules' },
   { to: '/policy', icon: FileCodeIcon, label: 'Policy Editor' },
   { to: '/docker', icon: ContainerIcon, label: 'Docker' },
