@@ -356,6 +356,48 @@ async fn run_local_daemon(config_path: PathBuf) -> Result<()> {
 
     let app = create_router(app_state);
 
+    // 7. Background task đồng bộ bộ đếm gói tin Kernel nftables thực tế từ OS về Controller
+    tokio::spawn(async move {
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(3))
+            .build()
+            .unwrap_or_default();
+        let hostname = std::fs::read_to_string("/etc/hostname")
+            .map(|s| s.trim().to_string())
+            .unwrap_or_default();
+
+        info!("Agent telemetry loop started for hostname '{hostname}'...");
+
+        loop {
+            tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+            // Tìm node_id của chính máy tính này từ Controller REST API /v1/nodes
+            if let Ok(res) = client.get("http://192.168.122.109:8080/v1/nodes").send().await {
+                if let Ok(nodes) = res.json::<Vec<serde_json::Value>>().await {
+                    let matched_node = nodes.iter().find(|n| {
+                        n.get("hostname").and_then(|h| h.as_str()) == Some(&hostname)
+                    });
+
+                    if let Some(node) = matched_node {
+                        if let Some(node_id_str) = node.get("id").and_then(|i| i.as_str()) {
+                            if let Ok(node_id) = uuid::Uuid::parse_str(node_id_str) {
+                                // Thu thập dữ liệu đếm gói tin thực tế từ Kernel Linux OS qua nftables
+                                let payload = aegis_firewall::inventory_collector::collect_live_nftables_rules(node_id);
+                                let res_sync = client
+                                    .post("http://192.168.122.109:8080/v1/nodes/firewall/sync")
+                                    .json(&payload)
+                                    .send()
+                                    .await;
+                                if let Ok(resp) = res_sync {
+                                    tracing::debug!("Synced live kernel nftables rules to Controller: status={}", resp.status());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     // 6. Khởi chạy HTTP Server trên localhost
     if config.server.http.enabled {
         let bind_addr = config.server.http.bind.clone();

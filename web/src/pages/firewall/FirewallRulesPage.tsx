@@ -109,21 +109,6 @@ export default function FirewallRulesPage() {
   const outboundRules = rules.filter((r) => r.chain === 'OUTPUT' || r.chain === 'OUTBOUND')
   const forwardRules = rules.filter((r) => r.chain === 'FORWARD')
 
-  // Mẫu luật mặc định nếu CSDL vừa tạo chưa có bản ghi sync
-  const displayInbound = inboundRules.length > 0 ? inboundRules : [
-    { id: 'fw-in-1', nodeId: selectedNodeId || 'node-1', chain: 'INPUT', ruleId: 'rule-ssh', protocol: 'TCP', srcCidr: '0.0.0.0/0', dstCidr: 'any', portSpec: '22', action: 'ACCEPT', packets: 4520, bytes: 320400, updatedAt: new Date().toISOString() },
-    { id: 'fw-in-2', nodeId: selectedNodeId || 'node-1', chain: 'INPUT', ruleId: 'rule-http', protocol: 'TCP', srcCidr: '0.0.0.0/0', dstCidr: 'any', portSpec: '80,443,8080', action: 'ACCEPT', packets: 89120, bytes: 14205000, updatedAt: new Date().toISOString() },
-    { id: 'fw-in-3', nodeId: selectedNodeId || 'node-1', chain: 'INPUT', ruleId: 'rule-icmp', protocol: 'ICMP', srcCidr: '0.0.0.0/0', dstCidr: 'any', portSpec: 'any', action: 'ACCEPT', packets: 1204, bytes: 72100, updatedAt: new Date().toISOString() }
-  ]
-
-  const displayOutbound = outboundRules.length > 0 ? outboundRules : [
-    { id: 'fw-out-1', nodeId: selectedNodeId || 'node-1', chain: 'OUTPUT', ruleId: 'rule-out-all', protocol: 'ANY', srcCidr: 'any', dstCidr: '0.0.0.0/0', portSpec: 'any', action: 'ACCEPT', packets: 98120, bytes: 24500000, updatedAt: new Date().toISOString() }
-  ]
-
-  const displayForward = forwardRules.length > 0 ? forwardRules : [
-    { id: 'fw-fwd-1', nodeId: selectedNodeId || 'node-1', chain: 'FORWARD', ruleId: 'rule-fwd-docker', protocol: 'TCP', srcCidr: '172.17.0.0/16', dstCidr: '0.0.0.0/0', portSpec: 'any', action: 'ACCEPT', packets: 3410, bytes: 512000, updatedAt: new Date().toISOString() }
-  ]
-
   return (
     <div className="space-y-6">
       {/* Header & Chọn máy chủ Node */}
@@ -190,26 +175,26 @@ export default function FirewallRulesPage() {
               <TabsList>
                 <TabsTrigger value="inbound" className="gap-1.5">
                   <ArrowDownIcon className="h-3.5 w-3.5 text-cyan-400" />
-                  Inbound Rules ({displayInbound.length})
+                  Inbound Rules ({inboundRules.length})
                 </TabsTrigger>
                 <TabsTrigger value="outbound" className="gap-1.5">
                   <ArrowUpIcon className="h-3.5 w-3.5 text-emerald-400" />
-                  Outbound Rules ({displayOutbound.length})
+                  Outbound Rules ({outboundRules.length})
                 </TabsTrigger>
                 <TabsTrigger value="forward" className="gap-1.5">
                   <ArrowRightIcon className="h-3.5 w-3.5 text-amber-400" />
-                  Forwarding Rules ({displayForward.length})
+                  Forwarding Rules ({forwardRules.length})
                 </TabsTrigger>
               </TabsList>
             </div>
             <TabsContent value="inbound" className="mt-0">
-              <LiveRulesTable rules={displayInbound as any} />
+              <LiveRulesTable rules={inboundRules} />
             </TabsContent>
             <TabsContent value="outbound" className="mt-0">
-              <LiveRulesTable rules={displayOutbound as any} />
+              <LiveRulesTable rules={outboundRules} />
             </TabsContent>
             <TabsContent value="forward" className="mt-0">
-              <LiveRulesTable rules={displayForward as any} />
+              <LiveRulesTable rules={forwardRules} />
             </TabsContent>
           </Tabs>
         </CardContent>

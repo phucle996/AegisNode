@@ -43,10 +43,14 @@ use uuid::Uuid;
 #[serde(rename_all = "camelCase")]
 pub struct FirewallRuleSyncItem {
     pub chain: String,
+    #[serde(alias = "rule_id")]
     pub rule_id: String,
     pub protocol: String,
+    #[serde(alias = "src_cidr")]
     pub src_cidr: String,
+    #[serde(alias = "dst_cidr")]
     pub dst_cidr: String,
+    #[serde(alias = "port_spec")]
     pub port_spec: String,
     pub action: String,
     pub packets: i64,
@@ -56,12 +60,14 @@ pub struct FirewallRuleSyncItem {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FirewallSyncPayload {
+    #[serde(alias = "node_id")]
     pub node_id: Uuid,
     pub rules: Vec<FirewallRuleSyncItem>,
 }
 
 #[derive(Debug, Deserialize)]
 pub struct QueryNodeParams {
+    #[serde(alias = "nodeId")]
     pub node_id: Option<Uuid>,
 }
 
@@ -71,10 +77,16 @@ pub async fn sync_node_firewall_rules_handler(
     Json(payload): Json<FirewallSyncPayload>,
 ) -> Result<impl IntoResponse, StatusCode> {
     GLOBAL_METRICS.inc_http_requests();
-    // Ghi nhận toàn bộ các luật nftables thực tế gửi từ Linux Agent vào CSDL
+    tracing::info!(
+        "Ghi nhận {} luật nftables thực tế từ Linux Agent Node (node_id: {})",
+        payload.rules.len(),
+        payload.node_id
+    );
+
+    // Ghi nhận toàn bộ các luật nftables thực tế gửi từ Linux Agent vào CSDL PostgreSQL
     if let Some(repo) = &state.repository {
         for rule in &payload.rules {
-            let _ = repo
+            if let Err(e) = repo
                 .upsert_node_firewall_rule(
                     payload.node_id,
                     &rule.chain,
@@ -87,7 +99,10 @@ pub async fn sync_node_firewall_rules_handler(
                     rule.packets,
                     rule.bytes,
                 )
-                .await;
+                .await
+            {
+                tracing::warn!("Lỗi lưu luật firewall từ Node {}: {e}", payload.node_id);
+            }
         }
     }
     Ok(Json(serde_json::json!({
